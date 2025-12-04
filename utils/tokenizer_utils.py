@@ -21,25 +21,32 @@ MODEL_CATEGORIES = {
     "OpenAI": {
         "models": [
             ("GPT-2", "openai-community/gpt2"),
+            ("GPT-OSS-20B", "openai/gpt-oss-20b"),
+            ("gpt-3.5-turbo", "Xenova/gpt-3.5-turbo"),
         ],
     },
     "Meta": {
         "models": [
-            ("Llama 2 7B", "meta-llama/Llama-2-7b-hf"),
-            ("Llama 3 8B", "meta-llama/Meta-Llama-3-8B"),
-            ("Llama 3.1 8B", "meta-llama/Llama-3.1-8B"),
-            ("Llama 3.2 3B", "meta-llama/Llama-3.2-3B"),
+            ("Llama-2-7b", "meta-llama/Llama-2-7b"),
+            ("Llama-3.2-1B", "meta-llama/Llama-3.2-1B"),
+            ("Llama-4-Scout-17B-16E-Instruct", "meta-llama/Llama-4-Scout-17B-16E-Instruct"),
         ],
     },
     "Alibaba": {
         "models": [
             ("Qwen 2.5 7B", "Qwen/Qwen2.5-7B"),
-            ("Qwen 2.5 14B", "Qwen/Qwen2.5-14B"),
+            ("Qwen3-0.6B", "Qwen/Qwen3-0.6B"),
+            ("Qwen3-Next-80B-A3B-Instruct-GGUF", "Qwen/Qwen3-Next-80B-A3B-Instruct-GGUF"),
+            ("Qwen3-VL-2B-Thinking-FP8", "Qwen/Qwen3-VL-2B-Thinking-FP8"),
+            ("Qwen3-Omni-30B-A3B-Thinking", "Qwen/Qwen3-Omni-30B-A3B-Thinking"),
         ],
     },
     "DeepSeek": {
         "models": [
             ("DeepSeek V3", "deepseek-ai/DeepSeek-V3"),
+            ("DeepSeek V3.2", "deepseek-ai/DeepSeek-V3.2"),
+            ("DeepSeek-OCR", "deepseek-ai/DeepSeek-OCR"),
+            ("DeepSeek-R1", "deepseek-ai/DeepSeek-R1"),
         ],
     },
     "Google": {
