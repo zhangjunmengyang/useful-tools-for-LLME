@@ -101,7 +101,7 @@ def create_comparison_chart(stats_a: dict, stats_b: dict, model_a: str, model_b:
 def render_model_selector(label: str, key_prefix: str, default_category_idx: int = 0, default_model_idx: int = 0):
     """渲染两级联动模型选择器"""
     categories = list(MODEL_CATEGORIES.keys())
-    category_display = [f"{MODEL_CATEGORIES[cat]['icon']} {cat}" for cat in categories]
+    category_display = [cat for cat in categories]
     
     col_provider, col_model = st.columns([1, 1])
     

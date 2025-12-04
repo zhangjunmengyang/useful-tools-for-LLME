@@ -73,7 +73,7 @@ def render():
     st.markdown("#### 选择模型")
     
     categories = list(MODEL_CATEGORIES.keys())
-    category_display = [f"{MODEL_CATEGORIES[cat]['icon']} {cat}" for cat in categories]
+    category_display = [cat for cat in categories]
     
     col_provider, col_model = st.columns([1, 2])
     

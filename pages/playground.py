@@ -100,9 +100,9 @@ def render():
     # 两级联动模型选择
     st.markdown("#### 选择模型")
     
-    # 获取厂商列表（带图标）
+    # 获取厂商列表
     categories = list(MODEL_CATEGORIES.keys())
-    category_display = [f"{MODEL_CATEGORIES[cat]['icon']} {cat}" for cat in categories]
+    category_display = [cat for cat in categories]
     
     col_provider, col_model = st.columns([1, 2])
     
