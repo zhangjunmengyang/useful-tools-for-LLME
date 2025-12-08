@@ -1,23 +1,23 @@
 """
-TokenLab - LLM Tokenizer Visualization Workbench
+LLM Tools Workbench - LLM 工具集
 """
 
 import streamlit as st
 
 # 页面配置
 st.set_page_config(
-    page_title="TokenLab",
-    page_icon="T",
+    page_title="LLM Tools Workbench",
+    page_icon="🧪",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
         "Get Help": "https://github.com/tokenlab/tokenlab",
         "Report a bug": "https://github.com/tokenlab/tokenlab/issues",
-        "About": "TokenLab - LLM Tokenizer Workbench"
+        "About": "LLM Tools Workbench - 大模型学习与实验平台"
     }
 )
 
-from utils.styles import GLOBAL_CSS
+from shared.styles import GLOBAL_CSS
 
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
@@ -131,11 +131,32 @@ NAV_STRUCTURE = {
         "模型对比": "arena",
         "Chat Template": "chat_builder"
     },
-    # 后续扩展示例：
-    # "数据工具": {
-    #     "清洗": "cleaner",
-    #     "转换": "converter",
-    # }
+    "EmbeddingLab": {
+        "向量运算": "vector_arithmetic",
+        "模型对比": "embedding_comparison",
+        "向量可视化": "vector_visualization",
+        "语义相似度": "semantic_similarity"
+    },
+    "GenerationLab": {
+        "Logits 显微镜": "logits_inspector",
+        "Beam Search": "beam_visualizer",
+        "KV Cache": "kv_cache_sim"
+    },
+    "InterpretabilityLab": {
+        "Attention 热力图": "attention_map",
+        "RoPE 可视化": "rope_explorer",
+        "FFN 激活": "ffn_activation"
+    },
+    "DataLab": {
+        "Dataset 透视镜": "hf_dataset_viewer",
+        "数据清洗": "cleaner_playground",
+        "格式转换": "instruct_formatter"
+    },
+    "ModelLab": {
+        "显存估算": "memory_estimator",
+        "PEFT 计算器": "peft_calculator",
+        "Config 对比": "config_diff"
+    }
 }
 
 # 初始化
@@ -166,20 +187,74 @@ with st.sidebar:
                     st.session_state.current_group = group_name
                     st.rerun()
 
-# 获取当前模块
+# 获取当前模块（需要同时匹配 group 和 page）
 current_module = None
-for group_name, items in NAV_STRUCTURE.items():
-    if st.session_state.current_page in items:
-        current_module = items[st.session_state.current_page]
-        break
+current_group = st.session_state.current_group
+current_page = st.session_state.current_page
+if current_group in NAV_STRUCTURE and current_page in NAV_STRUCTURE[current_group]:
+    current_module = NAV_STRUCTURE[current_group][current_page]
 
 # 加载模块
+# TokenLab 模块
 if current_module == "playground":
-    from pages import playground
+    from token_lab import playground
     playground.render()
 elif current_module == "arena":
-    from pages import arena
+    from token_lab import arena
     arena.render()
 elif current_module == "chat_builder":
-    from pages import chat_builder
+    from token_lab import chat_builder
     chat_builder.render()
+# EmbeddingLab 模块
+elif current_module == "vector_arithmetic":
+    from embedding_lab import vector_arithmetic
+    vector_arithmetic.render()
+elif current_module == "embedding_comparison":
+    from embedding_lab import model_comparison
+    model_comparison.render()
+elif current_module == "vector_visualization":
+    from embedding_lab import vector_visualization
+    vector_visualization.render()
+elif current_module == "semantic_similarity":
+    from embedding_lab import semantic_similarity
+    semantic_similarity.render()
+# GenerationLab 模块
+elif current_module == "logits_inspector":
+    from generation_lab import logits_inspector
+    logits_inspector.render()
+elif current_module == "beam_visualizer":
+    from generation_lab import beam_visualizer
+    beam_visualizer.render()
+elif current_module == "kv_cache_sim":
+    from generation_lab import kv_cache_sim
+    kv_cache_sim.render()
+# InterpretabilityLab 模块
+elif current_module == "attention_map":
+    from interpretability_lab import attention_map
+    attention_map.render()
+elif current_module == "rope_explorer":
+    from interpretability_lab import rope_explorer
+    rope_explorer.render()
+elif current_module == "ffn_activation":
+    from interpretability_lab import ffn_activation
+    ffn_activation.render()
+# DataLab 模块
+elif current_module == "hf_dataset_viewer":
+    from data_lab import hf_dataset_viewer
+    hf_dataset_viewer.render()
+elif current_module == "cleaner_playground":
+    from data_lab import cleaner_playground
+    cleaner_playground.render()
+elif current_module == "instruct_formatter":
+    from data_lab import instruct_formatter
+    instruct_formatter.render()
+# ModelLab 模块
+elif current_module == "memory_estimator":
+    from model_lab import memory_estimator
+    memory_estimator.render()
+elif current_module == "peft_calculator":
+    from model_lab import peft_calculator
+    peft_calculator.render()
+elif current_module == "config_diff":
+    from model_lab import config_diff
+    config_diff.render()

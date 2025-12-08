@@ -1,28 +1,70 @@
-# TokenLab - LLM Tokenizer Visualization Workbench
-# Core Dependencies
+# LLM Tools Workbench - 依赖清单
 
+# ================================
 # Web Framework
+# ================================
 streamlit>=1.28.0
 
+# ================================
 # Transformers & Tokenizers
+# ================================
 transformers>=4.36.0
 tokenizers>=0.15.0
 huggingface-hub>=0.19.0
 
+# ================================
 # Data Processing
+# ================================
 pandas>=2.0.0
 numpy>=1.24.0
 
+# ================================
 # Visualization
+# ================================
 plotly>=5.18.0
+seaborn>=0.13.0
 
+# ================================
 # Caching & Performance
+# ================================
 diskcache>=5.6.0
 
+# ================================
 # Unicode & Text Processing
+# ================================
 unicodedata2>=15.1.0
 regex>=2023.10.3
+jieba>=0.42.0
 
+# ================================
 # Utilities
+# ================================
 requests>=2.31.0
 
+# ================================
+# EmbeddingLab Dependencies
+# ================================
+sentence-transformers>=2.2.0
+gensim>=4.3.0
+
+# ================================
+# Machine Learning & Dimensionality Reduction
+# ================================
+scikit-learn>=1.3.0
+umap-learn>=0.5.0
+scipy>=1.11.0
+
+# ================================
+# ModelLab Dependencies
+# ================================
+accelerate>=0.25.0
+
+# ================================
+# GenerationLab & InterpretabilityLab
+# ================================
+torch>=2.0.0
+
+# ================================
+# DataLab Dependencies
+# ================================
+datasets>=2.14.0
