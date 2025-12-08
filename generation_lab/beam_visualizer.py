@@ -269,7 +269,7 @@ def render_step_detail(step_data: Dict) -> None:
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("**✅ 保留的 Beam**")
+        st.markdown("**保留的 Beam**")
         for i, beam in enumerate(step_data['active_beams']):
             score_color = '#059669' if i == 0 else '#2563EB'
             st.markdown(f"""
@@ -283,7 +283,7 @@ def render_step_detail(step_data: Dict) -> None:
             """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("**❌ 被剪枝的候选**")
+        st.markdown("**被剪枝的候选**")
         if step_data['pruned']:
             for pruned in step_data['pruned'][:3]:
                 st.markdown(f"""
@@ -375,7 +375,7 @@ def render():
         st.markdown("## 搜索结果")
         
         # 最终序列
-        st.markdown("### 🏆 最终候选序列")
+        st.markdown("### 最终候选序列")
         
         for beam in history['final_beams']:
             rank_emoji = "🥇" if beam['rank'] == 1 else ("🥈" if beam['rank'] == 2 else "🥉")
@@ -393,53 +393,14 @@ def render():
             """, unsafe_allow_html=True)
         
         # 搜索树可视化
-        st.markdown("### 🌳 搜索树")
+        st.markdown("### 搜索树")
         fig = render_beam_tree(history)
         st.plotly_chart(fig, width='stretch')
         
         # 逐步详情
-        st.markdown("### 📋 逐步详情")
+        st.markdown("### 逐步详情")
         
         for step in history['steps']:
             with st.expander(f"Step {step['step'] + 1}", expanded=(step['step'] == 0)):
                 render_step_detail(step)
-        
-        # 原理说明
-        st.markdown("---")
-        st.markdown("### 📚 Beam Search 原理")
-        
-        col_a, col_b = st.columns(2)
-        
-        with col_a:
-            st.markdown("""
-            **算法流程**:
-            1. 初始化 K 个 beam（初始只有 prompt）
-            2. 对每个 beam，计算所有可能的下一个 token
-            3. 从 K × V 个候选中选择 top-K（按累积概率）
-            4. 重复直到达到最大长度或遇到 EOS
-            
-            **累积概率计算**:
-            ```
-            score(seq) = Σ log P(t_i | t_<i)
-            ```
-            使用 log 概率避免数值下溢。
-            """)
-        
-        with col_b:
-            st.markdown("""
-            **对比其他策略**:
-            
-            | 策略 | Beam Size | 特点 |
-            |------|-----------|------|
-            | Greedy | 1 | 快但易陷入局部最优 |
-            | Beam Search | K | 平衡质量与速度 |
-            | Exhaustive | ∞ | 最优但计算量爆炸 |
-            
-            **Length Penalty**:
-            实际应用中常加入长度惩罚：
-            ```
-            score = log_prob / length^α
-            ```
-            α > 1 偏好短序列，α < 1 偏好长序列
-            """)
 

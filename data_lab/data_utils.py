@@ -157,11 +157,11 @@ def validate_chat_format(text: str, format_type: str) -> Dict[str, Any]:
 PPL_MODELS = {
     "GPT-2 (Small)": {
         "id": "openai-community/gpt2",
-        "description": "117M 参数，适合本地快速计算"
+        "description": ""
     },
     "DistilGPT-2": {
         "id": "distilgpt2",
-        "description": "82M 参数，更轻量"
+        "description": ""
     }
 }
 

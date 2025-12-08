@@ -24,16 +24,12 @@ def render():
     
     # 介绍说明
     st.markdown("""
-    此工具帮助您计算在 **🤗 HuggingFace Hub** 上托管的模型进行推理和训练所需的 vRAM 大小。
+    <div class="tip-box">
+    计算在 🤗 HuggingFace Hub 上托管的模型进行推理和训练所需的 vRAM 大小。
+    </div>
+    """, unsafe_allow_html=True)
     
-    - **最小推理显存**: 即"最大层"大小，使用 `device_map="auto"` 时的最小显存需求
-    - **训练显存**: 使用 Adam 优化器训练时，峰值显存约为模型大小的 **4倍** (1x 模型 + 1x 梯度 + 2x 优化器状态)
-    - 推理时建议预留额外 **20%** 显存作为缓冲
-    
-    当前支持 `transformers` 和 `timm` 库的模型。
-    """)
-    
-    st.divider()
+    # st.divider()
     
     # 输入区域
     col_input, col_settings = st.columns([2, 1])
@@ -51,7 +47,6 @@ def render():
             "模型库",
             options=LIBRARY_OPTIONS,
             index=0,
-            help="选择 auto 会自动检测模型类型"
         )
     
     # 精度选择
@@ -62,7 +57,6 @@ def render():
             "选择精度类型",
             options=DTYPE_OPTIONS,
             default=["float32"],
-            help="可以同时选择多种精度进行对比"
         )
     
     with col_token:
@@ -70,11 +64,11 @@ def render():
             "API Token (可选)",
             type="password",
             placeholder="用于访问私有模型",
-            help="访问受限模型时需要提供 HuggingFace API Token"
+            help="HuggingFace API Token"
         )
     
     # 计算按钮
-    calculate_btn = st.button("📊 计算显存", type="primary", width="stretch")
+    calculate_btn = st.button("计算显存", type="primary", width="stretch")
     
     st.divider()
     
@@ -103,7 +97,7 @@ def render():
                 return
         
         # 显示结果标题
-        st.markdown(f"### 📈 模型 `{model_name}` 的显存需求")
+        st.markdown(f"### 模型 `{model_name}` 的显存需求")
         
         # 主要结果表格
         df_main = pd.DataFrame(data)
@@ -119,7 +113,7 @@ def render():
         training_stages_data = format_training_stages(stages, selected_dtypes)
         
         if training_stages_data:
-            with st.expander("📖 训练各阶段显存详情", expanded=False):
+            with st.expander("训练各阶段显存详情", expanded=False):
                 st.markdown("""
                 使用 batch size = 1 训练时，各阶段的预期显存占用:
                 
@@ -142,7 +136,7 @@ def render():
         
         # 使用建议
         st.markdown("---")
-        st.markdown("### 💡 使用建议")
+        st.markdown("### 使用建议")
         
         col_tips1, col_tips2 = st.columns(2)
         
@@ -163,7 +157,7 @@ def render():
             """)
         
         # 公式说明
-        with st.expander("📐 计算公式说明", expanded=False):
+        with st.expander("计算公式说明", expanded=False):
             st.markdown("""
             **显存估算公式:**
             

@@ -139,69 +139,17 @@ def render():
     
     st.markdown("""
     <div class="tip-box">
-    💡 <b>Feed-Forward Network (FFN/MLP)</b> 占据 Transformer 约 2/3 的参数量。
-    研究表明 FFN 层存储了大量的事实知识，且呈现出稀疏激活特性。
+    <b>Feed-Forward Network (FFN/MLP)</b> 占据 Transformer 约 2/3 的参数量，可能 FFN 层存储了大量的事实知识，呈现出稀疏激活特性。
     </div>
     """, unsafe_allow_html=True)
     
-    tab1, tab2, tab3 = st.tabs(["📊 激活函数", "🔬 激活分析", "🏗️ 架构对比"])
+    tab1, tab2, tab3 = st.tabs(["激活函数", "激活分析", "架构对比"])
     
     with tab1:
         st.markdown("### 常见激活函数对比")
         
         fig_curves = render_activation_curves()
         st.plotly_chart(fig_curves, width='stretch')
-        
-        st.markdown("""
-        #### 激活函数演进
-        
-        | 激活函数 | 公式 | 使用模型 | 特点 |
-        |----------|------|----------|------|
-        | **ReLU** | $\\max(0, x)$ | 早期 Transformer | 简单但有"死神经元"问题 |
-        | **GELU** | $x \\cdot \\Phi(x)$ | GPT-2/3, BERT | 平滑，概率解释 |
-        | **SiLU/Swish** | $x \\cdot \\sigma(x)$ | Llama | 平滑，自门控 |
-        | **SwiGLU** | $\\text{SiLU}(xW_1) \\odot xW_2$ | Llama-2/3 | 门控机制，效果最好 |
-        
-        其中 $\\Phi(x)$ 是标准正态分布的 CDF，$\\sigma(x)$ 是 Sigmoid 函数。
-        """)
-        
-        st.markdown("---")
-        st.markdown("### SwiGLU 详解")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("""
-            **SwiGLU 公式**:
-            
-            $$
-            \\text{FFN}_{\\text{SwiGLU}}(x) = (\\text{SiLU}(xW_1) \\odot xW_2) W_3
-            $$
-            
-            其中:
-            - $W_1, W_2 \\in \\mathbb{R}^{d \\times \\frac{8d}{3}}$: 上投影
-            - $W_3 \\in \\mathbb{R}^{\\frac{8d}{3} \\times d}$: 下投影
-            - $\\odot$: 逐元素乘法（门控）
-            
-            **参数量**:
-            - 标准 FFN: $2 \\times d \\times 4d = 8d^2$
-            - SwiGLU: $3 \\times d \\times \\frac{8d}{3} = 8d^2$
-            
-            参数量相同，但效果更好！
-            """)
-        
-        with col2:
-            st.markdown("""
-            **为什么 SwiGLU 更好？**
-            
-            1. **门控机制**: $W_1$ 路径产生激活，$W_2$ 路径产生门控信号，
-               模型可以学习"什么信息应该通过"
-            
-            2. **非线性更丰富**: 两个线性变换 + 门控乘法 = 更强的表达能力
-            
-            3. **稀疏激活**: 门控机制自然产生稀疏性，
-               部分神经元被"关闭"，有利于知识存储
-            """)
         
         # 可视化 SwiGLU 门控
         st.markdown("### SwiGLU 门控可视化")
@@ -343,46 +291,6 @@ def render():
         st.dataframe(pd.DataFrame(arch_data), hide_index=True, width="stretch")
         
         st.markdown("---")
-        st.markdown("### FFN 在 Transformer 中的作用")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("""
-            #### 结构对比
-            
-            **标准 FFN (GPT-2)**:
-            ```
-            FFN(x) = GELU(xW₁ + b₁)W₂ + b₂
-            
-            维度变化: d → 4d → d
-            ```
-            
-            **SwiGLU FFN (Llama)**:
-            ```
-            FFN(x) = (SiLU(xW₁) ⊙ xW₂)W₃
-            
-            维度变化: d → 8d/3 → d (无 bias)
-            ```
-            """)
-        
-        with col2:
-            st.markdown("""
-            #### FFN 存储了什么？
-            
-            研究表明 FFN 层是**知识存储**的主要位置：
-            
-            1. **事实知识**: "巴黎是法国的首都"
-            2. **语言规则**: 语法、搭配等
-            3. **模式匹配**: 常见的输入-输出映射
-            
-            **稀疏激活假说**：
-            - 每个输入只激活少量神经元
-            - 不同知识存储在不同的神经元子集中
-            - 这解释了为什么模型能存储大量知识
-            """)
-        
-        st.markdown("---")
         st.markdown("### 参数量分析")
         
         # 可视化不同组件的参数占比
@@ -399,11 +307,3 @@ def render():
         )
         
         st.plotly_chart(fig_params, width='stretch')
-        
-        st.markdown("""
-        **启示**：
-        - FFN 占据了大部分参数（~66%）
-        - 优化 FFN 是模型压缩的关键
-        - MoE (Mixture of Experts) 通过稀疏化 FFN 实现高效扩展
-        """)
-

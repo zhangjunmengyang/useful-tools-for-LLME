@@ -1,5 +1,5 @@
 """
-数据清洗工坊 - 测试清洗规则和 PPL 过滤
+数据清洗 - 测试清洗规则和 PPL 过滤
 """
 
 import streamlit as st
@@ -75,18 +75,40 @@ def render_ppl_histogram(ppl_values: list, threshold_max: float) -> go.Figure:
 
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">数据清洗工坊</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="module-title">数据清洗</h1>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="tip-box">
-    💡 测试正则表达式和清洗规则，使用 PPL (Perplexity) 过滤低质量文本。
+    测试正则表达式和清洗规则，使用 PPL (Perplexity) 过滤低质量文本。
     </div>
     """, unsafe_allow_html=True)
     
     # 创建 tabs
-    tab1, tab2 = st.tabs(["🧹 规则清洗", "📊 PPL 过滤"])
+    tab1, tab2 = st.tabs(["规则清洗", "PPL 过滤"])
     
     with tab1:
+        # 清洗规则选择 - 置顶
+        st.markdown("### 清洗规则")
+        
+        selected_rules = []
+        rule_cols = st.columns(3)
+        for idx, (rule_id, rule_info) in enumerate(CLEANING_RULES.items()):
+            with rule_cols[idx % 3]:
+                if st.checkbox(rule_info['name'], value=True, key=f"rule_{rule_id}"):
+                    selected_rules.append(rule_id)
+        
+        # Unicode 规范化和自定义正则
+        col_opt1, col_opt2, col_opt3 = st.columns([1, 1, 1])
+        with col_opt1:
+            unicode_form = st.selectbox("Unicode 规范化", ["无", "NFC", "NFD", "NFKC", "NFKD"])
+        with col_opt2:
+            custom_pattern = st.text_input("自定义正则 Pattern", placeholder=r"如 \d+")
+        with col_opt3:
+            custom_replacement = st.text_input("替换为", placeholder="替换文本")
+        
+        st.markdown("---")
+        
+        # 输入输出两列
         col_left, col_right = st.columns(2)
         
         with col_left:
@@ -102,71 +124,43 @@ def render():
                 key="dirty_input"
             )
         
-        # 清洗规则选择
-        st.markdown("### 清洗规则")
+        # 应用清洗（在列外计算，确保规则生效）
+        cleaned = dirty_text
         
-        selected_rules = []
-        cols = st.columns(3)
-        for idx, (rule_id, rule_info) in enumerate(CLEANING_RULES.items()):
-            with cols[idx % 3]:
-                if st.checkbox(rule_info['name'], value=True, key=f"rule_{rule_id}"):
-                    selected_rules.append(rule_id)
+        # 应用选中的规则
+        for rule_id in selected_rules:
+            rule = CLEANING_RULES[rule_id]
+            cleaned = re.sub(rule['pattern'], rule['replacement'], cleaned)
         
         # Unicode 规范化
-        unicode_form = st.selectbox("Unicode 规范化", ["无", "NFC", "NFD", "NFKC", "NFKD"])
+        if unicode_form != "无":
+            cleaned = normalize_unicode(cleaned, unicode_form)
         
         # 自定义正则
-        st.markdown("### 自定义正则")
-        custom_pattern = st.text_input("Pattern", placeholder=r"正则表达式，如 \d+")
-        custom_replacement = st.text_input("Replacement", placeholder="替换文本")
+        if custom_pattern:
+            try:
+                cleaned = re.sub(custom_pattern, custom_replacement, cleaned)
+            except re.error as e:
+                st.error(f"正则错误: {e}")
+        
+        cleaned = cleaned.strip()
         
         with col_right:
             st.markdown("### 输出 (清洗后)")
-            
-            # 应用清洗
-            cleaned = dirty_text
-            
-            # 应用选中的规则
-            for rule_id in selected_rules:
-                rule = CLEANING_RULES[rule_id]
-                cleaned = re.sub(rule['pattern'], rule['replacement'], cleaned)
-            
-            # Unicode 规范化
-            if unicode_form != "无":
-                cleaned = normalize_unicode(cleaned, unicode_form)
-            
-            # 自定义正则
-            if custom_pattern:
-                try:
-                    cleaned = re.sub(custom_pattern, custom_replacement, cleaned)
-                except re.error as e:
-                    st.error(f"正则错误: {e}")
-            
-            cleaned = cleaned.strip()
-            
-            st.text_area("清洗结果", value=cleaned, height=200, key="clean_output")
+            st.text_area("清洗结果", value=cleaned, height=200, disabled=True)
             
             # 统计
             st.markdown("### 统计")
-            col_a, col_b = st.columns(2)
-            with col_a:
+            stat_col1, stat_col2, stat_col3 = st.columns(3)
+            with stat_col1:
                 st.metric("原始长度", len(dirty_text))
-            with col_b:
+            with stat_col2:
                 st.metric("清洗后长度", len(cleaned))
-            
-            reduction = (1 - len(cleaned) / len(dirty_text)) * 100 if dirty_text else 0
-            st.metric("缩减比例", f"{reduction:.1f}%")
+            with stat_col3:
+                reduction = (1 - len(cleaned) / len(dirty_text)) * 100 if dirty_text else 0
+                st.metric("缩减比例", f"{reduction:.1f}%")
     
     with tab2:
-        st.markdown("### PPL (Perplexity) 过滤")
-        
-        st.markdown("""
-        **Perplexity (困惑度)** 衡量语言模型对文本的"意外程度"：
-        - **低 PPL** (< 100): 文本流畅，符合语言规律
-        - **中 PPL** (100-500): 文本可接受，可能有轻微问题
-        - **高 PPL** (> 500): 可能是噪音、乱码或低质量文本
-        """)
-        
         # 模型选择
         col1, col2 = st.columns([2, 1])
         
@@ -179,8 +173,6 @@ def render():
         
         with col2:
             model_info = PPL_MODELS[model_choice]
-            st.caption(f"📦 {model_info['description']}")
-        
         # 阈值设置
         col_a, col_b = st.columns(2)
         with col_a:
@@ -354,23 +346,3 @@ She went to the store to buy some groceries for dinner.""",
                         st.error("请确保已安装 `transformers` 和 `torch` 库")
                     except Exception as e:
                         st.error(f"计算失败: {str(e)}")
-        
-        # PPL 参考说明
-        st.markdown("---")
-        st.markdown("""
-        ### 📚 PPL 过滤参考
-        
-        | PPL 范围 | 质量评级 | 说明 | 建议 |
-        |---------|---------|------|------|
-        | < 50 | 🟢 优秀 | 非常流畅的文本 | 保留 |
-        | 50-100 | 🔵 良好 | 正常的自然语言 | 保留 |
-        | 100-300 | 🟡 一般 | 可能有轻微问题 | 检查 |
-        | 300-1000 | 🔴 较差 | 质量较低 | 考虑过滤 |
-        | > 1000 | 🟣 异常 | 可能是乱码/噪音 | 过滤 |
-        
-        **注意事项**:
-        - PPL 值受模型影响，不同模型计算结果可能不同
-        - 中文文本在英文模型上可能 PPL 偏高
-        - 非常短的文本 PPL 可能不准确
-        - 建议结合其他指标综合判断
-        """)

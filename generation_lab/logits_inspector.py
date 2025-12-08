@@ -1,5 +1,5 @@
 """
-Logits 显微镜 - 可视化 Next Token 预测
+Logits - 可视化 Next Token 预测
 展示 Logits、Temperature、Top-P/Top-K 采样策略
 """
 
@@ -168,14 +168,7 @@ def render_entropy_gauge(probs: torch.Tensor) -> go.Figure:
 
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">Logits 显微镜</h1>', unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="tip-box">
-    💡 <b>Logits 是什么？</b> 模型输出的原始分数，经过 Softmax 转换为概率分布。
-    Temperature、Top-K、Top-P 等参数控制如何从这个分布中采样。
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="module-title">Logits</h1>', unsafe_allow_html=True)
     
     # 模型选择
     col_model, col_status = st.columns([3, 1])
@@ -220,7 +213,7 @@ def render():
         token_candidates = get_next_token_logits(model, tokenizer, prompt, top_k=50)
     
     # 创建 tabs
-    tab1, tab2, tab3 = st.tabs(["📊 概率分布", "🌡️ Temperature 实验", "✂️ Top-K/Top-P 截断"])
+    tab1, tab2, tab3 = st.tabs(["概率分布", "Temperature 实验", "Top-K/Top-P 截断"])
     
     with tab1:
         st.markdown("### Next Token 候选词 Top-50")
@@ -259,14 +252,6 @@ def render():
             st.dataframe(df, width="stretch", hide_index=True)
     
     with tab2:
-        st.markdown("### Temperature 缩放效果")
-        
-        st.markdown("""
-        **Temperature** 控制输出的"创意程度"：
-        - **T < 1**: 分布更尖锐，偏向高概率 token（更确定、更保守）
-        - **T = 1**: 原始分布
-        - **T > 1**: 分布更扁平，增加低概率 token 的采样机会（更随机、更有创意）
-        """)
         
         # 温度滑块
         temperature = st.slider(

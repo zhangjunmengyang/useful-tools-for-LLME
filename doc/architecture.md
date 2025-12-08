@@ -29,20 +29,20 @@
 ├── generation_lab/            # GenerationLab 模块 (推理解码)
 │   ├── __init__.py
 │   ├── generation_utils.py    # 核心工具函数
-│   ├── logits_inspector.py    # 页面: Logits 显微镜
+│   ├── logits_inspector.py    # 页面: Logits
 │   ├── beam_visualizer.py     # 页面: Beam Search 可视化
 │   └── kv_cache_sim.py        # 页面: KV Cache 模拟器
 ├── interpretability_lab/      # InterpretabilityLab 模块 (可解释性)
 │   ├── __init__.py
 │   ├── interpretability_utils.py # 核心工具函数
-│   ├── attention_map.py       # 页面: Attention 热力图
+│   ├── attention_map.py       # 页面: Attention
 │   ├── rope_explorer.py       # 页面: RoPE 可视化
 │   └── ffn_activation.py      # 页面: FFN 激活探测
 ├── data_lab/                  # DataLab 模块 (数据工程)
 │   ├── __init__.py
 │   ├── data_utils.py          # 核心工具函数
-│   ├── hf_dataset_viewer.py   # 页面: Dataset 透视镜
-│   ├── cleaner_playground.py  # 页面: 数据清洗工坊
+│   ├── hf_dataset_viewer.py   # 页面: Dataset Viewer
+│   ├── cleaner_playground.py  # 页面: 数据清洗
 │   └── instruct_formatter.py  # 页面: 格式化转换器
 ├── model_lab/                 # ModelLab 模块 (模型相关)
 │   ├── __init__.py
@@ -81,17 +81,17 @@ NAV_STRUCTURE = {
         "语义相似度": "semantic_similarity"
     },
     "GenerationLab": {
-        "Logits 显微镜": "logits_inspector",
+        "Logits": "logits_inspector",
         "Beam Search": "beam_visualizer",
         "KV Cache": "kv_cache_sim"
     },
     "InterpretabilityLab": {
-        "Attention 热力图": "attention_map",
+        "Attention": "attention_map",
         "RoPE 可视化": "rope_explorer",
         "FFN 激活": "ffn_activation"
     },
     "DataLab": {
-        "Dataset 透视镜": "hf_dataset_viewer",
+        "Dataset Viewer": "hf_dataset_viewer",
         "数据清洗": "cleaner_playground",
         "格式转换": "instruct_formatter"
     },
@@ -182,7 +182,7 @@ if current_module == "logits_inspector":
 
 | 页面 | 功能 |
 |------|------|
-| `attention_map.py` | Attention 热力图、Causal Mask 演示 |
+| `attention_map.py` | Attention、Causal Mask 演示 |
 | `rope_explorer.py` | RoPE 旋转可视化、衰减特性 |
 | `ffn_activation.py` | FFN 激活分析、激活函数对比 |
 
@@ -306,14 +306,3 @@ def compute_embeddings(texts: tuple):
 3. 创建 `xxx_utils.py` (核心工具)
 4. 创建页面文件
 5. 在 `app.py` 的 `NAV_STRUCTURE` 添加新分组
-
----
-
-## 附录: 版本历史
-
-| 版本 | 日期 | 变更 |
-|------|------|------|
-| 3.1 | 2024-12 | 完善文档、补充缺失函数说明、增强 Dataset 透视镜、添加 PPL 过滤 |
-| 3.0 | 2024-12 | 新增 GenerationLab、InterpretabilityLab、DataLab，扩展 ModelLab |
-| 2.0 | 2024-12 | 重构项目结构，模块化设计 |
-| 1.0 | 2024-12 | 初始版本 |

@@ -138,17 +138,17 @@ NAV_STRUCTURE = {
         "语义相似度": "semantic_similarity"
     },
     "GenerationLab": {
-        "Logits 显微镜": "logits_inspector",
+        "Logits": "logits_inspector",
         "Beam Search": "beam_visualizer",
         "KV Cache": "kv_cache_sim"
     },
     "InterpretabilityLab": {
-        "Attention 热力图": "attention_map",
+        "Attention": "attention_map",
         "RoPE 可视化": "rope_explorer",
         "FFN 激活": "ffn_activation"
     },
     "DataLab": {
-        "Dataset 透视镜": "hf_dataset_viewer",
+        "Dataset Viewer": "hf_dataset_viewer",
         "数据清洗": "cleaner_playground",
         "格式转换": "instruct_formatter"
     },

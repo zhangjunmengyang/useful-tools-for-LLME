@@ -1,5 +1,5 @@
 """
-Attention 热力图 - 可视化注意力权重
+Attention - 可视化注意力权重
 """
 
 import streamlit as st
@@ -145,12 +145,11 @@ def render_token_attention_flow(
 
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">Attention 热力图</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="module-title">Attention</h1>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="tip-box">
-    💡 <b>Self-Attention</b> 是 Transformer 的核心机制。通过可视化注意力权重，
-    可以理解模型如何关联输入中的不同 token（如指代消解、语法依赖等）。
+    可视化注意力权重。
     </div>
     """, unsafe_allow_html=True)
     
@@ -214,7 +213,7 @@ def render():
         attention_display = attention_weights
     
     # Tab 切换
-    tab1, tab2, tab3 = st.tabs(["🔥 热力图", "🔍 Token 分析", "📊 模式分析"])
+    tab1, tab2, tab3 = st.tabs(["热力图", "Token 分析", "模式分析"])
     
     with tab1:
         col_layer, col_head = st.columns(2)
