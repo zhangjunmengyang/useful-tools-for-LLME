@@ -234,16 +234,6 @@ def render():
     """渲染 Lab 3: 向量可视化 页面"""
     st.markdown('<h1 class="module-title">向量可视化</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #E9D5FF 0%, #DBEAFE 100%); 
-                border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #C4B5FD;">
-        <p style="color: #5B21B6; margin: 0; font-size: 14px;">
-            <strong>🌌 向量宇宙</strong>：将高维向量投影到 2D/3D 空间，直观观察语义聚类。<br/>
-            切换不同降维算法，感受 PCA 与 t-SNE/UMAP 的差异。
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     st.markdown("---")
     
     # 数据集选择
@@ -289,7 +279,7 @@ def render():
         texts = [item['text'] for item in dataset['data']]
         labels = [item['label'] for item in dataset['data']]
         
-        st.info(f"📊 {dataset['description']}，共 {len(texts)} 条数据")
+        st.caption(f"{dataset['description']}，共 {len(texts)} 条数据")
     
     if len(texts) < 3:
         st.warning("至少需要 3 条数据")
@@ -331,9 +321,9 @@ def render():
     # 计算并可视化
     # 显示算法对数据量的要求
     min_samples_info = f"PCA: ≥{MIN_SAMPLES['pca']} 个 | t-SNE: ≥{MIN_SAMPLES['tsne']} 个 | UMAP: ≥{MIN_SAMPLES['umap']} 个"
-    st.caption(f"📊 算法最小数据量要求：{min_samples_info}")
+    st.caption(f"算法最小数据量要求：{min_samples_info}")
     
-    if st.button("🚀 生成可视化", type="primary", width="stretch"):
+    if st.button("生成可视化", type="primary", width="stretch"):
         with st.spinner("计算 Embeddings..."):
             embeddings = get_batch_embeddings(texts, selected_model)
         
@@ -356,7 +346,7 @@ def render():
             st.session_state.viz_dims_used = n_dims
             
         except DimensionReductionError as e:
-            st.error(f"⚠️ 降维失败：{str(e)}")
+            st.error(f"降维失败：{str(e)}")
             # 清除之前的可视化结果
             if 'viz_coords' in st.session_state:
                 del st.session_state.viz_coords
@@ -400,7 +390,7 @@ def render():
         
         # OOD 检测
         st.markdown("---")
-        st.markdown("### 🔍 OOD 检测 (Out-of-Distribution)")
+        st.markdown("### OOD 检测 (Out-of-Distribution)")
         
         ood_input = st.text_input(
             "输入一个新句子，检测是否为分布外数据",
@@ -430,33 +420,17 @@ def render():
                     
                     # 显示 OOD 分析结果
                     if is_ood:
-                        st.markdown(f"""
-                        <div style="background: #FEE2E2; border: 1px solid #FECACA; border-radius: 8px; padding: 16px;">
-                            <p style="color: #DC2626; margin: 0;">
-                                <strong>⚠️ 检测到 OOD 异常点！</strong><br/>
-                                该文本与数据集中所有文本的语义相似度都较低。<br/>
-                                <small>最高相似度: {max_sim:.4f} | 平均相似度: {avg_sim:.4f}</small>
-                            </p>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        st.warning(f"检测到 OOD 异常点，最高相似度: {max_sim:.4f}")
                     else:
-                        st.markdown(f"""
-                        <div style="background: #D1FAE5; border: 1px solid #A7F3D0; border-radius: 8px; padding: 16px;">
-                            <p style="color: #059669; margin: 0;">
-                                <strong>✅ 在分布内</strong><br/>
-                                该文本与数据集中的某些文本语义相近。<br/>
-                                <small>最高相似度: {max_sim:.4f} | 平均相似度: {avg_sim:.4f}</small>
-                            </p>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        st.info(f"在分布内，最高相似度: {max_sim:.4f}")
         
         # 显示最终图表
         st.plotly_chart(fig, width="stretch")
         
-        st.caption("💡 提示：拖动旋转 3D 视图，滚轮缩放，点击图例可隐藏/显示类别")
+        st.caption("提示：拖动旋转 3D 视图，滚轮缩放，点击图例可隐藏/显示类别")
         
         # 数据表格
-        with st.expander("📋 数据详情"):
+        with st.expander("数据详情"):
             import pandas as pd
             df = pd.DataFrame({
                 "文本": texts_viz,
@@ -469,7 +443,7 @@ def render():
             st.dataframe(df, width="stretch", hide_index=True)
         
         # 降维算法对比说明
-        with st.expander("📚 降维算法对比"):
+        with st.expander("降维算法对比"):
             st.markdown("""
             | 算法 | 类型 | 保持结构 | 计算复杂度 | 适用场景 |
             |------|------|---------|-----------|---------|

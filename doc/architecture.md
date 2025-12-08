@@ -36,7 +36,7 @@
 │   ├── __init__.py
 │   ├── interpretability_utils.py # 核心工具函数
 │   ├── attention_map.py       # 页面: Attention
-│   ├── rope_explorer.py       # 页面: RoPE 可视化
+│   ├── rope_explorer.py       # 页面: RoPE
 │   └── ffn_activation.py      # 页面: FFN 激活探测
 ├── data_lab/                  # DataLab 模块 (数据工程)
 │   ├── __init__.py
@@ -87,8 +87,8 @@ NAV_STRUCTURE = {
     },
     "InterpretabilityLab": {
         "Attention": "attention_map",
-        "RoPE 可视化": "rope_explorer",
-        "FFN 激活": "ffn_activation"
+        "RoPE": "rope_explorer",
+        "FFN": "ffn_activation"
     },
     "DataLab": {
         "Dataset Viewer": "hf_dataset_viewer",

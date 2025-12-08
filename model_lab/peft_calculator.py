@@ -175,11 +175,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">PEFT 参数计算器</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    计算 LoRA/QLoRA 的可训练参数量，评估微调成本。支持从 HuggingFace Hub 实时读取模型配置。
-    </div>
-    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 2])
     

@@ -11,11 +11,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">格式化转换器</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    转换 SFT 数据格式，支持 Alpaca、ShareGPT、ChatML、Llama-2 等主流格式。
-    </div>
-    """, unsafe_allow_html=True)
     
     col_left, col_right = st.columns(2)
     
@@ -35,7 +30,6 @@ def render():
         # 解析 JSON
         try:
             data = json.loads(input_json)
-            st.success("✅ JSON 格式正确")
         except json.JSONDecodeError as e:
             st.error(f"JSON 格式错误: {e}")
             data = None
@@ -61,10 +55,8 @@ def render():
             
             # 格式验证
             validation = validate_chat_format(converted, target_format)
-            if validation['valid']:
-                st.success("✅ 格式验证通过")
-            else:
-                st.warning("⚠️ 格式问题:")
+            if not validation['valid']:
+                st.warning("格式问题:")
                 for issue in validation['issues']:
                     st.caption(f"- {issue}")    
 

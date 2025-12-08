@@ -301,12 +301,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">Beam Search 可视化</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    💡 <b>Beam Search</b> 是一种启发式搜索算法，在每一步保留 K 个最优候选序列（beam），
-    平衡搜索质量与计算开销。与贪心搜索（只保留 1 个）相比，能找到更优的全局解。
-    </div>
-    """, unsafe_allow_html=True)
     
     # 模型选择
     model_choice = st.selectbox(
@@ -323,8 +317,6 @@ def render():
     if model is None:
         st.error("模型加载失败")
         return
-    
-    st.success(f"✅ 模型已加载")
     
     st.markdown("---")
     
@@ -378,11 +370,9 @@ def render():
         st.markdown("### 最终候选序列")
         
         for beam in history['final_beams']:
-            rank_emoji = "🥇" if beam['rank'] == 1 else ("🥈" if beam['rank'] == 2 else "🥉")
             st.markdown(f"""
             <div style="background: linear-gradient(90deg, #DBEAFE, #F3F4F6); 
                         padding: 15px; border-radius: 8px; margin: 10px 0;">
-                <span style="font-size: 20px;">{rank_emoji}</span>
                 <b>Rank {beam['rank']}</b><br>
                 <span style="font-family: monospace; font-size: 16px;">
                     {prompt}<b style="color: #2563EB;">{beam['sequence']}</b>

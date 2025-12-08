@@ -1,5 +1,5 @@
 """
-FFN 激活探测 - 分析 Feed-Forward 层的激活情况
+FFN - 分析 Feed-Forward 层的激活情况
 """
 
 import streamlit as st
@@ -137,11 +137,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">FFN 激活探测</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    <b>Feed-Forward Network (FFN/MLP)</b> 占据 Transformer 约 2/3 的参数量，可能 FFN 层存储了大量的事实知识，呈现出稀疏激活特性。
-    </div>
-    """, unsafe_allow_html=True)
     
     tab1, tab2, tab3 = st.tabs(["激活函数", "激活分析", "架构对比"])
     
@@ -190,8 +185,6 @@ def render():
         if model is None:
             st.error("模型加载失败")
             return
-        
-        st.success(f"✅ 模型已加载")
         
         # 输入文本
         col_code, col_text = st.columns(2)

@@ -346,6 +346,7 @@ GLOBAL_CSS = """
     .stTabs [data-baseweb="tab-list"] {
         border-bottom: 1px solid var(--color-border-light);
         gap: 0;
+        justify-content: flex-start !important;
     }
     
     .stTabs [data-baseweb="tab"] {

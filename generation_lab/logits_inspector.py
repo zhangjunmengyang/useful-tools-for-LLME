@@ -182,7 +182,7 @@ def render():
     model_info = DEMO_MODELS[model_choice]
     
     with col_status:
-        st.caption(f"📦 {model_info['description']}")
+        st.caption(model_info['description'])
     
     # 加载模型
     with st.spinner(f"加载 {model_choice}..."):
@@ -191,8 +191,6 @@ def render():
     if model is None or tokenizer is None:
         st.error("模型加载失败，请检查网络连接或选择其他模型")
         return
-    
-    st.success(f"✅ 模型已加载: {model_info['id']}")
     
     st.markdown("---")
     
@@ -306,22 +304,6 @@ def render():
         temps = [0.3, 0.7, 1.0, 1.5, 2.0]
         fig_compare = render_temperature_comparison(logits, temps, tokenizer, top_k=8)
         st.plotly_chart(fig_compare, width='stretch')
-        
-        # 熵值展示
-        st.markdown("### 分布熵")
-        col_a, col_b = st.columns([1, 2])
-        with col_a:
-            fig_entropy = render_entropy_gauge(scaled_probs)
-            st.plotly_chart(fig_entropy, width='stretch')
-        with col_b:
-            st.markdown("""
-            **熵值解读**：
-            - 🟢 **低熵** (绿色区): 模型非常确定，概率集中在少数 token
-            - 🟡 **中熵** (黄色区): 模型有一定不确定性
-            - 🔴 **高熵** (红色区): 模型非常不确定，概率分散
-            
-            高温度会增加熵值，使分布更均匀；低温度则降低熵值，使分布更集中。
-            """)
     
     with tab3:
         st.markdown("### Top-K / Top-P 采样截断")

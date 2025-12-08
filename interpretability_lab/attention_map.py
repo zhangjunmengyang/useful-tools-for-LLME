@@ -147,11 +147,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">Attention</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    可视化注意力权重。
-    </div>
-    """, unsafe_allow_html=True)
     
     # 模型选择
     model_choice = st.selectbox(
@@ -167,8 +162,6 @@ def render():
     if model is None:
         st.error("模型加载失败")
         return
-    
-    st.success(f"✅ 模型已加载 ({model_info['layers']} 层, {model_info['heads']} 头)")
     
     st.markdown("---")
     
@@ -296,14 +289,6 @@ def render():
         fig = render_token_attention_flow(attention_display, tokens, selected_idx)
         st.plotly_chart(fig, width='stretch')
         
-        # 指代消解示例
-        if "it" in text.lower() and any(word in text.lower() for word in ["animal", "street", "he", "she"]):
-            st.markdown("""
-            <div class="warning-box">
-            💡 <b>指代消解</b>: 选择 "it" 或代词，观察模型主要关注哪个名词。
-            注意力权重高的 token 可能就是代词的指代对象。
-            </div>
-            """, unsafe_allow_html=True)
         
         # 各层注意力变化
         st.markdown("### 各层对选中 Token 的注意力")

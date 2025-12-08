@@ -100,31 +100,12 @@ def render_score_table(candidates: List[str], scores_dict: Dict[str, List[float]
 
 def render_token_attention_hint():
     """渲染 Token 级别的注意力提示"""
-    st.markdown("""
-    <div style="background: #DBEAFE; border: 1px solid #93C5FD; border-radius: 6px; 
-                padding: 12px; margin-top: 16px;">
-        <p style="color: #1E40AF; margin: 0; font-size: 13px;">
-            <strong>🔍 深入理解</strong><br/>
-            Dense 模型（如 BERT）使用 Attention 机制捕捉上下文语义。<br/>
-            Sparse 模型（如 TF-IDF）仅基于词频统计，无法理解同义词和上下文。
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    pass
 
 
 def render():
     """渲染 Lab 2: 模型对比 页面"""
     st.markdown('<h1 class="module-title">模型对比</h1>', unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #D1FAE5 0%, #DBEAFE 100%); 
-                border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #A7F3D0;">
-        <p style="color: #065F46; margin: 0; font-size: 14px;">
-            <strong>🔬 实验目标</strong>：对比词法匹配（TF-IDF/BM25）与语义匹配（Dense Embedding）的差异。<br/>
-            观察不同模型对同一 Query 的相似度排序有何不同。
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -164,7 +145,7 @@ def render():
     
     with col_candidates:
         st.markdown("#### Candidates")
-        default_candidates = "水果\n手机\n乔布斯\n红色的球\n苹果发布新产品\n我喜欢吃苹果"
+        default_candidates = "水果\n手机\n乔布斯\n红色的球\n苹果公司发布新产品\n我喜欢吃苹果"
         candidates_text = st.text_area(
             "候选文本（每行一个）",
             value=default_candidates,
@@ -176,10 +157,10 @@ def render():
     # 预设案例
     st.markdown("#### 预设案例")
     presets = [
-        ("🍎 苹果歧义", "苹果", "水果\n手机\n乔布斯\n红色的球\n苹果发布新产品\n我喜欢吃苹果"),
-        ("🏦 银行歧义", "银行", "金融机构\n河边\n存款取款\n银行卡\n河岸风景"),
-        ("🚗 特斯拉", "特斯拉", "电动汽车\n科学家\n马斯克\n电磁感应\nModel 3"),
-        ("🔍 语义搜索", "如何学习编程", "编程入门教程\n学习Python\n代码怎么写\n程序员成长\n软件开发"),
+        ("苹果歧义", "苹果", "水果\n手机\n乔布斯\n红色的球\n苹果发布新产品\n我喜欢吃苹果"),
+        ("银行歧义", "银行", "金融机构\n河边\n存款取款\n银行卡\n河岸风景"),
+        ("特斯拉", "特斯拉", "电动汽车\n科学家\n马斯克\n电磁感应\nModel 3"),
+        ("语义搜索", "如何学习编程", "编程入门教程\n学习Python\n代码怎么写\n程序员成长\n软件开发"),
     ]
     
     def set_comparison_preset(q: str, c: str):
@@ -266,21 +247,10 @@ def render():
                         score = scores[idx]
                         text = candidates[idx][:20] + ('...' if len(candidates[idx]) > 20 else '')
                         
-                        # 高亮前三名
-                        if rank == 1:
-                            badge = '🥇'
-                            st.success(f"{badge} {text} — {score:.3f}")
-                        elif rank == 2:
-                            badge = '🥈'
-                            st.info(f"{badge} {text} — {score:.3f}")
-                        elif rank == 3:
-                            badge = '🥉'
-                            st.warning(f"{badge} {text} — {score:.3f}")
-                        else:
-                            st.text(f"{rank}. {text} — {score:.3f}")
+                        st.text(f"{rank}. {text} — {score:.3f}")
         
         # 洞察分析
-        st.markdown("### 💡 洞察")
+        st.markdown("### 洞察")
         
         # 找出差异最大的案例
         if len(scores_dict) >= 2:
@@ -306,10 +276,8 @@ def render():
 _这说明不同模型对语义的理解存在显著差异。_
 """)
         
-        render_token_attention_hint()
-        
         # 模型特点说明
-        with st.expander("📚 模型特点说明"):
+        with st.expander("模型特点说明"):
             st.markdown("""
             | 模型类型 | 代表 | 特点 | 适用场景 |
             |---------|------|------|---------|

@@ -22,12 +22,6 @@ def render():
     
     st.markdown('<h1 class="module-title">显存估算</h1>', unsafe_allow_html=True)
     
-    # 介绍说明
-    st.markdown("""
-    <div class="tip-box">
-    计算在 🤗 HuggingFace Hub 上托管的模型进行推理和训练所需的 vRAM 大小。
-    </div>
-    """, unsafe_allow_html=True)
     
     # st.divider()
     

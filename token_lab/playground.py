@@ -142,7 +142,7 @@ def render():
     
     # 显示选中的模型 ID
     if model_name:
-        st.caption(f"📦 Tokenizer: `{model_name}`")
+        st.caption(f"Tokenizer: `{model_name}`")
     
     tokenizer = load_tokenizer(model_name) if model_name else None
     

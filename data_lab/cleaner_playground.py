@@ -77,11 +77,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">数据清洗</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    测试正则表达式和清洗规则，使用 PPL (Perplexity) 过滤低质量文本。
-    </div>
-    """, unsafe_allow_html=True)
     
     # 创建 tabs
     tab1, tab2 = st.tabs(["规则清洗", "PPL 过滤"])
@@ -240,9 +235,9 @@ def render():
                         
                         # 阈值判断
                         if min_ppl <= ppl <= max_ppl:
-                            st.success(f"✅ 通过过滤 (PPL 在 {min_ppl} - {max_ppl} 范围内)")
+                            st.info(f"通过过滤 (PPL 在 {min_ppl} - {max_ppl} 范围内)")
                         else:
-                            st.error(f"❌ 被过滤 (PPL 超出 {min_ppl} - {max_ppl} 范围)")
+                            st.warning(f"被过滤 (PPL 超出 {min_ppl} - {max_ppl} 范围)")
                         
                         # 详细信息
                         with st.expander("详细信息"):
@@ -301,7 +296,7 @@ She went to the store to buy some groceries for dinner.""",
                                 "文本": text[:50] + "..." if len(text) > 50 else text,
                                 "PPL": ppl,
                                 "评级": label,
-                                "通过": "✅" if accepted else "❌",
+                                "通过": "Yes" if accepted else "No",
                                 "长度": len(text)
                             })
                             
@@ -311,7 +306,7 @@ She went to the store to buy some groceries for dinner.""",
                         
                         # 统计
                         ppl_values = [r["PPL"] for r in results]
-                        accepted_count = sum(1 for r in results if r["通过"] == "✅")
+                        accepted_count = sum(1 for r in results if r["通过"] == "Yes")
                         
                         col1, col2, col3, col4 = st.columns(4)
                         with col1:
@@ -336,9 +331,9 @@ She went to the store to buy some groceries for dinner.""",
                         st.dataframe(df, width='stretch', hide_index=True)
                         
                         # 显示被过滤的文本
-                        rejected = [r for r in results if r["通过"] == "❌"]
+                        rejected = [r for r in results if r["通过"] == "No"]
                         if rejected:
-                            with st.expander(f"⚠️ 被过滤的文本 ({len(rejected)} 条)"):
+                            with st.expander(f"被过滤的文本 ({len(rejected)} 条)"):
                                 for r in rejected:
                                     st.markdown(f"- **PPL={r['PPL']:.1f}** ({r['评级']}): {r['文本']}")
                     

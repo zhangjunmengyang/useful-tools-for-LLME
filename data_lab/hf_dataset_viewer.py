@@ -499,11 +499,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">Dataset Viewer</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    流式预览 HuggingFace Dataset，快速分析数据分布和质量。
-    </div>
-    """, unsafe_allow_html=True)
     
     # 数据集配置
     st.markdown("### 数据集配置")
@@ -591,7 +586,6 @@ def render():
                 st.error("未能加载任何样本")
                 return
             
-            st.success(f"✅ 成功加载 {len(samples)} 条样本")
             
             # 保存到 session_state
             st.session_state['dataset_samples'] = samples
@@ -796,4 +790,4 @@ def render():
                 hide_index=True
             )
         else:
-            st.success("✅ 未发现明显的数据质量问题")
+            st.info("未发现明显的数据质量问题")

@@ -120,8 +120,7 @@ def reduce_dimensions(vectors: np.ndarray, method: str = "pca", n_components: in
     elif method == "tsne":
         if n_samples < 6:
             raise DimensionReductionError(
-                f"t-SNE 至少需要 6 个数据点（perplexity 参数要求），当前只有 {n_samples} 个。\n"
-                f"💡 建议：添加更多数据点，或使用 PCA 算法"
+                f"t-SNE 至少需要 6 个数据点（perplexity 参数要求），当前只有 {n_samples} 个，建议添加更多数据点或使用 PCA 算法"
             )
         from sklearn.manifold import TSNE
         # perplexity 必须 < n_samples
@@ -131,8 +130,7 @@ def reduce_dimensions(vectors: np.ndarray, method: str = "pca", n_components: in
     elif method == "umap":
         if n_samples < 15:
             raise DimensionReductionError(
-                f"UMAP 至少需要 15 个数据点（n_neighbors 参数要求），当前只有 {n_samples} 个。\n"
-                f"💡 建议：添加更多数据点，或使用 PCA/t-SNE 算法"
+                f"UMAP 至少需要 15 个数据点（n_neighbors 参数要求），当前只有 {n_samples} 个，建议添加更多数据点或使用 PCA/t-SNE 算法"
             )
         import umap
         n_neighbors = min(15, n_samples - 1)

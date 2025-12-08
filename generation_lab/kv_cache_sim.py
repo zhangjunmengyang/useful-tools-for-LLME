@@ -181,14 +181,7 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">KV Cache 模拟器</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    💡 <b>KV Cache</b> 是 Transformer 推理加速的关键技术。在自回归生成中，
-    缓存已计算的 Key/Value 避免重复计算，但会占用大量显存。
-    </div>
-    """, unsafe_allow_html=True)
-    
-    tab1, tab2, tab3 = st.tabs(["📊 显存计算", "📈 增长模拟", "🧩 PagedAttention"])
+    tab1, tab2, tab3 = st.tabs(["显存计算", "增长模拟", "PagedAttention"])
     
     with tab1:
         st.markdown("### KV Cache 显存计算器")
@@ -246,20 +239,6 @@ def render():
             with metric_cols[3]:
                 st.metric("V Cache", format_bytes(result['v_cache_bytes']))
             
-            st.markdown("---")
-            
-            # 公式说明
-            st.markdown("""
-            #### 📐 计算公式
-            
-            ```
-            KV Cache = 2 × num_layers × batch_size × seq_length × hidden_size × dtype_bytes
-            
-            其中:
-            - 2: K 和 V 各一份
-            - hidden_size = num_heads × head_dim
-            ```
-            """)
             
             # 详细分解
             st.markdown("#### 详细分解")
@@ -284,13 +263,6 @@ def render():
     
     with tab2:
         st.markdown("### Prefill vs Decode 阶段模拟")
-        
-        st.markdown("""
-        Transformer 推理分为两个阶段：
-        - **Prefill**: 一次性处理整个 Prompt，计算所有位置的 KV Cache
-        - **Decode**: 逐 token 生成，每步只计算一个新位置的 KV
-        """)
-        
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -344,13 +316,6 @@ def render():
     
     with tab3:
         st.markdown("### PagedAttention 模拟")
-        
-        st.markdown("""
-        **PagedAttention** (vLLM) 将 KV Cache 分割成固定大小的 Block，类似操作系统的内存分页：
-        - 避免为最大序列长度预分配显存
-        - 支持多序列动态调度
-        - 缺点：产生内部碎片
-        """)
         
         col1, col2, col3 = st.columns(3)
         
@@ -406,47 +371,4 @@ def render():
             - **总浪费**: {paged_data['total_waste']} tokens ({100 - paged_data['overall_utilization']:.1f}%)
             - **建议**: Block Size 越小，碎片越少，但管理开销越大
             """)
-    
-    # 原理说明
-    st.markdown("---")
-    st.markdown("### 📚 KV Cache 原理详解")
-    
-    col_left, col_right = st.columns(2)
-    
-    with col_left:
-        st.markdown("""
-        #### 为什么需要 KV Cache？
-        
-        在自回归生成中，每个新 token 需要 attend 到之前所有 token：
-        
-        ```
-        Attention(Q, K, V) = softmax(Q K^T / √d) V
-        ```
-        
-        - 无缓存：每次重新计算所有位置的 K, V
-        - 有缓存：只计算新位置，复用之前的 K, V
-        
-        **时间复杂度**：
-        - 无缓存: O(n² × d) 每步
-        - 有缓存: O(n × d) 每步
-        """)
-    
-    with col_right:
-        st.markdown("""
-        #### GQA 如何减少 KV Cache？
-        
-        **Grouped Query Attention (GQA)** 多个 Query Head 共享一组 KV：
-        
-        | 模型 | KV Heads | 相比 MHA 节省 |
-        |------|----------|---------------|
-        | Llama-2-7B | 32 (MHA) | 0% |
-        | Llama-3-8B | 8 (GQA) | 75% |
-        | Llama-2-70B | 8 (GQA) | 87.5% |
-        
-        **GQA Cache 公式**:
-        ```
-        KV Cache = 2 × L × B × S × (H_kv × d_head) × dtype
-        ```
-        其中 H_kv 是 KV head 数量（可能远小于 Q head 数量）
-        """)
 

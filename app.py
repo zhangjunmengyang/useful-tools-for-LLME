@@ -7,7 +7,6 @@ import streamlit as st
 # 页面配置
 st.set_page_config(
     page_title="LLM Tools Workbench",
-    page_icon="🧪",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
@@ -77,25 +76,37 @@ SIDEBAR_NAV_CSS = """
     
     /* 展开内容区域 */
     [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-        padding: 4px 0 8px 20px !important;
+        padding: 4px 0 8px 0 !important;
         border: none !important;
         background: transparent !important;
+        margin-left: 12px !important;
+        border-left: 1px solid #E5E7EB !important;
+        padding-left: 12px !important;
     }
     
     /* ======= 导航按钮样式 ======= */
     [data-testid="stSidebar"] .stButton > button {
         width: 100%;
-        text-align: left;
-        justify-content: flex-start;
-        padding: 8px 12px !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        padding: 6px 12px !important;
         font-size: 13px !important;
         font-weight: 400 !important;
         background-color: transparent !important;
-        color: #111827 !important;
+        color: #4B5563 !important;
         border: none !important;
         border-radius: 6px !important;
-        margin: 2px 0 !important;
+        margin: 1px 0 !important;
         box-shadow: none !important;
+    }
+    
+    [data-testid="stSidebar"] .stButton > button > div {
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+    
+    [data-testid="stSidebar"] .stButton > button > div > p {
+        text-align: left !important;
     }
     
     [data-testid="stSidebar"] .stButton > button:hover {
@@ -127,41 +138,41 @@ st.markdown(SIDEBAR_NAV_CSS, unsafe_allow_html=True)
 # 多级导航结构
 NAV_STRUCTURE = {
     "TokenLab": {
-        "分词编码": "playground",
-        "模型对比": "arena",
+        "Tokenizer Playground": "playground",
+        "Tokenizer Arena": "arena",
         "Chat Template": "chat_builder"
     },
     "EmbeddingLab": {
-        "向量运算": "vector_arithmetic",
-        "模型对比": "embedding_comparison",
-        "向量可视化": "vector_visualization",
-        "语义相似度": "semantic_similarity"
+        "Vector Arithmetic": "vector_arithmetic",
+        "Model Comparison": "embedding_comparison",
+        "Vector Visualization": "vector_visualization",
+        "Semantic Similarity": "semantic_similarity"
     },
     "GenerationLab": {
-        "Logits": "logits_inspector",
-        "Beam Search": "beam_visualizer",
-        "KV Cache": "kv_cache_sim"
+        "Logits Inspector": "logits_inspector",
+        "Beam Search Visualizer": "beam_visualizer",
+        "KV Cache Simulator": "kv_cache_sim"
     },
     "InterpretabilityLab": {
-        "Attention": "attention_map",
-        "RoPE 可视化": "rope_explorer",
-        "FFN 激活": "ffn_activation"
+        "Attention Visualizer": "attention_map",
+        "RoPE Explorer": "rope_explorer",
+        "FFN Analyzer": "ffn_activation"
     },
     "DataLab": {
         "Dataset Viewer": "hf_dataset_viewer",
-        "数据清洗": "cleaner_playground",
-        "格式转换": "instruct_formatter"
+        "Data Cleaner": "cleaner_playground",
+        "Instruct Formatter": "instruct_formatter"
     },
     "ModelLab": {
-        "显存估算": "memory_estimator",
-        "PEFT 计算器": "peft_calculator",
-        "Config 对比": "config_diff"
+        "Memory Estimator": "memory_estimator",
+        "PEFT Calculator": "peft_calculator",
+        "Config Diff": "config_diff"
     }
 }
 
 # 初始化
 if "current_page" not in st.session_state:
-    st.session_state.current_page = "分词编码"
+    st.session_state.current_page = "Tokenizer Playground"
 if "current_group" not in st.session_state:
     st.session_state.current_group = "TokenLab"
 

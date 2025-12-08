@@ -184,16 +184,6 @@ def render():
     """渲染 Lab 1: 向量运算 页面"""
     st.markdown('<h1 class="module-title">向量运算</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #DBEAFE 0%, #E9D5FF 100%); 
-                border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #C7D2FE;">
-        <p style="color: #1E40AF; margin: 0; font-size: 14px;">
-            <strong>💡 经典实验</strong>：Word2Vec 证明了词向量空间存在语义线性关系。<br/>
-            著名公式：<code style="background: #fff; padding: 2px 6px; border-radius: 4px;">King - Man + Woman ≈ Queen</code>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # 加载模型
     with st.spinner("正在加载 Word2Vec 模型..."):
         model = load_word2vec_model()
@@ -201,8 +191,6 @@ def render():
     if model is None:
         st.error("模型加载失败，请检查网络连接")
         return
-    
-    st.success(f"✅ 模型已加载，词表大小: {len(model):,}")
     
     st.markdown("---")
     
@@ -237,11 +225,11 @@ def render():
     # 预设案例
     st.markdown("#### 经典案例")
     presets = [
-        ("👑 King - Man + Woman", "king", "man", "woman"),
-        ("🇫🇷 Paris - France + Germany", "paris", "france", "germany"),
-        ("🚗 Car - Road + Water", "car", "road", "water"),
-        ("👨 Brother - Man + Woman", "brother", "man", "woman"),
-        ("🏃 Walking - Walk + Swim", "walking", "walk", "swim"),
+        ("King - Man + Woman", "king", "man", "woman"),
+        ("Paris - France + Germany", "paris", "france", "germany"),
+        ("Car - Road + Water", "car", "road", "water"),
+        ("Brother - Man + Woman", "brother", "man", "woman"),
+        ("Walking - Walk + Swim", "walking", "walk", "swim"),
     ]
     
     def set_preset(a: str, b: str, c: str):
@@ -277,7 +265,7 @@ def render():
         
         if missing:
             st.error(f"以下词不在词表中: {', '.join(missing)}")
-            st.info("💡 提示：请使用常见的英文单词（小写），如 king, queen, man, woman 等")
+            st.info("请使用常见的英文单词（小写）")
         else:
             # 显示公式
             st.markdown(f"""
@@ -300,18 +288,6 @@ def render():
                 st.markdown("#### 最相似的词")
                 render_similar_words_table(results, exclude_words=[word_a, word_b, word_c])
                 
-                # Bias 分析提示
-                if results:
-                    st.markdown("""
-                    <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 6px; 
-                                padding: 12px; margin-top: 16px;">
-                        <p style="color: #92400E; margin: 0; font-size: 13px;">
-                            <strong>⚠️ Bias 分析</strong><br/>
-                            注意观察结果中是否存在性别、种族等偏见。Word2Vec 等模型会从训练语料中学习到社会偏见。
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
             with col_viz:
                 st.markdown("#### 向量空间投影")
                 
@@ -335,8 +311,6 @@ def render():
                 
                 if fig:
                     st.plotly_chart(fig, width="stretch")
-                
-                st.caption("📊 2D PCA 投影视图（箭头表示向量运算方向）")
             
             # 详细信息
             with st.expander("向量详细信息"):

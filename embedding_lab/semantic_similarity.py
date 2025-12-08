@@ -179,31 +179,14 @@ def render():
     """渲染 Lab 4: 语义相似度 页面"""
     st.markdown('<h1 class="module-title">语义相似度</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #FEE2E2 0%, #FEF3C7 100%); 
-                border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #FECACA;">
-        <p style="color: #991B1B; margin: 0; font-size: 14px;">
-            <strong>🔬 微观分析</strong>：深入理解相似度计算的细节。<br/>
-            Token 级热力图展示语义对齐，各向异性分析揭示向量空间的质量。
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
     
     # Tab 切换
-    tab1, tab2 = st.tabs(["📊 相似度热力图", "📈 各向异性分析"])
+    tab1, tab2 = st.tabs(["相似度热力图", "各向异性分析"])
     
     # ==================== Tab 1: 相似度热力图 ====================
     with tab1:
         st.markdown("### Token-to-Token 相似度矩阵")
         
-        st.markdown("""
-        <div style="background: #F3F4F6; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
-            <p style="color: #4B5563; margin: 0; font-size: 13px;">
-                输入两段文本，查看它们在 Token 级别的语义对齐情况。<br/>
-                颜色越深表示相似度越高，可用于分析同义词、语序变化等。
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
         
         col_a, col_b = st.columns(2)
         
@@ -226,10 +209,10 @@ def render():
         # 预设案例
         st.markdown("#### 预设案例")
         presets = [
-            ("🔄 语序变化", "我看过这部电影", "这片子我看过"),
-            ("📖 同义替换", "我非常喜欢这本书", "我特别爱这本书籍"),
-            ("🌐 中英对照", "我爱你", "I love you"),
-            ("❌ 无关文本", "今天天气很好", "量子力学很难"),
+            ("语序变化", "我看过这部电影", "这片子我看过"),
+            ("同义替换", "我非常喜欢这本书", "我特别爱这本书籍"),
+            ("中英对照", "我爱你", "I love you"),
+            ("无关文本", "今天天气很好", "量子力学很难"),
         ]
         
         def set_sim_preset(a: str, b: str):
@@ -310,7 +293,7 @@ def render():
                         """, unsafe_allow_html=True)
                 
                 # 解释说明
-                with st.expander("💡 如何解读热力图"):
+                with st.expander("如何解读热力图"):
                     st.markdown("""
                     **热力图分析要点**：
                     
@@ -328,15 +311,6 @@ def render():
     with tab2:
         st.markdown("### 向量空间各向异性分析")
         
-        st.markdown("""
-**🎯 实验目的**：检测 Embedding 模型的向量空间质量
-
-**📊 图表解读**：
-- 直方图展示所有**不相关词对**的相似度分布
-- **理想情况**：不相关的词对，相似度应该接近 **0**（绿色虚线）
-- **各向异性问题**：如果分布偏右（平均值 > 0.3），说明模型存在质量问题
-- **白化处理**：一种后处理方法，可以缓解各向异性问题
-        """)
         
         st.markdown("---")
         
@@ -360,7 +334,7 @@ def render():
             texts_to_analyze = preset_words
             
             # 展示预设词表
-            with st.expander(f"📋 查看预置词表（{len(preset_words)} 个词）", expanded=False):
+            with st.expander(f"查看预置词表（{len(preset_words)} 个词）", expanded=False):
                 # 分 4 列展示
                 cols = st.columns(4)
                 for i, word in enumerate(preset_words):
@@ -370,10 +344,7 @@ def render():
             st.info(f"将计算 {len(texts_to_analyze)} 个词汇之间的 **{n_pairs} 个词对**的相似度")
             
         else:
-            st.markdown("""
-💡 **使用说明**：输入一组**语义不相关**的词汇（每行一个）。
-理想情况下，这些词两两之间的相似度应该接近 0。
-            """)
+            pass
             
             custom_words = st.text_area(
                 "输入词汇（每行一个，建议 10-50 个不相关的词）",
@@ -401,7 +372,7 @@ def render():
             key="aniso_model"
         )
         
-        if st.button("🔬 分析各向异性", type="primary", width="stretch"):
+        if st.button("分析各向异性", type="primary", width="stretch"):
             if len(texts_to_analyze) < 5:
                 st.warning("至少需要 5 个词汇才能进行有意义的分析")
             else:
@@ -427,7 +398,7 @@ def render():
                     word_pairs_sorted = sorted(word_pairs, key=lambda x: x[2], reverse=True)
                     
                     # 显示词对示例
-                    st.markdown("#### 📝 词对相似度示例")
+                    st.markdown("#### 词对相似度示例")
                     col_high, col_low = st.columns(2)
                     
                     with col_high:
@@ -443,7 +414,7 @@ def render():
                             st.markdown(f"- `{w1}` ↔ `{w2}`: <span style='color:{color}'><b>{sim:.3f}</b></span>", unsafe_allow_html=True)
                     
                     st.markdown("---")
-                    st.markdown("#### 📊 相似度分布对比")
+                    st.markdown("#### 相似度分布对比")
                     
                     col_original, col_whitened = st.columns(2)
                     
@@ -457,11 +428,11 @@ def render():
                         
                         # 判断是否存在各向异性问题
                         if mean_sim > 0.3:
-                            st.error("⚠️ 存在明显的各向异性问题（平均值 > 0.3）")
+                            st.error("存在明显的各向异性问题（平均值 > 0.3）")
                         elif mean_sim > 0.15:
-                            st.warning("⚡ 存在轻微的各向异性（平均值 > 0.15）")
+                            st.warning("存在轻微的各向异性（平均值 > 0.15）")
                         else:
-                            st.success("✅ 各向异性程度较低，向量空间质量良好")
+                            st.info("各向异性程度较低")
                         
                         # 绘制分布图
                         fig1 = create_anisotropy_visualization(
@@ -494,11 +465,11 @@ def render():
                         metric_cols_w[1].metric("标准差", f"{std_sim_w:.4f}", delta=f"{delta_std:+.4f}")
                         
                         if mean_sim_w < mean_sim * 0.8:
-                            st.success(f"✅ 白化有效！平均相似度降低了 {(1 - mean_sim_w/mean_sim)*100:.1f}%")
+                            st.info(f"白化有效，平均相似度降低了 {(1 - mean_sim_w/mean_sim)*100:.1f}%")
                         elif mean_sim_w < mean_sim:
-                            st.info("📉 白化有一定效果")
+                            st.info("白化有一定效果")
                         else:
-                            st.warning("⚠️ 白化效果不明显")
+                            st.warning("白化效果不明显")
                         
                         fig2 = create_anisotropy_visualization(
                             similarities_w, mean_sim_w, std_sim_w,
@@ -508,7 +479,7 @@ def render():
                     
                     # 解释说明
                     st.markdown("---")
-                    with st.expander("📚 深入理解各向异性"):
+                    with st.expander("深入理解各向异性"):
                         st.markdown("""
                         **什么是各向异性 (Anisotropy)?**
                         

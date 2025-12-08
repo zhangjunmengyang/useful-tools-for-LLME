@@ -181,7 +181,7 @@ def render_model_selector(col, key_prefix: str, default_category_idx: int = 0, d
                     display_name = name
                     break
             
-            st.caption(f"📦 `{model_name}`")
+            st.caption(f"`{model_name}`")
         else:
             model_name = st.text_input(
                 "模型名称或 URL",
@@ -204,11 +204,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">Config 差异对比</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    对比两个模型的架构配置，支持从 HuggingFace Hub 实时读取 config.json。
-    </div>
-    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
@@ -258,7 +253,6 @@ def render():
                 st.error(f"加载 {display_b} 失败: {str(e)}")
                 return
         
-        st.success("✅ 配置加载成功！")
     
     # 从 session state 获取配置
     config_a = st.session_state.get("config_a")
@@ -299,7 +293,7 @@ def render():
             "说明": KEY_DESCRIPTIONS.get(key, ""),
             display_a: val_a_str,
             display_b: val_b_str,
-            "差异": "⚠️" if is_diff else "✅"
+            "差异": "Yes" if is_diff else ""
         })
     
     # 显示表格
@@ -324,7 +318,7 @@ def format_value(val):
     if isinstance(val, list):
         return ", ".join(str(v) for v in val)
     elif isinstance(val, bool):
-        return "✓" if val else "✗"
+        return "Yes" if val else "No"
     elif isinstance(val, (int, float)) and val >= 10000:
         return f"{val:,}"
     return str(val)
@@ -378,7 +372,7 @@ def render_analysis(config_a: dict, config_b: dict, name_a: str, name_b: str):
     
     # 参数量估算
     st.markdown("---")
-    st.markdown("### 📐 参数量估算")
+    st.markdown("### 参数量估算")
     
     params_a = estimate_params(config_a)
     params_b = estimate_params(config_b)

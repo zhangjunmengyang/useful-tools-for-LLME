@@ -245,11 +245,6 @@ def render():
     """渲染页面"""
     st.markdown('<h1 class="module-title">RoPE 旋转可视化</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="tip-box">
-    <b>RoPE</b> 可视化展示。
-    </div>
-    """, unsafe_allow_html=True)
     
     tab1, tab2 = st.tabs(["旋转演示", "衰减特性"])
     

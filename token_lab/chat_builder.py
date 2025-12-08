@@ -107,7 +107,7 @@ def render():
             model_choice = None
     
     if model_choice:
-        st.caption(f"📦 Tokenizer: `{model_choice}`")
+        st.caption(f"Tokenizer: `{model_choice}`")
     
     tokenizer = load_tokenizer(model_choice) if model_choice else None
     
