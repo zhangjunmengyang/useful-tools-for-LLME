@@ -365,6 +365,8 @@ def render():
             value="3"
         )
     
+    viz_btn = gr.Button("开始可视化", variant="primary")
+    
     # 结果展示
     method_info = gr.Markdown("")
     plot = gr.Plot(label="可视化结果")

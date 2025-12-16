@@ -436,7 +436,7 @@ def render():
             util_chart = gr.Plot(label="利用率")
             
             with gr.Accordion("各序列详情", open=False):
-            seq_df = gr.Dataframe(interactive=False)
+                seq_df = gr.Dataframe(interactive=False)
             
             analysis_md = gr.Markdown("")
             

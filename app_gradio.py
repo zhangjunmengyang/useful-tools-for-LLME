@@ -204,7 +204,7 @@ def create_app():
         # 标题
         gr.Markdown("""
         # LLM Tools Workbench
-        <p style="color: #6B7280; margin-top: -8px;">大模型学习与实验平台 | Learning & Experimentation Platform for LLMs</p>
+        <p style="color: #6B7280; margin-top: -8px;">everything for LLMs</p>
         """)
         
         # 主 Tab 导航
