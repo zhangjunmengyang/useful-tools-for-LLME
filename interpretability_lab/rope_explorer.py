@@ -2,7 +2,7 @@
 RoPE 旋转可视化 - 展示旋转位置编码原理
 """
 
-import streamlit as st
+import gradio as gr
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
@@ -17,18 +17,20 @@ from interpretability_lab.interpretability_utils import (
 def render_frequency_heatmap(freqs: np.ndarray, positions: np.ndarray, dim: int) -> go.Figure:
     """渲染频率热力图"""
     fig = go.Figure(data=go.Heatmap(
-        z=np.sin(freqs),  # 显示 sin(θ) 的变化
+        z=np.sin(freqs),
         x=[f'd{i}' for i in range(freqs.shape[1])],
-        y=positions[:100],  # 只显示前 100 个位置
+        y=positions[:100],
         colorscale='RdBu',
         zmid=0
     ))
     
     fig.update_layout(
-        title="RoPE 频率变化 (sin θ)",
-        xaxis_title="维度对",
-        yaxis_title="位置",
-        height=400
+        title="Frequency Heatmap (sin θ)",
+        xaxis_title="Dimension Pair",
+        yaxis_title="Position",
+        height=400,
+        plot_bgcolor='#FFFFFF',
+        paper_bgcolor='#FFFFFF'
     )
     
     return fig
@@ -37,7 +39,7 @@ def render_frequency_heatmap(freqs: np.ndarray, positions: np.ndarray, dim: int)
 def render_rotation_animation(dim: int = 8, num_positions: int = 20, base: float = 10000.0) -> go.Figure:
     """渲染高维 RoPE 旋转动画 - 展示不同维度对的不同旋转频率"""
     # 计算不同维度对的频率 (RoPE 核心公式)
-    num_pairs = min(dim // 2, 4)  # 最多展示 4 个维度对
+    num_pairs = min(dim // 2, 4)
     inv_freqs = 1.0 / (base ** (np.arange(0, dim, 2, dtype=np.float32)[:num_pairs] / dim))
     
     # 创建子图：每个维度对一个 2D 图
@@ -47,7 +49,7 @@ def render_rotation_animation(dim: int = 8, num_positions: int = 20, base: float
         horizontal_spacing=0.08
     )
     
-    # 原始向量 (每个维度对都用相同的初始向量)
+    # 原始向量
     original_vec = np.array([1.0, 0.5])
     r = np.sqrt(original_vec[0]**2 + original_vec[1]**2)
     
@@ -70,7 +72,7 @@ def render_rotation_animation(dim: int = 8, num_positions: int = 20, base: float
         
         # 绘制不同位置的旋转向量
         for pos in range(num_positions):
-            theta = pos * freq  # 使用该维度对的实际频率
+            theta = pos * freq
             cos_t, sin_t = np.cos(theta), np.sin(theta)
             rotated = np.array([
                 original_vec[0] * cos_t - original_vec[1] * sin_t,
@@ -86,7 +88,7 @@ def render_rotation_animation(dim: int = 8, num_positions: int = 20, base: float
                 legendgroup=f'pos_{pos}',
                 line=dict(color=colors[pos], width=2),
                 marker=dict(size=[3, 8]),
-                hovertemplate=f'Pos {pos}<br>θ = {np.degrees(theta):.1f}°<br>freq = {freq:.4f}<extra></extra>'
+                hovertemplate=f'Pos {pos}<br>theta = {np.degrees(theta):.1f} deg<br>freq = {freq:.4f}<extra></extra>'
             ), row=1, col=pair_idx+1)
         
         # 添加原始向量
@@ -106,10 +108,12 @@ def render_rotation_animation(dim: int = 8, num_positions: int = 20, base: float
         fig.update_yaxes(range=[-1.5, 1.5], row=1, col=pair_idx+1)
     
     fig.update_layout(
-        title=f"RoPE 旋转演示 (base={base:.0f}) - 低维度对旋转快，高维度对旋转慢",
+        title=f"RoPE Rotation (base={base:.0f})",
         height=450,
         showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+        plot_bgcolor='#FFFFFF',
+        paper_bgcolor='#FFFFFF'
     )
     
     return fig
@@ -130,21 +134,26 @@ def render_decay_curve(decay: np.ndarray) -> go.Figure:
     ))
     
     # 添加平滑趋势线
-    from scipy.ndimage import gaussian_filter1d
-    smoothed = gaussian_filter1d(decay, sigma=5)
-    fig.add_trace(go.Scatter(
-        x=distances,
-        y=smoothed,
-        mode='lines',
-        name='趋势 (平滑)',
-        line=dict(color='#DC2626', width=2, dash='dash')
-    ))
+    try:
+        from scipy.ndimage import gaussian_filter1d
+        smoothed = gaussian_filter1d(decay, sigma=5)
+        fig.add_trace(go.Scatter(
+            x=distances,
+            y=smoothed,
+            mode='lines',
+            name='趋势 (平滑)',
+            line=dict(color='#DC2626', width=2, dash='dash')
+        ))
+    except ImportError:
+        pass
     
     fig.update_layout(
-        title="RoPE 相对位置衰减特性",
-        xaxis_title="相对距离",
-        yaxis_title="Q·K 内积",
-        height=400
+        title="Relative Position Decay",
+        xaxis_title="Distance",
+        yaxis_title="Q·K",
+        height=400,
+        plot_bgcolor='#FFFFFF',
+        paper_bgcolor='#FFFFFF'
     )
     
     return fig
@@ -158,11 +167,8 @@ def render_multi_freq_visualization(dim: int, base: float) -> go.Figure:
     num_pairs = dim // 2
     inv_freqs = 1.0 / (base ** (np.arange(0, dim, 2, dtype=np.float32) / dim))
     
-    # 选择固定索引的维度对（而不是相对位置）
-    # 这样当 dim 变化时，同一个维度对的频率会变化
-    # 例如 d4-d5: dim=32 时 freq=1/base^(4/32), dim=64 时 freq=1/base^(4/64)
-    freq_indices = [2, 4, 8]  # 固定选择 d4-d5, d8-d9, d16-d17
-    # 确保不越界
+    # 选择固定索引的维度对
+    freq_indices = [2, 4, 8]
     freq_indices = [min(idx, num_pairs - 1) for idx in freq_indices]
     
     fig = make_subplots(
@@ -180,8 +186,7 @@ def render_multi_freq_visualization(dim: int, base: float) -> go.Figure:
               f'd{freq_indices[1]*2}-d{freq_indices[1]*2+1}', 
               f'd{freq_indices[2]*2}-d{freq_indices[2]*2+1}']
     
-    # 统一使用相同的位置范围以便对比
-    fixed_positions = 100  # 固定显示 0-100 的位置范围
+    fixed_positions = 100
     
     for idx, (freq_idx, color, label) in enumerate(zip(freq_indices, colors, labels)):
         row = (idx // 2) + 1
@@ -189,7 +194,6 @@ def render_multi_freq_visualization(dim: int, base: float) -> go.Figure:
         
         freq = inv_freqs[freq_idx]
         
-        # 使用固定的位置范围，这样更容易对比不同参数下的变化
         x_vals = np.linspace(0, fixed_positions, 500)
         theta_vals = x_vals * freq
         
@@ -215,7 +219,6 @@ def render_multi_freq_visualization(dim: int, base: float) -> go.Figure:
             row=row, col=col
         )
         
-        # 更新坐标轴
         fig.update_xaxes(title_text="位置", row=row, col=col)
         fig.update_yaxes(title_text="值", row=row, col=col)
     
@@ -235,7 +238,61 @@ def render_multi_freq_visualization(dim: int, base: float) -> go.Figure:
     fig.update_layout(
         height=650,
         showlegend=False,
-        title_text=f"RoPE 多频率分解 (dim={dim}, base={base:.0f}) - 相同位置范围下不同频率的表现"
+        title_text=f"RoPE Frequency Decomposition (dim={dim}, base={base:.0f})",
+        plot_bgcolor='#FFFFFF',
+        paper_bgcolor='#FFFFFF'
+    )
+    
+    return fig
+
+
+def update_rotation(rotation_base, num_positions):
+    """更新旋转演示图"""
+    return render_rotation_animation(dim=8, num_positions=num_positions, base=rotation_base)
+
+
+def update_multi_freq(dim, freq_base):
+    """更新多频率可视化"""
+    return render_multi_freq_visualization(dim, freq_base)
+
+
+def update_decay(decay_dim, decay_base, max_dist):
+    """更新衰减曲线"""
+    decay = compute_rope_decay(decay_dim, max_dist, decay_base)
+    return render_decay_curve(decay)
+
+
+def render_base_comparison():
+    """渲染不同 base 的对比"""
+    bases = [10000, 100000, 1000000]
+    
+    fig = go.Figure()
+    colors = ['#2563EB', '#059669', '#DC2626']
+    
+    for base_val, color in zip(bases, colors):
+        decay_vals = compute_rope_decay(256, 200, base_val)
+        # 平滑处理
+        try:
+            from scipy.ndimage import gaussian_filter1d
+            smoothed = gaussian_filter1d(decay_vals, sigma=5)
+        except ImportError:
+            smoothed = decay_vals
+        
+        fig.add_trace(go.Scatter(
+            x=list(range(200)),
+            y=smoothed,
+            mode='lines',
+            name=f'Base={base_val}',
+            line=dict(color=color, width=2)
+        ))
+    
+    fig.update_layout(
+        title="Base Comparison",
+        xaxis_title="Distance",
+        yaxis_title="Q·K (smoothed)",
+        height=400,
+        plot_bgcolor='#FFFFFF',
+        paper_bgcolor='#FFFFFF'
     )
     
     return fig
@@ -243,108 +300,117 @@ def render_multi_freq_visualization(dim: int, base: float) -> go.Figure:
 
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">RoPE 旋转可视化</h1>', unsafe_allow_html=True)
     
+    gr.Markdown("## RoPE Explorer")
     
-    tab1, tab2 = st.tabs(["旋转演示", "衰减特性"])
-    
-    with tab1:
-        st.markdown("### 向量旋转可视化（n=8）")
-        
-        col1, col2 = st.columns([1, 3])
-        
-        with col1:
-            rotation_base = st.number_input("RoPE Base", value=10000.0, min_value=1000.0, max_value=1000000.0, 
-                                  help="base 越大，低频分量的波长越长", key="rotation_base")
-            num_positions = st.slider("显示位置数", 5, 30, 15)
-        
-        with col2:
-            # 固定 8 维展示 4 个维度对
-            fig_rotation = render_rotation_animation(dim=8, num_positions=num_positions, base=rotation_base)
-            st.plotly_chart(fig_rotation, use_container_width=True)
-        
-        st.markdown("---")
-        st.markdown("### 多频率分解")
-        
-        st.markdown("""
-        不同维度对使用不同的旋转频率，形成"多频率"编码。调整参数观察频率分布的变化。
-        """)
-        
-        col1, col2 = st.columns([1, 4])
-        
-        with col1:
-            dim = st.slider("向量维度", 8, 128, 64, step=8, help="实际 RoPE 会对每一对维度应用旋转")
-            freq_base = st.number_input("RoPE Base", value=10000.0, min_value=1000.0, max_value=1000000.0, 
-                                  help="base 越大，低频分量的波长越长", key="freq_base")
-        
-        with col2:
-            fig_multi = render_multi_freq_visualization(dim, freq_base)
-            st.plotly_chart(fig_multi, use_container_width=True)
-        
-    
-    with tab2:
-        st.markdown("### 相对位置衰减")
-        
-        st.markdown("""
-        RoPE 的重要特性：两个 token 的注意力分数（Q·K 内积）会随着**相对距离**增加而**自然衰减**。
-        这是位置编码方法优劣的重要指标。
-        """)
-        
-        col1, col2 = st.columns([1, 3])
-        
-        with col1:
-            decay_dim = st.slider("维度", 64, 512, 256, step=64, key="decay_dim")
-            decay_base = st.number_input("Base", value=10000.0, key="decay_base")
-            max_dist = st.slider("最大距离", 50, 500, 200)
-        
-        decay = compute_rope_decay(decay_dim, max_dist, decay_base)
-        
-        with col2:
-            fig_decay = render_decay_curve(decay)
-            st.plotly_chart(fig_decay, width='stretch')
-        
-        st.markdown("""
-        **衰减特性解读**：
-        - 内积值在距离为 0 时最大（自己和自己的相似度最高）
-        - 随距离增加呈现**震荡衰减**趋势
-        - 高频分量导致震荡，低频分量决定整体衰减包络
-        - 这种自然衰减有助于模型学习局部依赖
-        """)
-        
-        # 不同 base 的对比
-        st.markdown("### 不同 Base 的衰减对比")
-        
-        bases = [10000, 100000, 1000000]
-        
-        fig_compare = go.Figure()
-        colors = ['#2563EB', '#059669', '#DC2626']
-        
-        for base_val, color in zip(bases, colors):
-            decay_vals = compute_rope_decay(256, 200, base_val)
-            # 平滑处理
-            from scipy.ndimage import gaussian_filter1d
-            smoothed = gaussian_filter1d(decay_vals, sigma=5)
+    with gr.Tabs():
+        # Tab 1: 旋转演示
+        with gr.Tab("旋转"):
+            with gr.Row():
+                with gr.Column(scale=1):
+                    rotation_base = gr.Number(
+                        label="Base",
+                        value=10000.0,
+                        minimum=1000.0,
+                        maximum=1000000.0
+                    )
+                    num_positions = gr.Slider(
+                        label="位置数",
+                        minimum=5,
+                        maximum=30,
+                        value=15,
+                        step=1
+                    )
+                
+                with gr.Column(scale=3):
+                    rotation_plot = gr.Plot(value=render_rotation_animation(dim=8, num_positions=15, base=10000.0))
             
-            fig_compare.add_trace(go.Scatter(
-                x=list(range(200)),
-                y=smoothed,
-                mode='lines',
-                name=f'Base={base_val}',
-                line=dict(color=color, width=2)
-            ))
+            with gr.Row():
+                with gr.Column(scale=1):
+                    dim_slider = gr.Slider(
+                        label="维度",
+                        minimum=8,
+                        maximum=128,
+                        value=64,
+                        step=8
+                    )
+                    freq_base = gr.Number(
+                        label="Base",
+                        value=10000.0,
+                        minimum=1000.0,
+                        maximum=1000000.0
+                    )
+                
+                with gr.Column(scale=4):
+                    freq_plot = gr.Plot(value=render_multi_freq_visualization(64, 10000.0))
         
-        fig_compare.update_layout(
-            title="不同 RoPE Base 的衰减趋势",
-            xaxis_title="相对距离",
-            yaxis_title="Q·K 内积 (平滑)",
-            height=400
-        )
-        
-        st.plotly_chart(fig_compare, width='stretch')
-        
-        st.markdown("""
-        **Base 参数的影响**：
-        - **小 Base**: 衰减快，适合短序列
-        - **大 Base**: 衰减慢，更好的长程依赖建模
-        - Llama-3 使用 500000 的 Base，支持更长的上下文
-        """)
+        # Tab 2: 衰减特性
+        with gr.Tab("衰减"):
+            with gr.Row():
+                with gr.Column(scale=1):
+                    decay_dim = gr.Slider(
+                        label="维度",
+                        minimum=64,
+                        maximum=512,
+                        value=256,
+                        step=64
+                    )
+                    decay_base = gr.Number(
+                        label="Base",
+                        value=10000.0
+                    )
+                    max_dist = gr.Slider(
+                        label="最大距离",
+                        minimum=50,
+                        maximum=500,
+                        value=200,
+                        step=50
+                    )
+                
+                with gr.Column(scale=3):
+                    decay_plot = gr.Plot(value=render_decay_curve(compute_rope_decay(256, 200, 10000.0)))
+            
+            base_compare_plot = gr.Plot(value=render_base_comparison())
+    
+    # 事件绑定 - 自动触发更新
+    rotation_base.change(
+        fn=update_rotation,
+        inputs=[rotation_base, num_positions],
+        outputs=[rotation_plot]
+    )
+    
+    num_positions.change(
+        fn=update_rotation,
+        inputs=[rotation_base, num_positions],
+        outputs=[rotation_plot]
+    )
+    
+    dim_slider.change(
+        fn=update_multi_freq,
+        inputs=[dim_slider, freq_base],
+        outputs=[freq_plot]
+    )
+    
+    freq_base.change(
+        fn=update_multi_freq,
+        inputs=[dim_slider, freq_base],
+        outputs=[freq_plot]
+    )
+    
+    decay_dim.change(
+        fn=update_decay,
+        inputs=[decay_dim, decay_base, max_dist],
+        outputs=[decay_plot]
+    )
+    
+    decay_base.change(
+        fn=update_decay,
+        inputs=[decay_dim, decay_base, max_dist],
+        outputs=[decay_plot]
+    )
+    
+    max_dist.change(
+        fn=update_decay,
+        inputs=[decay_dim, decay_base, max_dist],
+        outputs=[decay_plot]
+    )

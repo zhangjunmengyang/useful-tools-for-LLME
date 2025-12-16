@@ -1,11 +1,11 @@
 """
-Lab 1: 向量运算 - Word2Vec 经典类比推理演示
+向量运算 - Word2Vec 经典类比推理演示
 """
 
-import streamlit as st
+import gradio as gr
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
-from typing import List, Tuple
 
 from embedding_lab.embedding_utils import (
     load_word2vec_model,
@@ -16,16 +16,8 @@ from embedding_lab.embedding_utils import (
 )
 
 
-def create_vector_visualization(
-    words: List[str],
-    vectors: List[np.ndarray],
-    result_word: str = None,
-    result_vector: np.ndarray = None,
-    operation_path: List[Tuple[str, str]] = None
-) -> go.Figure:
-    """
-    创建向量运算的 2D 可视化
-    """
+def create_vector_visualization(words, vectors, result_word=None, result_vector=None):
+    """创建向量运算的 2D 可视化"""
     all_words = words.copy()
     all_vectors = [v for v in vectors]
     
@@ -36,15 +28,16 @@ def create_vector_visualization(
     if len(all_vectors) < 2:
         return None
     
-    # 降维到 2D
     vectors_array = np.array(all_vectors)
     coords_2d = reduce_dimensions(vectors_array, method="pca", n_components=2)
     
     fig = go.Figure()
     
-    # 绘制输入词的点
     colors = ['#2563EB', '#059669', '#D97706', '#7C3AED']
-    for i, (word, coord) in enumerate(zip(all_words[:-1] if result_word else all_words, coords_2d[:-1] if result_word else coords_2d)):
+    
+    # 绘制输入词的点
+    for i, (word, coord) in enumerate(zip(all_words[:-1] if result_word else all_words, 
+                                           coords_2d[:-1] if result_word else coords_2d)):
         fig.add_trace(go.Scatter(
             x=[coord[0]],
             y=[coord[1]],
@@ -67,46 +60,11 @@ def create_vector_visualization(
             marker=dict(size=18, color='#DC2626', symbol='star'),
             text=[result_word],
             textposition='top center',
-            textfont=dict(size=14, color='#DC2626', family='Inter'),
+            textfont=dict(size=14, color='#DC2626'),
             name=f'结果: {result_word}',
             hoverinfo='text',
             hovertext=f'结果: {result_word}'
         ))
-    
-    # 绘制运算路径箭头
-    if operation_path and len(coords_2d) >= 3:
-        # King -> King - Man
-        fig.add_annotation(
-            x=coords_2d[1][0],
-            y=coords_2d[1][1],
-            ax=coords_2d[0][0],
-            ay=coords_2d[0][1],
-            xref='x', yref='y',
-            axref='x', ayref='y',
-            showarrow=True,
-            arrowhead=2,
-            arrowsize=1.5,
-            arrowwidth=2,
-            arrowcolor='#DC2626',
-            opacity=0.6
-        )
-        
-        if len(coords_2d) >= 4:
-            # King - Man -> King - Man + Woman
-            fig.add_annotation(
-                x=coords_2d[2][0],
-                y=coords_2d[2][1],
-                ax=coords_2d[1][0],
-                ay=coords_2d[1][1],
-                xref='x', yref='y',
-                axref='x', ayref='y',
-                showarrow=True,
-                arrowhead=2,
-                arrowsize=1.5,
-                arrowwidth=2,
-                arrowcolor='#059669',
-                opacity=0.6
-            )
     
     fig.update_layout(
         plot_bgcolor='#FAFBFC',
@@ -134,201 +92,213 @@ def create_vector_visualization(
     return fig
 
 
-def render_similar_words_table(results: List[Tuple[str, float]], exclude_words: List[str] = None):
-    """渲染相似词表格"""
-    if not results:
-        st.info("未找到相似词")
-        return
+def compute_analogy(word_a, word_b, word_c, top_k):
+    """计算向量类比"""
+    model = get_model()
+    if model is None:
+        return (
+            "模型加载失败，请检查网络连接",
+            pd.DataFrame(),
+            None,
+            ""
+        )
+    word_a = word_a.lower().strip()
+    word_b = word_b.lower().strip()
+    word_c = word_c.lower().strip()
     
-    exclude = set(w.lower() for w in (exclude_words or []))
+    if not all([word_a, word_b, word_c]):
+        return (
+            "请输入所有词汇",
+            pd.DataFrame(),
+            None,
+            ""
+        )
     
-    html = ['<div style="background: #F3F4F6; border-radius: 8px; padding: 16px;">']
-    html.append('<table style="width: 100%; border-collapse: collapse;">')
-    html.append('<tr style="border-bottom: 1px solid #E5E7EB;">')
-    html.append('<th style="text-align: left; padding: 8px; color: #6B7280; font-size: 12px; font-weight: 500;">排名</th>')
-    html.append('<th style="text-align: left; padding: 8px; color: #6B7280; font-size: 12px; font-weight: 500;">词汇</th>')
-    html.append('<th style="text-align: right; padding: 8px; color: #6B7280; font-size: 12px; font-weight: 500;">相似度</th>')
-    html.append('</tr>')
+    # 检查词是否在词表中
+    missing = []
+    for w in [word_a, word_b, word_c]:
+        if get_word_vector(model, w) is None:
+            missing.append(w)
     
+    if missing:
+        return (
+            f"以下词不在词表中: {', '.join(missing)}\n\n请使用常见的英文单词（小写）",
+            pd.DataFrame(),
+            None,
+            ""
+        )
+    
+    # 执行向量运算
+    results = vector_arithmetic(model, positive=[word_a, word_c], negative=[word_b], topn=top_k)
+    
+    # 公式
+    formula = f"""
+### 计算公式
+
+<div style="text-align: center; padding: 16px; background: #F3F4F6; border-radius: 8px; margin-bottom: 16px;">
+    <span style="font-size: 20px; font-family: 'JetBrains Mono', monospace; color: #111827;">
+        <span style="color: #2563EB;">{word_a}</span> - 
+        <span style="color: #DC2626;">{word_b}</span> + 
+        <span style="color: #059669;">{word_c}</span> = 
+        <span style="color: #7C3AED; font-weight: bold;">{results[0][0] if results else '?'}</span>
+    </span>
+</div>
+"""
+    
+    # 结果表格
+    exclude = set([word_a.lower(), word_b.lower(), word_c.lower()])
+    result_data = []
     rank = 1
     for word, score in results:
-        if word.lower() in exclude:
-            continue
-        
-        # 相似度颜色渐变
-        if score > 0.7:
-            color = '#059669'
-        elif score > 0.5:
-            color = '#D97706'
-        else:
-            color = '#6B7280'
-        
-        # 高亮第一名
-        bg_color = '#DBEAFE' if rank == 1 else 'transparent'
-        font_weight = '600' if rank == 1 else '400'
-        
-        html.append(f'<tr style="background: {bg_color};">')
-        html.append(f'<td style="padding: 10px 8px; color: #111827; font-size: 14px;">{rank}</td>')
-        html.append(f'<td style="padding: 10px 8px; color: #111827; font-size: 14px; font-weight: {font_weight}; font-family: \'JetBrains Mono\', monospace;">{word}</td>')
-        html.append(f'<td style="padding: 10px 8px; text-align: right; color: {color}; font-size: 14px; font-family: \'JetBrains Mono\', monospace;">{score:.4f}</td>')
-        html.append('</tr>')
-        rank += 1
+        if word.lower() not in exclude:
+            result_data.append({
+                "排名": rank,
+                "词汇": word,
+                "相似度": f"{score:.4f}"
+            })
+            rank += 1
     
-    html.append('</table>')
-    html.append('</div>')
+    df = pd.DataFrame(result_data)
     
-    st.markdown(''.join(html), unsafe_allow_html=True)
+    # 可视化
+    vec_a = get_word_vector(model, word_a)
+    vec_b = get_word_vector(model, word_b)
+    vec_c = get_word_vector(model, word_c)
+    
+    result_word = results[0][0] if results else None
+    result_vec = get_word_vector(model, result_word) if result_word else None
+    
+    fig = create_vector_visualization(
+        [word_a, word_b, word_c],
+        [vec_a, vec_b, vec_c],
+        result_word=result_word,
+        result_vector=result_vec
+    )
+    
+    # 详细信息
+    target_vec = vec_a - vec_b + vec_c
+    details = f"""
+### 向量详细信息
+
+| 属性 | 值 |
+|------|-----|
+| 向量维度 | {vec_a.shape[0]} |
+| {word_a} - {word_b} | {cosine_similarity(vec_a, vec_b):.4f} |
+| {word_a} - {word_c} | {cosine_similarity(vec_a, vec_c):.4f} |
+| {word_b} - {word_c} | {cosine_similarity(vec_b, vec_c):.4f} |
+"""
+    if result_word and result_vec is not None:
+        details += f"| 计算结果 - {result_word} | {cosine_similarity(target_vec, result_vec):.4f} |"
+    
+    return formula, df, fig, details
+
+
+# 全局模型缓存
+_word2vec_model = {"model": None, "loaded": False}
+
+
+def get_model():
+    """获取模型（懒加载）"""
+    if not _word2vec_model["loaded"]:
+        _word2vec_model["model"] = load_word2vec_model()
+        _word2vec_model["loaded"] = True
+    return _word2vec_model["model"]
 
 
 def render():
-    """渲染 Lab 1: 向量运算 页面"""
-    st.markdown('<h1 class="module-title">向量运算</h1>', unsafe_allow_html=True)
+    """渲染页面"""
     
-    # 加载模型
-    with st.spinner("正在加载 Word2Vec 模型..."):
-        model = load_word2vec_model()
+    gr.Markdown("## 向量运算")
     
-    if model is None:
-        st.error("模型加载失败，请检查网络连接")
-        return
+    with gr.Row():
+        word_a = gr.Textbox(label="词 A", value="king", scale=2)
+        with gr.Column(scale=1, min_width=50):
+            gr.Markdown("<div style='text-align: center; padding-top: 32px; font-size: 24px; color: #DC2626;'>-</div>")
+        word_b = gr.Textbox(label="词 B", value="man", scale=2)
+        with gr.Column(scale=1, min_width=50):
+            gr.Markdown("<div style='text-align: center; padding-top: 32px; font-size: 24px; color: #059669;'>+</div>")
+        word_c = gr.Textbox(label="词 C", value="woman", scale=2)
     
-    st.markdown("---")
-    
-    # 向量计算器
-    st.markdown("### 向量计算器")
-    
-    col1, col2, col3, col4, col5 = st.columns([2, 1, 2, 1, 2])
-    
-    with col1:
-        word_a = st.text_input("词 A", value="king", key="word_a", 
-                               help="输入英文单词（小写）")
-    
-    with col2:
-        st.markdown("<div style='text-align: center; padding-top: 32px; font-size: 24px; color: #DC2626;'>−</div>", 
-                   unsafe_allow_html=True)
-    
-    with col3:
-        word_b = st.text_input("词 B", value="man", key="word_b",
-                               help="将被减去的词")
-    
-    with col4:
-        st.markdown("<div style='text-align: center; padding-top: 32px; font-size: 24px; color: #059669;'>+</div>", 
-                   unsafe_allow_html=True)
-    
-    with col5:
-        word_c = st.text_input("词 C", value="woman", key="word_c",
-                               help="将被加上的词")
-    
-    # Top-K 设置
-    top_k = st.slider("返回结果数 (Top-K)", min_value=1, max_value=20, value=10, key="top_k")
+    top_k = gr.Slider(label="返回结果数 (Top-K)", minimum=1, maximum=20, value=10, step=1)
     
     # 预设案例
-    st.markdown("#### 经典案例")
-    presets = [
-        ("King - Man + Woman", "king", "man", "woman"),
-        ("Paris - France + Germany", "paris", "france", "germany"),
-        ("Car - Road + Water", "car", "road", "water"),
-        ("Brother - Man + Woman", "brother", "man", "woman"),
-        ("Walking - Walk + Swim", "walking", "walk", "swim"),
-    ]
+    gr.Markdown("#### 经典案例")
+    with gr.Row():
+        preset1 = gr.Button("King - Man + Woman", size="sm")
+        preset2 = gr.Button("Paris - France + Germany", size="sm")
+        preset3 = gr.Button("Car - Road + Water", size="sm")
+        preset4 = gr.Button("Brother - Man + Woman", size="sm")
+        preset5 = gr.Button("Walking - Walk + Swim", size="sm")
     
-    def set_preset(a: str, b: str, c: str):
-        """回调函数：设置预设值"""
-        st.session_state.word_a = a
-        st.session_state.word_b = b
-        st.session_state.word_c = c
+    compute_btn = gr.Button("计算", variant="primary", size="lg")
     
-    preset_cols = st.columns(len(presets))
-    for i, (label, a, b, c) in enumerate(presets):
-        with preset_cols[i]:
-            st.button(
-                label, 
-                key=f"preset_{i}", 
-                width="stretch",
-                on_click=set_preset,
-                args=(a, b, c)
-            )
+    gr.Markdown("---")
     
-    st.markdown("---")
+    # 结果展示
+    formula_md = gr.Markdown("")
     
-    # 执行计算
-    if word_a and word_b and word_c:
-        word_a = word_a.lower().strip()
-        word_b = word_b.lower().strip()
-        word_c = word_c.lower().strip()
+    with gr.Row():
+        with gr.Column(scale=1):
+            gr.Markdown("#### 最相似的词")
+            result_df = gr.Dataframe(interactive=False)
         
-        # 检查词是否在词表中
-        missing = []
-        for w in [word_a, word_b, word_c]:
-            if get_word_vector(model, w) is None:
-                missing.append(w)
-        
-        if missing:
-            st.error(f"以下词不在词表中: {', '.join(missing)}")
-            st.info("请使用常见的英文单词（小写）")
-        else:
-            # 显示公式
-            st.markdown(f"""
-            <div style="text-align: center; padding: 16px; background: #F3F4F6; border-radius: 8px; margin-bottom: 16px;">
-                <span style="font-size: 20px; font-family: 'JetBrains Mono', monospace; color: #111827;">
-                    <span style="color: #2563EB;">{word_a}</span> − 
-                    <span style="color: #DC2626;">{word_b}</span> + 
-                    <span style="color: #059669;">{word_c}</span> = 
-                    <span style="color: #7C3AED;">?</span>
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # 执行向量运算
-            results = vector_arithmetic(model, positive=[word_a, word_c], negative=[word_b], topn=top_k)
-            
-            col_result, col_viz = st.columns([1, 1])
-            
-            with col_result:
-                st.markdown("#### 最相似的词")
-                render_similar_words_table(results, exclude_words=[word_a, word_b, word_c])
-                
-            with col_viz:
-                st.markdown("#### 向量空间投影")
-                
-                # 获取向量
-                vec_a = get_word_vector(model, word_a)
-                vec_b = get_word_vector(model, word_b)
-                vec_c = get_word_vector(model, word_c)
-                
-                words = [word_a, word_b, word_c]
-                vectors = [vec_a, vec_b, vec_c]
-                
-                result_word = results[0][0] if results else None
-                result_vec = get_word_vector(model, result_word) if result_word else None
-                
-                fig = create_vector_visualization(
-                    words, vectors,
-                    result_word=result_word,
-                    result_vector=result_vec,
-                    operation_path=[(word_a, word_b), (word_b, word_c)]
-                )
-                
-                if fig:
-                    st.plotly_chart(fig, width="stretch")
-            
-            # 详细信息
-            with st.expander("向量详细信息"):
-                st.markdown("#### 向量维度与相似度")
-                
-                # 计算向量运算结果
-                target_vec = vec_a - vec_b + vec_c
-                
-                info_cols = st.columns(4)
-                with info_cols[0]:
-                    st.metric("向量维度", vec_a.shape[0])
-                with info_cols[1]:
-                    st.metric(f"{word_a} ↔ {word_b}", f"{cosine_similarity(vec_a, vec_b):.4f}")
-                with info_cols[2]:
-                    st.metric(f"{word_a} ↔ {word_c}", f"{cosine_similarity(vec_a, vec_c):.4f}")
-                with info_cols[3]:
-                    st.metric(f"{word_b} ↔ {word_c}", f"{cosine_similarity(vec_b, vec_c):.4f}")
-                
-                if result_word and result_vec is not None:
-                    st.markdown(f"**计算结果与 {result_word} 的相似度**: `{cosine_similarity(target_vec, result_vec):.4f}`")
-
+        with gr.Column(scale=1):
+            gr.Markdown("#### 向量空间投影")
+            plot = gr.Plot()
+    
+    with gr.Accordion("向量详细信息", open=False):
+        details_md = gr.Markdown("")
+    
+    # ==================== 事件绑定 ====================
+    
+    # 预设按钮 - 设置并计算
+    def set_and_compute(a, b, c, k):
+        result = compute_analogy(a, b, c, k)
+        return (a, b, c) + result
+    
+    preset1.click(
+        fn=lambda k: set_and_compute("king", "man", "woman", k),
+        inputs=[top_k],
+        outputs=[word_a, word_b, word_c, formula_md, result_df, plot, details_md]
+    )
+    preset2.click(
+        fn=lambda k: set_and_compute("paris", "france", "germany", k),
+        inputs=[top_k],
+        outputs=[word_a, word_b, word_c, formula_md, result_df, plot, details_md]
+    )
+    preset3.click(
+        fn=lambda k: set_and_compute("car", "road", "water", k),
+        inputs=[top_k],
+        outputs=[word_a, word_b, word_c, formula_md, result_df, plot, details_md]
+    )
+    preset4.click(
+        fn=lambda k: set_and_compute("brother", "man", "woman", k),
+        inputs=[top_k],
+        outputs=[word_a, word_b, word_c, formula_md, result_df, plot, details_md]
+    )
+    preset5.click(
+        fn=lambda k: set_and_compute("walking", "walk", "swim", k),
+        inputs=[top_k],
+        outputs=[word_a, word_b, word_c, formula_md, result_df, plot, details_md]
+    )
+    
+    # 计算按钮
+    compute_btn.click(
+        fn=compute_analogy,
+        inputs=[word_a, word_b, word_c, top_k],
+        outputs=[formula_md, result_df, plot, details_md]
+    )
+    
+    # 即时计算 - 输入变化时自动计算
+    for inp in [word_a, word_b, word_c]:
+        inp.change(
+            fn=compute_analogy,
+            inputs=[word_a, word_b, word_c, top_k],
+            outputs=[formula_md, result_df, plot, details_md]
+        )
+    
+    top_k.change(
+        fn=compute_analogy,
+        inputs=[word_a, word_b, word_c, top_k],
+        outputs=[formula_md, result_df, plot, details_md]
+    )

@@ -2,26 +2,22 @@
 数据清洗 - 测试清洗规则和 PPL 过滤
 """
 
-import streamlit as st
+import gradio as gr
 import re
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from data_lab.data_utils import (
     CLEANING_RULES, 
-    clean_text, 
     normalize_unicode,
     PPL_MODELS,
     calculate_perplexity,
-    batch_calculate_ppl,
-    filter_by_ppl,
     get_ppl_quality_label
 )
 
 
 def render_ppl_histogram(ppl_values: list, threshold_max: float) -> go.Figure:
     """渲染 PPL 分布直方图"""
-    # 过滤掉无穷大值
     valid_values = [v for v in ppl_values if v != float('inf') and v < 10000]
     
     if not valid_values:
@@ -37,7 +33,6 @@ def render_ppl_histogram(ppl_values: list, threshold_max: float) -> go.Figure:
         name='PPL 分布'
     ))
     
-    # 添加阈值线
     fig.add_vline(
         x=threshold_max, 
         line_dash="dash", 
@@ -45,7 +40,6 @@ def render_ppl_histogram(ppl_values: list, threshold_max: float) -> go.Figure:
         annotation_text=f"阈值: {threshold_max}"
     )
     
-    # 添加参考线
     reference_lines = [
         (50, "优秀", "#059669"),
         (100, "良好", "#2563EB"),
@@ -73,271 +67,341 @@ def render_ppl_histogram(ppl_values: list, threshold_max: float) -> go.Figure:
     return fig
 
 
+def apply_cleaning(text: str, rules: list, unicode_form: str, custom_pattern: str, custom_replacement: str):
+    """应用清洗规则"""
+    if not text:
+        return "", 0, 0, "0.0%"
+    
+    cleaned = text
+    original_len = len(text)
+    
+    # 应用选中的规则
+    for rule_id in rules:
+        if rule_id in CLEANING_RULES:
+            rule = CLEANING_RULES[rule_id]
+            cleaned = re.sub(rule['pattern'], rule['replacement'], cleaned)
+    
+    # Unicode 规范化
+    if unicode_form and unicode_form != "无":
+        cleaned = normalize_unicode(cleaned, unicode_form)
+    
+    # 自定义正则
+    if custom_pattern:
+        try:
+            cleaned = re.sub(custom_pattern, custom_replacement or "", cleaned)
+        except re.error:
+            pass
+    
+    cleaned = cleaned.strip()
+    cleaned_len = len(cleaned)
+    reduction = (1 - cleaned_len / original_len) * 100 if original_len else 0
+    
+    return cleaned, original_len, cleaned_len, f"{reduction:.1f}%"
+
+
+# PPL 计算的全局模型缓存
+_ppl_model_cache = {'model': None, 'tokenizer': None, 'name': None}
+
+
+def load_ppl_model(model_choice: str, progress=gr.Progress()):
+    """加载 PPL 计算模型"""
+    global _ppl_model_cache
+    
+    if _ppl_model_cache['name'] == model_choice:
+        return f"模型 {model_choice} 已加载"
+    
+    try:
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        
+        model_info = PPL_MODELS[model_choice]
+        progress(0.3, desc=f"加载 {model_choice}...")
+        
+        tokenizer = AutoTokenizer.from_pretrained(model_info['id'])
+        model = AutoModelForCausalLM.from_pretrained(
+            model_info['id'],
+            torch_dtype=torch.float32,
+            device_map="cpu"
+        )
+        model.eval()
+        
+        _ppl_model_cache['model'] = model
+        _ppl_model_cache['tokenizer'] = tokenizer
+        _ppl_model_cache['name'] = model_choice
+        
+        return f"模型 {model_choice} 加载成功"
+        
+    except ImportError:
+        return "请确保已安装 transformers 和 torch 库"
+    except Exception as e:
+        return f"加载失败: {str(e)}"
+
+
+def calculate_single_ppl(text: str, min_ppl: float, max_ppl: float):
+    """计算单条文本的 PPL"""
+    if not _ppl_model_cache['model']:
+        return "请先加载模型", "", "", "", ""
+    
+    if not text or not text.strip():
+        return "请输入文本", "", "", "", ""
+    
+    try:
+        ppl, details = calculate_perplexity(
+            text, 
+            _ppl_model_cache['model'], 
+            _ppl_model_cache['tokenizer']
+        )
+        
+        label, color = get_ppl_quality_label(ppl)
+        
+        result_html = f"""
+        <div style="background: linear-gradient(90deg, {color}22, transparent); 
+            padding: 15px; border-radius: 8px; border-left: 4px solid {color}; margin: 10px 0;">
+            <span style="color: {color}; font-size: 24px; font-weight: bold;">
+                PPL = {ppl:.2f}
+            </span>
+            <span style="margin-left: 20px; color: #6B7280;">
+                质量: <b>{label}</b>
+            </span>
+        </div>
+        """
+        
+        if min_ppl <= ppl <= max_ppl:
+            filter_status = f"通过过滤 (PPL 在 {min_ppl} - {max_ppl} 范围内)"
+        else:
+            filter_status = f"被过滤 (PPL 超出 {min_ppl} - {max_ppl} 范围)"
+        
+        return (
+            result_html,
+            f"{ppl:.2f}",
+            label,
+            str(details.get('seq_length', 'N/A')),
+            filter_status
+        )
+        
+    except Exception as e:
+        return f"计算失败: {str(e)}", "", "", "", ""
+
+
+def calculate_batch_ppl(texts: str, min_ppl: float, max_ppl: float, progress=gr.Progress()):
+    """批量计算 PPL"""
+    if not _ppl_model_cache['model']:
+        return "请先加载模型", None, None, "", "", "", ""
+    
+    text_list = [t.strip() for t in texts.strip().split('\n') if t.strip()]
+    
+    if not text_list:
+        return "请输入文本", None, None, "", "", "", ""
+    
+    try:
+        results = []
+        for i, text in enumerate(text_list):
+            progress((i + 1) / len(text_list), desc=f"计算 {i + 1}/{len(text_list)}...")
+            
+            ppl, details = calculate_perplexity(
+                text, 
+                _ppl_model_cache['model'], 
+                _ppl_model_cache['tokenizer']
+            )
+            label, _ = get_ppl_quality_label(ppl)
+            accepted = min_ppl <= ppl <= max_ppl
+            
+            results.append({
+                "文本": text[:50] + "..." if len(text) > 50 else text,
+                "PPL": ppl,
+                "评级": label,
+                "通过": "Yes" if accepted else "No",
+                "长度": len(text)
+            })
+        
+        # 统计
+        ppl_values = [r["PPL"] for r in results]
+        accepted_count = sum(1 for r in results if r["通过"] == "Yes")
+        valid_ppl = [p for p in ppl_values if p != float('inf')]
+        avg_ppl = np.mean(valid_ppl) if valid_ppl else 0
+        
+        # 分布图
+        fig = render_ppl_histogram(ppl_values, max_ppl)
+        
+        # 结果表
+        df = pd.DataFrame(results)
+        
+        return (
+            "计算完成",
+            fig,
+            df,
+            str(len(results)),
+            str(accepted_count),
+            str(len(results) - accepted_count),
+            f"{avg_ppl:.1f}"
+        )
+        
+    except Exception as e:
+        return f"计算失败: {str(e)}", None, None, "", "", "", ""
+
+
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">数据清洗</h1>', unsafe_allow_html=True)
     
+    gr.Markdown("## 数据清洗")
     
-    # 创建 tabs
-    tab1, tab2 = st.tabs(["规则清洗", "PPL 过滤"])
-    
-    with tab1:
-        # 清洗规则选择 - 置顶
-        st.markdown("### 清洗规则")
-        
-        selected_rules = []
-        rule_cols = st.columns(3)
-        for idx, (rule_id, rule_info) in enumerate(CLEANING_RULES.items()):
-            with rule_cols[idx % 3]:
-                if st.checkbox(rule_info['name'], value=True, key=f"rule_{rule_id}"):
-                    selected_rules.append(rule_id)
-        
-        # Unicode 规范化和自定义正则
-        col_opt1, col_opt2, col_opt3 = st.columns([1, 1, 1])
-        with col_opt1:
-            unicode_form = st.selectbox("Unicode 规范化", ["无", "NFC", "NFD", "NFKC", "NFKD"])
-        with col_opt2:
-            custom_pattern = st.text_input("自定义正则 Pattern", placeholder=r"如 \d+")
-        with col_opt3:
-            custom_replacement = st.text_input("替换为", placeholder="替换文本")
-        
-        st.markdown("---")
-        
-        # 输入输出两列
-        col_left, col_right = st.columns(2)
-        
-        with col_left:
-            st.markdown("### 输入 (脏数据)")
-            dirty_text = st.text_area(
-                "原始文本",
-                value="""<p>这是一段 HTML 文本</p>
+    with gr.Tabs():
+        # Tab 1: 规则清洗
+        with gr.Tab("规则清洗"):
+            gr.Markdown("### 清洗规则")
+            
+            rule_choices = [(info['name'], rule_id) for rule_id, info in CLEANING_RULES.items()]
+            selected_rules = gr.CheckboxGroup(
+                label="选择清洗规则",
+                choices=rule_choices,
+                value=[rule_id for rule_id in CLEANING_RULES.keys()]
+            )
+            
+            with gr.Row():
+                unicode_form = gr.Dropdown(
+                    label="Unicode 规范化",
+                    choices=["无", "NFC", "NFD", "NFKC", "NFKD"],
+                    value="无"
+                )
+                custom_pattern = gr.Textbox(
+                    label="自定义正则 Pattern",
+                    placeholder=r"如 \d+"
+                )
+                custom_replacement = gr.Textbox(
+                    label="替换为",
+                    placeholder="替换文本"
+                )
+            
+            gr.Markdown("---")
+            
+            with gr.Row():
+                with gr.Column():
+                    gr.Markdown("### 输入 (脏数据)")
+                    dirty_text = gr.Textbox(
+                        label="原始文本",
+                        value="""<p>这是一段 HTML 文本</p>
 访问 https://example.com 了解更多
 联系邮箱: test@email.com
 包含   多余   空格
 特殊符号★☆♠♣""",
-                height=200,
-                key="dirty_input"
-            )
-        
-        # 应用清洗（在列外计算，确保规则生效）
-        cleaned = dirty_text
-        
-        # 应用选中的规则
-        for rule_id in selected_rules:
-            rule = CLEANING_RULES[rule_id]
-            cleaned = re.sub(rule['pattern'], rule['replacement'], cleaned)
-        
-        # Unicode 规范化
-        if unicode_form != "无":
-            cleaned = normalize_unicode(cleaned, unicode_form)
-        
-        # 自定义正则
-        if custom_pattern:
-            try:
-                cleaned = re.sub(custom_pattern, custom_replacement, cleaned)
-            except re.error as e:
-                st.error(f"正则错误: {e}")
-        
-        cleaned = cleaned.strip()
-        
-        with col_right:
-            st.markdown("### 输出 (清洗后)")
-            st.text_area("清洗结果", value=cleaned, height=200, disabled=True)
-            
-            # 统计
-            st.markdown("### 统计")
-            stat_col1, stat_col2, stat_col3 = st.columns(3)
-            with stat_col1:
-                st.metric("原始长度", len(dirty_text))
-            with stat_col2:
-                st.metric("清洗后长度", len(cleaned))
-            with stat_col3:
-                reduction = (1 - len(cleaned) / len(dirty_text)) * 100 if dirty_text else 0
-                st.metric("缩减比例", f"{reduction:.1f}%")
-    
-    with tab2:
-        # 模型选择
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            model_choice = st.selectbox(
-                "选择 PPL 计算模型",
-                options=list(PPL_MODELS.keys()),
-                help="选择用于计算 PPL 的语言模型"
-            )
-        
-        with col2:
-            model_info = PPL_MODELS[model_choice]
-        # 阈值设置
-        col_a, col_b = st.columns(2)
-        with col_a:
-            min_ppl = st.number_input("最小 PPL", value=0.0, min_value=0.0, help="PPL 低于此值的文本会被过滤（可能是重复/无意义）")
-        with col_b:
-            max_ppl = st.number_input("最大 PPL", value=500.0, min_value=1.0, help="PPL 高于此值的文本会被过滤")
-        
-        st.markdown("---")
-        
-        # 输入模式选择
-        input_mode = st.radio("输入模式", ["单条文本", "批量文本"], horizontal=True)
-        
-        if input_mode == "单条文本":
-            # 单条文本模式
-            text_input = st.text_area(
-                "输入文本",
-                value="The quick brown fox jumps over the lazy dog. This is a test sentence for perplexity calculation.",
-                height=150,
-                placeholder="输入要计算 PPL 的文本..."
-            )
-            
-            if st.button("计算 PPL", type="primary"):
-                if not text_input.strip():
-                    st.warning("请输入文本")
-                else:
-                    try:
-                        import torch
-                        from transformers import AutoModelForCausalLM, AutoTokenizer
-                        
-                        with st.spinner(f"加载模型 {model_choice}..."):
-                            tokenizer = AutoTokenizer.from_pretrained(model_info['id'])
-                            model = AutoModelForCausalLM.from_pretrained(
-                                model_info['id'],
-                                torch_dtype=torch.float32,
-                                device_map="cpu"
-                            )
-                            model.eval()
-                        
-                        with st.spinner("计算 PPL..."):
-                            ppl, details = calculate_perplexity(text_input, model, tokenizer)
-                        
-                        # 显示结果
-                        label, color = get_ppl_quality_label(ppl)
-                        
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.metric("Perplexity", f"{ppl:.2f}")
-                        with col2:
-                            st.metric("质量评级", label)
-                        with col3:
-                            st.metric("序列长度", details.get('seq_length', 'N/A'))
-                        
-                        # 可视化评级
-                        st.markdown(f"""
-                        <div style="background: linear-gradient(90deg, {color}22, transparent); 
-                                    padding: 15px; border-radius: 8px; border-left: 4px solid {color};">
-                            <span style="color: {color}; font-size: 24px; font-weight: bold;">
-                                PPL = {ppl:.2f}
-                            </span>
-                            <span style="margin-left: 20px; color: #6B7280;">
-                                质量: <b>{label}</b>
-                            </span>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                        # 阈值判断
-                        if min_ppl <= ppl <= max_ppl:
-                            st.info(f"通过过滤 (PPL 在 {min_ppl} - {max_ppl} 范围内)")
-                        else:
-                            st.warning(f"被过滤 (PPL 超出 {min_ppl} - {max_ppl} 范围)")
-                        
-                        # 详细信息
-                        with st.expander("详细信息"):
-                            st.json(details)
+                        lines=8
+                    )
+                
+                with gr.Column():
+                    gr.Markdown("### 输出 (清洗后)")
+                    cleaned_text = gr.Textbox(
+                        label="清洗结果",
+                        lines=8,
+                        interactive=False
+                    )
                     
-                    except ImportError:
-                        st.error("请确保已安装 `transformers` 和 `torch` 库")
-                    except Exception as e:
-                        st.error(f"计算失败: {str(e)}")
-        
-        else:
-            # 批量文本模式
-            st.markdown("每行一条文本:")
+                    gr.Markdown("### 统计")
+                    with gr.Row():
+                        orig_len = gr.Textbox(label="原始长度", interactive=False)
+                        clean_len = gr.Textbox(label="清洗后长度", interactive=False)
+                        reduction_pct = gr.Textbox(label="缩减比例", interactive=False)
             
-            batch_input = st.text_area(
-                "批量输入",
-                value="""The weather is nice today.
+            # 实时清洗
+            for input_comp in [dirty_text, selected_rules, unicode_form, custom_pattern, custom_replacement]:
+                input_comp.change(
+                    fn=apply_cleaning,
+                    inputs=[dirty_text, selected_rules, unicode_form, custom_pattern, custom_replacement],
+                    outputs=[cleaned_text, orig_len, clean_len, reduction_pct]
+                )
+        
+        # Tab 2: PPL 过滤
+        with gr.Tab("PPL 过滤"):
+            with gr.Row():
+                model_choice = gr.Dropdown(
+                    label="选择 PPL 计算模型",
+                    choices=list(PPL_MODELS.keys()),
+                    value=list(PPL_MODELS.keys())[0]
+                )
+                load_model_btn = gr.Button("加载模型", variant="primary")
+            
+            model_status = gr.Markdown("")
+            
+            with gr.Row():
+                min_ppl = gr.Number(label="最小 PPL", value=0.0, minimum=0.0)
+                max_ppl = gr.Number(label="最大 PPL", value=500.0, minimum=1.0)
+            
+            gr.Markdown("---")
+            
+            input_mode = gr.Radio(
+                label="输入模式",
+                choices=["单条文本", "批量文本"],
+                value="单条文本"
+            )
+            
+            # 单条文本模式
+            with gr.Group(visible=True) as single_mode:
+                single_text = gr.Textbox(
+                    label="输入文本",
+                    value="The quick brown fox jumps over the lazy dog. This is a test sentence for perplexity calculation.",
+                    lines=4
+                )
+                single_calc_btn = gr.Button("计算 PPL", variant="primary")
+                
+                single_result = gr.HTML("")
+                with gr.Row():
+                    single_ppl = gr.Textbox(label="Perplexity", interactive=False)
+                    single_label = gr.Textbox(label="质量评级", interactive=False)
+                    single_seq_len = gr.Textbox(label="序列长度", interactive=False)
+                single_filter_status = gr.Textbox(label="过滤状态", interactive=False)
+            
+            # 批量文本模式
+            with gr.Group(visible=False) as batch_mode:
+                batch_text = gr.Textbox(
+                    label="批量输入 (每行一条)",
+                    value="""The weather is nice today.
 This is a normal English sentence.
 asdfjkl qwerty random gibberish text
 机器学习是人工智能的一个重要分支。
 !!!@@@###$$$%%%^^^&&&***
 She went to the store to buy some groceries for dinner.""",
-                height=200,
-                placeholder="每行一条文本..."
+                    lines=8
+                )
+                batch_calc_btn = gr.Button("批量计算 PPL", variant="primary")
+                
+                batch_status = gr.Markdown("")
+                
+                with gr.Row():
+                    total_count = gr.Textbox(label="总样本数", interactive=False)
+                    pass_count = gr.Textbox(label="通过数", interactive=False)
+                    filter_count = gr.Textbox(label="过滤数", interactive=False)
+                    avg_ppl = gr.Textbox(label="平均 PPL", interactive=False)
+                
+                ppl_chart = gr.Plot(label="PPL 分布")
+                batch_results = gr.Dataframe(label="详细结果")
+            
+            # 切换模式
+            def toggle_mode(mode):
+                return (
+                    gr.update(visible=(mode == "单条文本")),
+                    gr.update(visible=(mode == "批量文本"))
+                )
+            
+            input_mode.change(
+                fn=toggle_mode,
+                inputs=[input_mode],
+                outputs=[single_mode, batch_mode]
             )
             
-            if st.button("批量计算 PPL", type="primary"):
-                texts = [t.strip() for t in batch_input.strip().split('\n') if t.strip()]
-                
-                if not texts:
-                    st.warning("请输入文本")
-                else:
-                    try:
-                        import torch
-                        from transformers import AutoModelForCausalLM, AutoTokenizer
-                        
-                        with st.spinner(f"加载模型 {model_choice}..."):
-                            tokenizer = AutoTokenizer.from_pretrained(model_info['id'])
-                            model = AutoModelForCausalLM.from_pretrained(
-                                model_info['id'],
-                                torch_dtype=torch.float32,
-                                device_map="cpu"
-                            )
-                            model.eval()
-                        
-                        # 批量计算
-                        progress_bar = st.progress(0)
-                        results = []
-                        
-                        for i, text in enumerate(texts):
-                            ppl, details = calculate_perplexity(text, model, tokenizer)
-                            label, color = get_ppl_quality_label(ppl)
-                            accepted = min_ppl <= ppl <= max_ppl
-                            
-                            results.append({
-                                "文本": text[:50] + "..." if len(text) > 50 else text,
-                                "PPL": ppl,
-                                "评级": label,
-                                "通过": "Yes" if accepted else "No",
-                                "长度": len(text)
-                            })
-                            
-                            progress_bar.progress((i + 1) / len(texts))
-                        
-                        progress_bar.empty()
-                        
-                        # 统计
-                        ppl_values = [r["PPL"] for r in results]
-                        accepted_count = sum(1 for r in results if r["通过"] == "Yes")
-                        
-                        col1, col2, col3, col4 = st.columns(4)
-                        with col1:
-                            st.metric("总样本数", len(results))
-                        with col2:
-                            st.metric("通过数", accepted_count)
-                        with col3:
-                            st.metric("过滤数", len(results) - accepted_count)
-                        with col4:
-                            valid_ppl = [p for p in ppl_values if p != float('inf')]
-                            avg_ppl = np.mean(valid_ppl) if valid_ppl else 0
-                            st.metric("平均 PPL", f"{avg_ppl:.1f}")
-                        
-                        # 分布图
-                        fig = render_ppl_histogram(ppl_values, max_ppl)
-                        if fig:
-                            st.plotly_chart(fig, width='stretch')
-                        
-                        # 结果表格
-                        st.markdown("### 详细结果")
-                        df = pd.DataFrame(results)
-                        st.dataframe(df, width='stretch', hide_index=True)
-                        
-                        # 显示被过滤的文本
-                        rejected = [r for r in results if r["通过"] == "No"]
-                        if rejected:
-                            with st.expander(f"被过滤的文本 ({len(rejected)} 条)"):
-                                for r in rejected:
-                                    st.markdown(f"- **PPL={r['PPL']:.1f}** ({r['评级']}): {r['文本']}")
-                    
-                    except ImportError:
-                        st.error("请确保已安装 `transformers` 和 `torch` 库")
-                    except Exception as e:
-                        st.error(f"计算失败: {str(e)}")
+            # 事件绑定
+            load_model_btn.click(
+                fn=load_ppl_model,
+                inputs=[model_choice],
+                outputs=[model_status]
+            )
+            
+            single_calc_btn.click(
+                fn=calculate_single_ppl,
+                inputs=[single_text, min_ppl, max_ppl],
+                outputs=[single_result, single_ppl, single_label, single_seq_len, single_filter_status]
+            )
+            
+            batch_calc_btn.click(
+                fn=calculate_batch_ppl,
+                inputs=[batch_text, min_ppl, max_ppl],
+                outputs=[batch_status, ppl_chart, batch_results, total_count, pass_count, filter_count, avg_ppl]
+            )

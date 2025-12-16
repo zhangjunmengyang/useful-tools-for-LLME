@@ -12,7 +12,6 @@ import unicodedata
 from functools import lru_cache
 from typing import Dict, List, Optional, Tuple, Any
 
-import streamlit as st
 from transformers import AutoTokenizer, PreTrainedTokenizer
 
 
@@ -108,21 +107,27 @@ TOKEN_COLORS = [
 ]
 
 
-@st.cache_resource(show_spinner=False)
+# Tokenizer 缓存
+_tokenizer_cache = {}
+
+
 def load_tokenizer(model_name: str) -> Optional[PreTrainedTokenizer]:
     """
     加载并缓存 tokenizer
-    使用 Streamlit 的缓存机制避免重复加载
     """
+    if model_name in _tokenizer_cache:
+        return _tokenizer_cache[model_name]
+    
     try:
         tokenizer = AutoTokenizer.from_pretrained(
             model_name,
             trust_remote_code=True,
             use_fast=True,
         )
+        _tokenizer_cache[model_name] = tokenizer
         return tokenizer
     except Exception as e:
-        st.error(f"加载模型 '{model_name}' 失败: {str(e)}")
+        print(f"加载模型 '{model_name}' 失败: {str(e)}")
         return None
 
 
@@ -163,7 +168,7 @@ def get_token_info(tokenizer: PreTrainedTokenizer, text: str) -> List[Dict[str, 
         # 解码单个 token
         token_str = tokenizer.decode([token_id])
         
-        # 检测是否为字节级别 token：解码后包含替换字符 � 表示无法正确解码
+        # 检测是否为字节级别 token：解码后包含替换字符 ? 表示无法正确解码
         # 这是唯一可靠的判断方式，不依赖模型类型或字符范围
         is_byte_token = '\ufffd' in token_str
         
@@ -426,11 +431,11 @@ def render_tokens_html(token_info_list: List[Dict], show_ids: bool = True) -> st
         
         # 转义 HTML
         display_str = token_str.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        display_str = display_str.replace(' ', '␣').replace('\n', '↵\n').replace('\t', '→')
+        display_str = display_str.replace(' ', '?').replace('\n', '?\n').replace('\t', '?')
         
         # 空字符串显示
         if not display_str.strip():
-            display_str = repr(token_str)[1:-1] if token_str else '∅'
+            display_str = repr(token_str)[1:-1] if token_str else '?'
         
         # 特殊标记样式
         border_style = ""
@@ -454,4 +459,3 @@ def render_tokens_html(token_info_list: List[Dict], show_ids: bool = True) -> st
     
     html_parts.append('</div>')
     return ''.join(html_parts)
-

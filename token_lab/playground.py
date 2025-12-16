@@ -1,87 +1,292 @@
 """
-分词编码 - 交互式分词、编解码与字节分析
+分词编码 - Gradio 版本
+交互式分词、编解码与字节分析
 """
 
-import streamlit as st
+import gradio as gr
 import pandas as pd
 from token_lab.tokenizer_utils import (
-    load_tokenizer, 
-    get_token_info, 
+    load_tokenizer,
+    get_token_info,
     get_tokenizer_info,
     decode_token_ids,
     calculate_compression_stats,
     get_normalization_info,
     get_unicode_info,
     get_special_tokens_map,
-    get_model_categories,
     get_models_by_category,
     MODEL_CATEGORIES,
     TOKEN_COLORS
 )
 
 
-def render_token_display(token_info_list: list, show_ids: bool = True) -> None:
-    """渲染分词结果"""
+def get_category_choices():
+    """获取模型厂商列表"""
+    return list(MODEL_CATEGORIES.keys())
+
+
+def get_model_choices(category):
+    """根据厂商获取模型列表"""
+    if not category:
+        return []
+    models = get_models_by_category(category)
+    return [name for name, _ in models]
+
+
+def get_model_id(category, model_name):
+    """获取模型 ID"""
+    if not category or not model_name:
+        return None
+    models = get_models_by_category(category)
+    for name, model_id in models:
+        if name == model_name:
+            return model_id
+    return None
+
+
+def render_tokens_html(token_info_list, show_ids=True):
+    """渲染分词结果为 HTML"""
     if not token_info_list:
-        st.info("请输入文本")
-        return
+        return "<div style='color: #6B7280; padding: 20px;'>请输入文本</div>"
     
-    html_parts = ['<div style="background-color: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 6px; padding: 16px; line-height: 2.2; font-family: \'JetBrains Mono\', monospace;">']
+    html_parts = [
+        '<div style="background-color: #F3F4F6; border: 1px solid #E5E7EB; '
+        'border-radius: 8px; padding: 16px; line-height: 2.4; '
+        'font-family: \'JetBrains Mono\', monospace;">'
+    ]
     
     for idx, info in enumerate(token_info_list):
         color = TOKEN_COLORS[idx % len(TOKEN_COLORS)]
         token_str = info['token_str']
         token_id = info['token_id']
         raw_token = info.get('raw_token', token_str)
-        byte_seq = info.get('byte_sequence', 'N/A')
         is_special = info.get('is_special', False)
         is_byte_fallback = info.get('is_byte_fallback', False)
-        is_byte_token = info.get('is_byte_token', False)
         
+        # 转义和替换特殊字符
         display_str = token_str.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        display_str = display_str.replace(' ', '\u2423')
-        if '\n' in display_str:
-            display_str = display_str.replace('\n', '\u21b5')
-        if '\t' in display_str:
-            display_str = display_str.replace('\t', '\u2192')
+        display_str = display_str.replace(' ', '␣')
+        display_str = display_str.replace('\n', '↵')
+        display_str = display_str.replace('\t', '→')
         
         if not display_str.strip():
             display_str = repr(token_str)[1:-1] if token_str else '[EMPTY]'
         
+        # 样式
         border_style = ""
         label = ""
         if is_special:
             border_style = "border: 2px solid #DC2626;"
-            label = '<small style="color:#DC2626;font-size:10px;margin-left:2px;">[S]</small>'
+            label = '<span style="color:#DC2626;font-size:10px;margin-left:2px;">[S]</span>'
         elif is_byte_fallback:
             border_style = "border: 2px dashed #D97706;"
-            label = '<small style="color:#D97706;font-size:10px;margin-left:2px;">[B]</small>'
-        elif is_byte_token:
-            border_style = "border: 1px solid #9CA3AF;"
+            label = '<span style="color:#D97706;font-size:10px;margin-left:2px;">[B]</span>'
         
-        tooltip_text = f"Token: {raw_token}  |  ID: {token_id}  |  Bytes: {byte_seq}"
-        id_html = f'<sub style="font-size: 11px; color: #6B7280; margin-left: 2px;">{token_id}</sub>' if show_ids else ''
+        id_html = f'<sub style="font-size: 10px; color: #6B7280; margin-left: 3px;">{token_id}</sub>' if show_ids else ''
         
         html_parts.append(
-            f'<span title="{tooltip_text}" '
+            f'<span title="Token: {raw_token} | ID: {token_id}" '
             f'style="background-color: {color}; color: #111827; padding: 4px 8px; margin: 2px; '
             f'border-radius: 4px; display: inline-block; font-size: 13px; cursor: default; {border_style}">'
             f'{display_str}{id_html}{label}</span>'
         )
     
     html_parts.append('</div>')
-    st.markdown(''.join(html_parts), unsafe_allow_html=True)
+    return ''.join(html_parts)
 
 
-def render_unicode_table(text: str):
-    """渲染 Unicode 表"""
-    if not text:
-        return
+def encode_text(category, model_name, text, show_ids, add_special):
+    """编码文本"""
+    if not category or not model_name:
+        return (
+            "<div style='color: #DC2626;'>请选择模型</div>",
+            "", "", "", "",
+            pd.DataFrame()
+        )
     
-    data = []
-    for char in text:
+    model_id = get_model_id(category, model_name)
+    if not model_id:
+        return (
+            "<div style='color: #DC2626;'>模型不存在</div>",
+            "", "", "", "",
+            pd.DataFrame()
+        )
+    
+    tokenizer = load_tokenizer(model_id)
+    if not tokenizer:
+        return (
+            "<div style='color: #DC2626;'>模型加载失败</div>",
+            "", "", "", "",
+            pd.DataFrame()
+        )
+    
+    if not text:
+        return (
+            render_tokens_html([], show_ids),
+            "0", "0", "-", "-",
+            pd.DataFrame()
+        )
+    
+    # 获取 token 信息
+    if add_special:
+        encoding = tokenizer(text, add_special_tokens=True)
+        token_ids = encoding["input_ids"]
+        token_info_list = []
+        special_ids = set(tokenizer.all_special_ids) if hasattr(tokenizer, 'all_special_ids') else set()
+        
+        for idx, tid in enumerate(token_ids):
+            raw_token = tokenizer.convert_ids_to_tokens([tid])[0] if hasattr(tokenizer, 'convert_ids_to_tokens') else ""
+            token_str = tokenizer.decode([tid])
+            is_byte_token = '\ufffd' in token_str
+            display_token_str = raw_token if (is_byte_token and raw_token) else token_str
+            
+            try:
+                byte_seq = ' '.join([f'0x{b:02X}' for b in (raw_token or token_str).encode('utf-8')])
+            except:
+                byte_seq = "N/A"
+            
+            token_info_list.append({
+                "token_str": display_token_str,
+                "decoded_str": token_str,
+                "raw_token": raw_token,
+                "token_id": tid,
+                "byte_sequence": byte_seq,
+                "is_special": tid in special_ids,
+                "is_byte_fallback": raw_token.startswith('<0x') and raw_token.endswith('>') if raw_token else False,
+                "is_byte_token": is_byte_token,
+                "index": idx
+            })
+    else:
+        token_info_list = get_token_info(tokenizer, text)
+    
+    # 计算统计
+    stats = calculate_compression_stats(text, len(token_info_list))
+    
+    # Token IDs
+    ids = [info['token_id'] for info in token_info_list]
+    
+    # 详细信息表格
+    df_data = []
+    for info in token_info_list:
+        df_data.append({
+            "Index": info['index'],
+            "Token": info['raw_token'],
+            "Decoded": repr(info['token_str']),
+            "ID": info['token_id'],
+            "Bytes": info.get('byte_sequence', 'N/A'),
+            "Special": "✓" if info.get('is_special') else "",
+            "Fallback": "✓" if info.get('is_byte_fallback') else ""
+        })
+    
+    return (
+        render_tokens_html(token_info_list, show_ids),
+        str(stats['token_count']),
+        str(stats['char_count']),
+        str(stats['chars_per_token']),
+        str(stats['bytes_per_token']),
+        pd.DataFrame(df_data)
+    )
+
+
+def decode_ids(category, model_name, id_input):
+    """解码 Token IDs"""
+    if not category or not model_name:
+        return "请选择模型", ""
+    
+    model_id = get_model_id(category, model_name)
+    if not model_id:
+        return "模型不存在", ""
+    
+    tokenizer = load_tokenizer(model_id)
+    if not tokenizer:
+        return "模型加载失败", ""
+    
+    if not id_input:
+        return "", ""
+    
+    try:
+        cleaned = id_input.strip().strip('[]')
+        token_ids = [int(x.strip()) for x in cleaned.split(',') if x.strip()]
+        
+        if not token_ids:
+            return "请输入有效的 Token IDs", ""
+        
+        decoded_text, individual_tokens = decode_token_ids(tokenizer, token_ids)
+        
+        details = []
+        for tok in individual_tokens:
+            details.append(f"**ID {tok['token_id']}** → `{tok['raw_token']}` → \"{tok['token_str']}\"")
+        
+        return decoded_text, "\n\n".join(details)
+    
+    except ValueError as e:
+        return f"格式错误: {str(e)}", ""
+
+
+def analyze_bytes(category, model_name, text):
+    """字节分析"""
+    if not category or not model_name:
+        return "<div>请选择模型</div>", "0", "0", "0", "0", pd.DataFrame()
+    
+    model_id = get_model_id(category, model_name)
+    if not model_id:
+        return "<div>模型不存在</div>", "0", "0", "0", "0", pd.DataFrame()
+    
+    tokenizer = load_tokenizer(model_id)
+    if not tokenizer:
+        return "<div>模型加载失败</div>", "0", "0", "0", "0", pd.DataFrame()
+    
+    if not text:
+        return render_tokens_html([], True), "0", "0", "0", "0", pd.DataFrame()
+    
+    token_info = get_token_info(tokenizer, text)
+    
+    total = len(token_info)
+    fallback_count = sum(1 for t in token_info if t.get('is_byte_fallback', False))
+    byte_token_count = sum(1 for t in token_info if t.get('is_byte_token', False))
+    special_count = sum(1 for t in token_info if t.get('is_special', False))
+    
+    # Fallback 详情
+    fallback_data = []
+    for t in token_info:
+        if t.get('is_byte_fallback'):
+            fallback_data.append({
+                "Index": t['index'],
+                "Token": t['raw_token'],
+                "ID": t['token_id'],
+                "Byte": t.get('byte_sequence', 'N/A')
+            })
+    
+    return (
+        render_tokens_html(token_info, True),
+        str(total),
+        str(fallback_count),
+        str(byte_token_count),
+        str(special_count),
+        pd.DataFrame(fallback_data) if fallback_data else pd.DataFrame()
+    )
+
+
+def analyze_unicode(text):
+    """Unicode 分析"""
+    if not text:
+        return pd.DataFrame(), pd.DataFrame()
+    
+    # 规范化对比
+    norm_info = get_normalization_info(text)
+    norm_data = [
+        {"形式": "原始", "长度": norm_info['original_len'], "文本": norm_info['original'], "相同": "-"},
+        {"形式": "NFC", "长度": norm_info['NFC_len'], "文本": norm_info['NFC'], "相同": "✓" if norm_info['nfc_equal'] else "✗"},
+        {"形式": "NFD", "长度": norm_info['NFD_len'], "文本": norm_info['NFD'], "相同": "✓" if norm_info['nfd_equal'] else "✗"},
+        {"形式": "NFKC", "长度": norm_info['NFKC_len'], "文本": norm_info['NFKC'], "相同": "-"},
+        {"形式": "NFKD", "长度": norm_info['NFKD_len'], "文本": norm_info['NFKD'], "相同": "-"},
+    ]
+    
+    # Unicode 详情
+    unicode_data = []
+    for char in text[:50]:
         info = get_unicode_info(char)
-        data.append({
+        unicode_data.append({
             "字符": char,
             "名称": info.get('name', 'N/A'),
             "分类": info.get('category', 'N/A'),
@@ -90,273 +295,264 @@ def render_unicode_table(text: str):
             "UTF-8": info.get('utf8_bytes', 'N/A')
         })
     
-    st.dataframe(pd.DataFrame(data), width="stretch", hide_index=True)
+    return pd.DataFrame(norm_data), pd.DataFrame(unicode_data)
+
+
+def get_special_tokens(category, model_name):
+    """获取特殊 Token"""
+    if not category or not model_name:
+        return pd.DataFrame(), pd.DataFrame()
+    
+    model_id = get_model_id(category, model_name)
+    if not model_id:
+        return pd.DataFrame(), pd.DataFrame()
+    
+    tokenizer = load_tokenizer(model_id)
+    if not tokenizer:
+        return pd.DataFrame(), pd.DataFrame()
+    
+    special_map = get_special_tokens_map(tokenizer)
+    
+    if not special_map:
+        return pd.DataFrame(), pd.DataFrame()
+    
+    # 标准特殊 Token
+    standard = []
+    for name in ['bos_token', 'eos_token', 'pad_token', 'unk_token', 'cls_token', 'sep_token', 'mask_token']:
+        if name in special_map:
+            standard.append({
+                "名称": name,
+                "Token": special_map[name]['token'],
+                "ID": special_map[name]['id']
+            })
+    
+    # 额外特殊 Token
+    additional = []
+    if 'additional_special_tokens' in special_map and special_map['additional_special_tokens']:
+        for t in special_map['additional_special_tokens'][:20]:
+            additional.append({"Token": t['token'], "ID": t['id']})
+    
+    return pd.DataFrame(standard), pd.DataFrame(additional)
+
+
+def get_model_info(category, model_name):
+    """获取模型信息"""
+    if not category or not model_name:
+        return "请选择模型"
+    
+    model_id = get_model_id(category, model_name)
+    if not model_id:
+        return "模型不存在"
+    
+    tokenizer = load_tokenizer(model_id)
+    if not tokenizer:
+        return "模型加载失败"
+    
+    info = get_tokenizer_info(tokenizer)
+    
+    return f"""
+**Tokenizer**: `{model_id}`
+
+| 属性 | 值 |
+|------|-----|
+| 词表大小 | {info['vocab_size']:,} |
+| 最大长度 | {info['model_max_length']} |
+| 算法类型 | {info['algorithm'].split('(')[0].strip()} |
+| BOS Token | `{info.get('bos_token', 'N/A')}` |
+| EOS Token | `{info.get('eos_token', 'N/A')}` |
+| PAD Token | `{info.get('pad_token', 'N/A')}` |
+| UNK Token | `{info.get('unk_token', 'N/A')}` |
+"""
 
 
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">分词编码</h1>', unsafe_allow_html=True)
     
-    # 两级联动模型选择
-    st.markdown("#### 选择模型")
+    gr.Markdown("## 分词编码")
     
-    # 获取厂商列表
-    categories = list(MODEL_CATEGORIES.keys())
-    category_display = [cat for cat in categories]
+    # 模型选择
+    initial_category = get_category_choices()[0] if get_category_choices() else None
+    initial_models = get_model_choices(initial_category) if initial_category else []
     
-    col_provider, col_model = st.columns([1, 2])
+    with gr.Row():
+        with gr.Column(scale=1):
+            category_dropdown = gr.Dropdown(
+                choices=get_category_choices(),
+                label="模型厂商",
+                value=initial_category,
+                interactive=True
+            )
+        with gr.Column(scale=2):
+            model_dropdown = gr.Dropdown(
+                choices=initial_models,
+                label="选择模型",
+                value=initial_models[0] if initial_models else None,
+                interactive=True
+            )
     
-    with col_provider:
-        # 厂商选择
-        selected_category_display = st.selectbox(
-            "模型厂商",
-            options=category_display,
-            index=0,
-            key="model_provider",
-            help="选择模型提供商"
-        )
-        # 提取实际的分类名称（去掉图标）
-        selected_category = categories[category_display.index(selected_category_display)]
+    # 模型 ID 显示
+    model_id_text = gr.Markdown("", elem_id="model-id-display")
     
-    with col_model:
-        # 获取该厂商下的模型
-        models = get_models_by_category(selected_category)
-        model_display = [name for name, _ in models]
-        model_ids = [model_id for _, model_id in models]
+    # 模型信息折叠
+    with gr.Accordion("模型信息", open=False):
+        model_info_md = gr.Markdown("")
+    
+    gr.Markdown("---")
+    
+    # 功能 Tabs
+    with gr.Tabs() as tabs:
         
-        # 模型选择
-        selected_model_display = st.selectbox(
-            "选择模型",
-            options=model_display,
-            index=0,
-            key="model_name",
-            help="选择该厂商下的具体模型"
-        )
+        # ========== 编码 Tab ==========
+        with gr.Tab("编码"):
+            encode_input = gr.Textbox(
+                label="输入文本",
+                placeholder="输入文本进行分词编码...",
+                lines=4
+            )
+            
+            with gr.Row():
+                show_ids_cb = gr.Checkbox(label="显示 Token ID", value=True)
+                add_special_cb = gr.Checkbox(label="添加特殊 Token", value=False)
+            
+            with gr.Row():
+                with gr.Column(scale=1):
+                    stat_tokens = gr.Textbox(label="Token 数", interactive=False)
+                with gr.Column(scale=1):
+                    stat_chars = gr.Textbox(label="字符数", interactive=False)
+                with gr.Column(scale=1):
+                    stat_chars_per_token = gr.Textbox(label="字符/Token", interactive=False)
+                with gr.Column(scale=1):
+                    stat_bytes_per_token = gr.Textbox(label="字节/Token", interactive=False)
+            
+            gr.Markdown("### 分词结果")
+            tokens_html = gr.HTML("")
+            
+            with gr.Accordion("详细信息", open=False):
+                detail_df = gr.Dataframe(
+                    headers=["Index", "Token", "Decoded", "ID", "Bytes", "Special", "Fallback"],
+                    interactive=False
+                )
         
-        # 获取实际的 model_id
-        if model_display:
-            model_idx = model_display.index(selected_model_display)
-            model_name = model_ids[model_idx]
-        else:
-            model_name = None
-    
-    # 显示选中的模型 ID
-    if model_name:
-        st.caption(f"Tokenizer: `{model_name}`")
-    
-    tokenizer = load_tokenizer(model_name) if model_name else None
-    
-    if not tokenizer:
-        st.warning("请选择模型")
-        return
-    
-    # 模型信息
-    with st.expander("模型信息", expanded=False):
-        info = get_tokenizer_info(tokenizer)
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            st.metric("词表大小", f"{info['vocab_size']:,}")
-        with col_b:
-            st.metric("最大长度", str(info['model_max_length']))
-        with col_c:
-            st.metric("算法类型", info['algorithm'].split('(')[0].strip())
+        # ========== 解码 Tab ==========
+        with gr.Tab("解码"):
+            decode_input = gr.Textbox(
+                label="Token IDs",
+                placeholder="例如: 128000, 50256 或 [128000, 50256]",
+                lines=1
+            )
+            
+            decode_btn = gr.Button("解码", variant="primary")
+            
+            gr.Markdown("### 解码结果")
+            decode_result = gr.Textbox(label="解码文本", interactive=False, lines=3)
+            decode_details = gr.Markdown("")
         
-        special_tokens = []
-        for name in ['bos_token', 'eos_token', 'pad_token', 'unk_token']:
-            token = info.get(name)
-            if token:
-                special_tokens.append(f"**{name}**: `{token}`")
-        if special_tokens:
-            st.markdown(" | ".join(special_tokens))
-    
-    st.markdown("---")
-    
-    # 主要功能 Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["编码", "解码", "字节分析", "Unicode", "特殊 Token"])
-    
-    # ========== 编码 Tab ==========
-    with tab1:
-        input_text = st.text_area(
-            "输入文本",
-            value="",
-            height=120,
-            placeholder="输入文本，点击外部或按 Cmd+Enter 查看结果",
-            key="encode_input"
-        )
+        # ========== 字节分析 Tab ==========
+        with gr.Tab("字节分析"):
+            byte_input = gr.Textbox(
+                label="输入文本",
+                placeholder="输入 Emoji、生僻字等特殊字符查看字节级分词",
+                lines=2
+            )
+            
+            byte_analyze_btn = gr.Button("分析", variant="primary")
+            
+            with gr.Row():
+                byte_total = gr.Textbox(label="总 Token", interactive=False)
+                byte_fallback = gr.Textbox(label="Byte Fallback", interactive=False)
+                byte_bpe = gr.Textbox(label="字节级 BPE", interactive=False)
+                byte_special = gr.Textbox(label="特殊 Token", interactive=False)
+            
+            gr.Markdown("### 分词结果")
+            byte_tokens_html = gr.HTML("")
+            
+            with gr.Accordion("Byte Fallback 详情", open=False):
+                byte_fallback_df = gr.Dataframe(interactive=False)
         
-        opt_col1, opt_col2 = st.columns(2)
-        with opt_col1:
-            show_ids = st.checkbox("显示 Token ID", value=True, key="show_ids")
-        with opt_col2:
-            add_special = st.checkbox("添加特殊 Token", value=False, key="add_special")
+        # ========== Unicode Tab ==========
+        with gr.Tab("Unicode"):
+            unicode_input = gr.Textbox(
+                label="输入文本",
+                placeholder="输入要分析的文本",
+                lines=1
+            )
+            
+            unicode_btn = gr.Button("分析", variant="primary")
+            
+            gr.Markdown("### 规范化对比")
+            norm_df = gr.Dataframe(interactive=False)
+            
+            gr.Markdown("### Unicode 详情")
+            unicode_df = gr.Dataframe(interactive=False)
         
-        if input_text:
-            if add_special:
-                encoding = tokenizer(input_text, add_special_tokens=True)
-                token_ids = encoding["input_ids"]
-                token_info_list = []
-                special_ids = set(tokenizer.all_special_ids) if hasattr(tokenizer, 'all_special_ids') else set()
-                for idx, tid in enumerate(token_ids):
-                    raw_token = tokenizer.convert_ids_to_tokens([tid])[0] if hasattr(tokenizer, 'convert_ids_to_tokens') else ""
-                    token_str = tokenizer.decode([tid])
-                    
-                    is_byte_token = '\ufffd' in token_str
-                    display_token_str = raw_token if (is_byte_token and raw_token) else token_str
-                    
-                    try:
-                        byte_seq = ' '.join([f'0x{b:02X}' for b in (raw_token or token_str).encode('utf-8')])
-                    except:
-                        byte_seq = "N/A"
-                    token_info_list.append({
-                        "token_str": display_token_str,
-                        "decoded_str": token_str,
-                        "raw_token": raw_token,
-                        "token_id": tid,
-                        "byte_sequence": byte_seq,
-                        "is_special": tid in special_ids,
-                        "is_byte_fallback": raw_token.startswith('<0x') and raw_token.endswith('>'),
-                        "is_byte_token": is_byte_token,
-                        "index": idx
-                    })
-            else:
-                token_info_list = get_token_info(tokenizer, input_text)
+        # ========== 特殊 Token Tab ==========
+        with gr.Tab("特殊 Token"):
+            special_btn = gr.Button("获取特殊 Token", variant="primary")
             
-            stats = calculate_compression_stats(input_text, len(token_info_list))
+            gr.Markdown("### 标准特殊 Token")
+            standard_df = gr.Dataframe(interactive=False)
             
-            stat_cols = st.columns(4)
-            with stat_cols[0]:
-                st.metric("Token 数", stats['token_count'])
-            with stat_cols[1]:
-                st.metric("字符数", stats['char_count'])
-            with stat_cols[2]:
-                st.metric("字符/Token", stats['chars_per_token'])
-            with stat_cols[3]:
-                st.metric("字节/Token", stats['bytes_per_token'])
-            
-            st.markdown("#### 分词结果")
-            render_token_display(token_info_list, show_ids)
-            
-            with st.expander("Token ID 序列"):
-                ids = [info['token_id'] for info in token_info_list]
-                st.code(str(ids), language="python")
-            
-            with st.expander("详细信息"):
-                df_data = []
-                for info in token_info_list:
-                    df_data.append({
-                        "Index": info['index'],
-                        "Token": info['raw_token'],
-                        "Decoded": repr(info['token_str']),
-                        "ID": info['token_id'],
-                        "Bytes": info['byte_sequence'],
-                        "Special": "Yes" if info.get('is_special') else "",
-                        "Fallback": "Yes" if info.get('is_byte_fallback') else ""
-                    })
-                st.dataframe(pd.DataFrame(df_data), width="stretch", hide_index=True)
+            gr.Markdown("### 额外特殊 Token")
+            additional_df = gr.Dataframe(interactive=False)
     
-    # ========== 解码 Tab ==========
-    with tab2:
-        id_input = st.text_input(
-            "Token IDs",
-            placeholder="例如: 128000, 50256 或 [128000, 50256]",
-            key="decode_input"
-        )
-        
-        if id_input:
-            try:
-                cleaned = id_input.strip().strip('[]')
-                token_ids = [int(x.strip()) for x in cleaned.split(',') if x.strip()]
-                
-                if token_ids:
-                    decoded_text, individual_tokens = decode_token_ids(tokenizer, token_ids)
-                    
-                    st.markdown("#### 解码结果")
-                    st.code(decoded_text, language=None)
-                    
-                    st.markdown("#### Token 详情")
-                    for tok in individual_tokens:
-                        st.markdown(
-                            f"**ID {tok['token_id']}** → `{tok['raw_token']}` → \"{tok['token_str']}\""
-                        )
-            except ValueError as e:
-                st.error(f"格式错误: {str(e)}")
+    # ==================== 事件绑定 ====================
     
-    # ========== 字节分析 Tab ==========
-    with tab3:
-        byte_input = st.text_area("输入文本", value="", height=80, 
-                                   placeholder="输入 Emoji、生僻字等特殊字符查看字节级分词", key="byte_input")
-        
-        if byte_input:
-            token_info = get_token_info(tokenizer, byte_input)
-            
-            total = len(token_info)
-            fallback_count = sum(1 for t in token_info if t.get('is_byte_fallback', False))
-            byte_token_count = sum(1 for t in token_info if t.get('is_byte_token', False))
-            special_count = sum(1 for t in token_info if t.get('is_special', False))
-            
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("总 Token", total)
-            with col2:
-                st.metric("Byte Fallback", fallback_count, 
-                         delta="需要回退" if fallback_count > 0 else None, delta_color="off")
-            with col3:
-                st.metric("字节级 BPE", byte_token_count)
-            with col4:
-                st.metric("特殊 Token", special_count)
-            
-            st.markdown("#### 分词结果")
-            render_token_display(token_info, show_ids=True)
-            
-            if fallback_count > 0:
-                st.markdown("#### Byte Fallback 详情")
-                fallback_data = [{"Index": t['index'], "Token": t['raw_token'], "ID": t['token_id'], 
-                                 "Byte": t.get('byte_sequence', 'N/A')} 
-                                for t in token_info if t.get('is_byte_fallback')]
-                if fallback_data:
-                    st.dataframe(pd.DataFrame(fallback_data), width="stretch", hide_index=True)
+    # 厂商变化 -> 更新模型列表
+    def update_models(category):
+        models = get_model_choices(category)
+        return gr.update(choices=models, value=models[0] if models else None)
     
-    # ========== Unicode Tab ==========
-    with tab4:
-        norm_input = st.text_input("输入文本", value="", placeholder="输入要分析的文本", key="norm_input")
-        
-        if norm_input:
-            norm_info = get_normalization_info(norm_input)
-            
-            st.markdown("#### 规范化对比")
-            norm_data = [
-                {"形式": "原始", "长度": norm_info['original_len'], "文本": norm_info['original'], "相同": "-"},
-                {"形式": "NFC", "长度": norm_info['NFC_len'], "文本": norm_info['NFC'], "相同": "Yes" if norm_info['nfc_equal'] else "No"},
-                {"形式": "NFD", "长度": norm_info['NFD_len'], "文本": norm_info['NFD'], "相同": "Yes" if norm_info['nfd_equal'] else "No"},
-                {"形式": "NFKC", "长度": norm_info['NFKC_len'], "文本": norm_info['NFKC'], "相同": "-"},
-                {"形式": "NFKD", "长度": norm_info['NFKD_len'], "文本": norm_info['NFKD'], "相同": "-"},
-            ]
-            st.dataframe(pd.DataFrame(norm_data), width="stretch", hide_index=True)
-            
-            st.markdown("#### Unicode 详情")
-            render_unicode_table(norm_input[:50])
+    category_dropdown.change(
+        fn=update_models,
+        inputs=[category_dropdown],
+        outputs=[model_dropdown]
+    )
     
-    # ========== 特殊 Token Tab ==========
-    with tab5:
-        special_map = get_special_tokens_map(tokenizer)
-        
-        if special_map:
-            st.markdown("#### 标准特殊 Token")
-            standard = [{"名称": n, "Token": special_map[n]['token'], "ID": special_map[n]['id']} 
-                       for n in ['bos_token', 'eos_token', 'pad_token', 'unk_token', 'cls_token', 'sep_token', 'mask_token'] 
-                       if n in special_map]
-            if standard:
-                st.dataframe(pd.DataFrame(standard), width="stretch", hide_index=True)
-            else:
-                st.info("无标准特殊 Token")
-            
-            if 'additional_special_tokens' in special_map and special_map['additional_special_tokens']:
-                st.markdown("#### 额外特殊 Token")
-                additional = special_map['additional_special_tokens']
-                st.dataframe(pd.DataFrame([{"Token": t['token'], "ID": t['id']} for t in additional[:20]]), 
-                            width="stretch", hide_index=True)
-                if len(additional) > 20:
-                    st.caption(f"共 {len(additional)} 个")
-        else:
-            st.info("无法获取特殊 Token")
-
+    # 模型变化 -> 更新模型 ID 和信息
+    def on_model_change(category, model_name):
+        model_id = get_model_id(category, model_name)
+        id_text = f"**Tokenizer**: `{model_id}`" if model_id else ""
+        info = get_model_info(category, model_name)
+        return id_text, info
+    
+    model_dropdown.change(
+        fn=on_model_change,
+        inputs=[category_dropdown, model_dropdown],
+        outputs=[model_id_text, model_info_md]
+    )
+    
+    # 编码功能
+    encode_inputs = [category_dropdown, model_dropdown, encode_input, show_ids_cb, add_special_cb]
+    encode_outputs = [tokens_html, stat_tokens, stat_chars, stat_chars_per_token, stat_bytes_per_token, detail_df]
+    
+    encode_input.change(fn=encode_text, inputs=encode_inputs, outputs=encode_outputs)
+    show_ids_cb.change(fn=encode_text, inputs=encode_inputs, outputs=encode_outputs)
+    add_special_cb.change(fn=encode_text, inputs=encode_inputs, outputs=encode_outputs)
+    
+    # 解码功能
+    decode_btn.click(
+        fn=decode_ids,
+        inputs=[category_dropdown, model_dropdown, decode_input],
+        outputs=[decode_result, decode_details]
+    )
+    
+    # 字节分析
+    byte_analyze_btn.click(
+        fn=analyze_bytes,
+        inputs=[category_dropdown, model_dropdown, byte_input],
+        outputs=[byte_tokens_html, byte_total, byte_fallback, byte_bpe, byte_special, byte_fallback_df]
+    )
+    
+    # Unicode 分析
+    unicode_btn.click(
+        fn=analyze_unicode,
+        inputs=[unicode_input],
+        outputs=[norm_df, unicode_df]
+    )
+    
+    # 特殊 Token
+    special_btn.click(
+        fn=get_special_tokens,
+        inputs=[category_dropdown, model_dropdown],
+        outputs=[standard_df, additional_df]
+    )

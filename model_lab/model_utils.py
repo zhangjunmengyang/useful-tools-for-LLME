@@ -5,17 +5,13 @@ ModelLab - 模型工具函数
 
 from urllib.parse import urlparse
 from typing import Optional, List, Dict, Any, Tuple
-import streamlit as st
+from functools import lru_cache
 import torch
 from accelerate.commands.estimate import check_has_model, create_empty_model, estimate_training_usage
 from accelerate.utils import calculate_maximum_sizes, convert_bytes
 
 
 # 数据精度修正系数
-# float32: 每个参数 4 字节
-# float16/bfloat16: 每个参数 2 字节
-# int8: 每个参数 1 字节
-# int4: 每个参数 0.5 字节
 DTYPE_MODIFIER = {
     "float32": 1,
     "float16/bfloat16": 2,
@@ -69,7 +65,10 @@ def translate_llama(text: str) -> str:
     return text
 
 
-@st.cache_resource(show_spinner=False)
+# 模型缓存
+_model_cache = {}
+
+
 def get_model(model_name: str, library: str, access_token: Optional[str] = None) -> torch.nn.Module:
     """
     从 HuggingFace Hub 获取模型，并在 meta 设备上初始化
@@ -85,6 +84,10 @@ def get_model(model_name: str, library: str, access_token: Optional[str] = None)
     Raises:
         各种异常，需要在调用处捕获
     """
+    cache_key = f"{model_name}_{library}_{access_token}"
+    if cache_key in _model_cache:
+        return _model_cache[cache_key]
+    
     # 处理 Llama 模型名称
     if "meta-llama/Llama-2-" in model_name or "meta-llama/CodeLlama-" in model_name:
         model_name = translate_llama(model_name)
@@ -102,7 +105,6 @@ def get_model(model_name: str, library: str, access_token: Optional[str] = None)
             access_token=access_token
         )
     except ImportError:
-        # 尝试使用 trust_remote_code=False
         model = create_empty_model(
             model_name, 
             library_name=library, 
@@ -110,6 +112,7 @@ def get_model(model_name: str, library: str, access_token: Optional[str] = None)
             access_token=access_token
         )
     
+    _model_cache[cache_key] = model
     return model
 
 
@@ -117,21 +120,12 @@ def calculate_memory(model: torch.nn.Module, options: List[str]) -> List[Dict[st
     """
     计算模型在 meta 设备上初始化的内存使用
     
-    这是核心计算函数，完全复刻参考实现的逻辑：
-    1. 使用 calculate_maximum_sizes 获取总大小和最大层大小
-    2. 根据不同精度计算实际内存占用
-    3. 使用 estimate_training_usage 估算训练时的内存占用
-    
     Args:
         model: 初始化在 meta 设备上的模型
         options: 要计算的精度列表 (如 ["float32", "float16/bfloat16"])
         
     Returns:
-        包含各精度内存信息的列表，每项包含:
-        - dtype: 精度类型
-        - Largest Layer or Residual Group: 最大层或残差组大小
-        - Total Size: 模型总大小
-        - Training using Adam (Peak vRAM): Adam 训练峰值显存
+        包含各精度内存信息的列表
     """
     total_size, largest_layer = calculate_maximum_sizes(model)
     
@@ -142,17 +136,14 @@ def calculate_memory(model: torch.nn.Module, options: List[str]) -> List[Dict[st
         
         modifier = DTYPE_MODIFIER[dtype]
         
-        # 估算训练时的内存使用
         dtype_training_size = estimate_training_usage(
             dtype_total_size, 
             dtype if dtype != "float16/bfloat16" else "float16"
         )
         
-        # 根据精度调整大小
         dtype_total_size /= modifier
         dtype_largest_layer /= modifier
         
-        # 转换为人类可读格式
         dtype_total_size_str = convert_bytes(dtype_total_size)
         dtype_largest_layer_str = convert_bytes(dtype_largest_layer)
         
@@ -188,25 +179,20 @@ def calculate_memory_detailed(model: torch.nn.Module, options: List[str]) -> Tup
         
         modifier = DTYPE_MODIFIER[dtype]
         
-        # 估算训练时的内存使用 (返回字典包含各阶段)
         dtype_training_size = estimate_training_usage(
             dtype_total_size, 
             dtype if dtype != "float16/bfloat16" else "float16"
         )
         
-        # 保存各阶段数据
         for stage in stages:
             stages[stage].append(dtype_training_size.get(stage, -1))
         
-        # 根据精度调整大小
         dtype_total_size /= modifier
         dtype_largest_layer /= modifier
         
-        # 转换为人类可读格式
         dtype_total_size_str = convert_bytes(dtype_total_size)
         dtype_largest_layer_str = convert_bytes(dtype_largest_layer)
         
-        # 计算训练峰值 (取各阶段最大值)
         peak_value = max(dtype_training_size.values()) if dtype_training_size else -1
         if peak_value == -1:
             peak_str = "N/A"
@@ -270,4 +256,3 @@ def get_model_error_message(e: Exception, model_name: str) -> str:
         return f"加载模型 `{model_name}` 需要的依赖未安装，请检查环境配置。"
     else:
         return f"加载模型 `{model_name}` 时发生错误: {str(e)}"
-

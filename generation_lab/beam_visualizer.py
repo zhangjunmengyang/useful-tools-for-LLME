@@ -2,7 +2,7 @@
 Beam Search 可视化 - 展示搜索路径树
 """
 
-import streamlit as st
+import gradio as gr
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -136,7 +136,7 @@ def beam_search_with_history(
             'full_sequence': ' '.join(p['tokens']),
             'cumulative_score': p['score'],
             'reason': 'score_too_low'
-        } for p in pruned[:beam_size]]  # 只记录前几个被剪枝的
+        } for p in pruned[:beam_size]]
         
         history['steps'].append(step_record)
         
@@ -191,7 +191,7 @@ def render_beam_tree(history: Dict) -> go.Figure:
     nodes_color.append('#2563EB')
     
     # 记录每一步每个 beam 的位置
-    node_positions = {(0, 0): 0}  # (step, beam_idx) -> node_idx
+    node_positions = {(0, 0): 0}
     
     for step_idx, step in enumerate(steps):
         active_beams = step['active_beams']
@@ -209,11 +209,11 @@ def render_beam_tree(history: Dict) -> go.Figure:
             nodes_text.append(f"{beam['text']}<br>Score: {beam['cumulative_score']:.2f}")
             nodes_color.append('#2563EB' if beam_idx == 0 else '#60A5FA')
             
-            # 添加边 (从上一步连接)
+            # 添加边
             if step_idx == 0:
-                parent_idx = 0  # 从起始节点
+                parent_idx = 0
             else:
-                parent_idx = node_positions.get((step_idx, 0), 0)  # 简化处理
+                parent_idx = node_positions.get((step_idx, 0), 0)
             
             edges_x.extend([nodes_x[parent_idx], x, None])
             edges_y.extend([nodes_y[parent_idx], y, None])
@@ -256,141 +256,136 @@ def render_beam_tree(history: Dict) -> go.Figure:
             showticklabels=False
         ),
         height=400,
-        margin=dict(l=50, r=50, t=50, b=50)
+        margin=dict(l=50, r=50, t=50, b=50),
+        plot_bgcolor='#FFFFFF',
+        paper_bgcolor='#FFFFFF'
     )
     
     return fig
 
 
-def render_step_detail(step_data: Dict) -> None:
-    """渲染单步详情"""
-    st.markdown(f"#### Step {step_data['step'] + 1}")
+# 模型状态缓存
+_loaded_model = {"name": None, "model": None, "tokenizer": None}
+
+
+def run_beam_search(model_choice, prompt, beam_size, max_steps):
+    """执行 Beam Search"""
+    if not prompt:
+        return "", None, ""
     
-    col1, col2 = st.columns(2)
+    model_info = DEMO_MODELS[model_choice]
     
-    with col1:
-        st.markdown("**保留的 Beam**")
-        for i, beam in enumerate(step_data['active_beams']):
-            score_color = '#059669' if i == 0 else '#2563EB'
-            st.markdown(f"""
-            <div style="background: #F3F4F6; padding: 10px; border-radius: 6px; margin: 5px 0;
-                        border-left: 3px solid {score_color};">
-                <b>Beam {i+1}</b>: "{beam['text']}"<br>
-                <small>序列: {beam['full_sequence'][:50]}...</small><br>
-                <small>累积分数: {beam['cumulative_score']:.4f} | 
-                       概率: {beam['probability']:.2e}</small>
-            </div>
-            """, unsafe_allow_html=True)
+    # 加载模型
+    if _loaded_model["name"] != model_info['id']:
+        model, tokenizer = load_model_and_tokenizer(model_info['id'])
+        if model is None:
+            return "模型加载失败", None, ""
+        _loaded_model["name"] = model_info['id']
+        _loaded_model["model"] = model
+        _loaded_model["tokenizer"] = tokenizer
+    else:
+        model = _loaded_model["model"]
+        tokenizer = _loaded_model["tokenizer"]
     
-    with col2:
-        st.markdown("**被剪枝的候选**")
-        if step_data['pruned']:
-            for pruned in step_data['pruned'][:3]:
-                st.markdown(f"""
-                <div style="background: #FEE2E2; padding: 10px; border-radius: 6px; margin: 5px 0;
-                            opacity: 0.7;">
-                    "{pruned['text']}"<br>
-                    <small>分数: {pruned['cumulative_score']:.4f}</small>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.caption("无剪枝")
+    # 执行搜索
+    history = beam_search_with_history(
+        model, tokenizer, prompt,
+        beam_size=beam_size,
+        max_steps=max_steps
+    )
+    
+    # 最终序列展示
+    results_md = "### 最终候选序列\n\n"
+    for beam in history['final_beams']:
+        results_md += f"""
+**Rank {beam['rank']}**
+
+`{prompt}`**{beam['sequence']}**
+
+- 累积 Log-Prob: {beam['score']:.4f}
+- 概率: {beam['probability']:.2e}
+
+---
+"""
+    
+    # 搜索树
+    fig = render_beam_tree(history)
+    
+    # 逐步详情
+    steps_md = "### 逐步详情\n\n"
+    for step in history['steps']:
+        steps_md += f"#### Step {step['step'] + 1}\n\n"
+        steps_md += "**保留的 Beam:**\n\n"
+        for i, beam in enumerate(step['active_beams']):
+            steps_md += f"- Beam {i+1}: `{beam['text']}` (序列: {beam['full_sequence'][:50]}..., 分数: {beam['cumulative_score']:.4f})\n"
+        
+        if step['pruned']:
+            steps_md += "\n**被剪枝:**\n\n"
+            for pruned in step['pruned'][:3]:
+                steps_md += f"- `{pruned['text']}` (分数: {pruned['cumulative_score']:.4f})\n"
+        steps_md += "\n"
+    
+    return results_md, fig, steps_md
 
 
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">Beam Search 可视化</h1>', unsafe_allow_html=True)
     
+    gr.Markdown("## Beam Search 可视化")
     
     # 模型选择
-    model_choice = st.selectbox(
-        "选择模型",
-        options=list(DEMO_MODELS.keys()),
-        help="选择用于演示的模型"
+    model_choice = gr.Dropdown(
+        choices=list(DEMO_MODELS.keys()),
+        value=list(DEMO_MODELS.keys())[0],
+        label="选择模型"
     )
     
-    model_info = DEMO_MODELS[model_choice]
-    
-    with st.spinner(f"加载 {model_choice}..."):
-        model, tokenizer = load_model_and_tokenizer(model_info['id'])
-    
-    if model is None:
-        st.error("模型加载失败")
-        return
-    
-    st.markdown("---")
-    
     # 参数设置
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        beam_size = st.slider(
-            "Beam Size",
-            min_value=2,
-            max_value=5,
+    with gr.Row():
+        beam_size = gr.Slider(
+            label="Beam Size",
+            minimum=2,
+            maximum=5,
             value=3,
-            help="每步保留的候选数量"
+            step=1
         )
-    
-    with col2:
-        max_steps = st.slider(
-            "最大步数",
-            min_value=3,
-            max_value=10,
+        max_steps = gr.Slider(
+            label="最大步数",
+            minimum=3,
+            maximum=10,
             value=5,
-            help="生成的最大 token 数"
+            step=1
+        )
+        search_space = gr.Textbox(
+            label="搜索空间",
+            interactive=False,
+            value="3^5 = 243"
         )
     
-    with col3:
-        st.metric("搜索空间", f"{beam_size}^{max_steps} = {beam_size**max_steps}")
+    def update_search_space(beam, steps):
+        return f"{beam}^{steps} = {beam**steps}"
+    
+    beam_size.change(fn=update_search_space, inputs=[beam_size, max_steps], outputs=[search_space])
+    max_steps.change(fn=update_search_space, inputs=[beam_size, max_steps], outputs=[search_space])
     
     # Prompt 输入
-    prompt = st.text_input(
-        "输入 Prompt",
+    prompt = gr.Textbox(
+        label="Prompt",
         value="Once upon a time",
         placeholder="输入起始文本..."
     )
     
-    if st.button("开始 Beam Search", type="primary", width="stretch"):
-        if not prompt:
-            st.warning("请输入 Prompt")
-            return
-        
-        with st.spinner("执行 Beam Search..."):
-            history = beam_search_with_history(
-                model, tokenizer, prompt,
-                beam_size=beam_size,
-                max_steps=max_steps
-            )
-        
-        # 结果展示
-        st.markdown("## 搜索结果")
-        
-        # 最终序列
-        st.markdown("### 最终候选序列")
-        
-        for beam in history['final_beams']:
-            st.markdown(f"""
-            <div style="background: linear-gradient(90deg, #DBEAFE, #F3F4F6); 
-                        padding: 15px; border-radius: 8px; margin: 10px 0;">
-                <b>Rank {beam['rank']}</b><br>
-                <span style="font-family: monospace; font-size: 16px;">
-                    {prompt}<b style="color: #2563EB;">{beam['sequence']}</b>
-                </span><br>
-                <small>累积 Log-Prob: {beam['score']:.4f} | 
-                       概率: {beam['probability']:.2e}</small>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # 搜索树可视化
-        st.markdown("### 搜索树")
-        fig = render_beam_tree(history)
-        st.plotly_chart(fig, width='stretch')
-        
-        # 逐步详情
-        st.markdown("### 逐步详情")
-        
-        for step in history['steps']:
-            with st.expander(f"Step {step['step'] + 1}", expanded=(step['step'] == 0)):
-                render_step_detail(step)
-
+    # 结果展示
+    results_md = gr.Markdown("")
+    tree_plot = gr.Plot(label="搜索树")
+    
+    with gr.Accordion("逐步详情", open=False):
+        steps_detail = gr.Markdown("")
+    
+    # 参数变化自动触发搜索
+    for component in [model_choice, prompt, beam_size, max_steps]:
+        component.change(
+        fn=run_beam_search,
+        inputs=[model_choice, prompt, beam_size, max_steps],
+        outputs=[results_md, tree_plot, steps_detail]
+    )

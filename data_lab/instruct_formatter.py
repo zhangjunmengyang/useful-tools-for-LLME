@@ -2,62 +2,86 @@
 格式化转换器 - SFT 数据格式转换
 """
 
-import streamlit as st
+import gradio as gr
 import json
 from data_lab.data_utils import CHAT_TEMPLATES, convert_to_format, validate_chat_format
 
 
+def format_and_validate(input_json: str, target_format: str, system_prompt: str):
+    """格式化并验证"""
+    if not input_json or not input_json.strip():
+        return "", "", ""
+    
+    try:
+        data = json.loads(input_json)
+    except json.JSONDecodeError as e:
+        return "", f"JSON 解析错误: {e}", ""
+    
+    converted = convert_to_format(data, target_format, system_prompt)
+    
+    validation = validate_chat_format(converted, target_format)
+    
+    if validation['valid']:
+        validation_msg = "格式验证通过"
+    else:
+        issues = "\n".join([f"- {issue}" for issue in validation['issues']])
+        validation_msg = f"格式问题:\n{issues}"
+    
+    return converted, validation_msg, ""
+
+
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">格式化转换器</h1>', unsafe_allow_html=True)
     
+    gr.Markdown("## 格式化转换器")
     
-    col_left, col_right = st.columns(2)
-    
-    with col_left:
-        st.markdown("### 输入数据")
-        
-        input_json = st.text_area(
-            "原始 JSON",
-            value='''{
+    with gr.Row():
+        with gr.Column():
+            input_json = gr.Code(
+                label="原始 JSON",
+                value='''{
     "instruction": "将以下句子翻译成英文",
     "input": "今天天气真好",
     "output": "The weather is really nice today."
 }''',
-            height=200
-        )
+                language="json",
+                lines=10
+            )
         
-        # 解析 JSON
-        try:
-            data = json.loads(input_json)
-        except json.JSONDecodeError as e:
-            st.error(f"JSON 格式错误: {e}")
-            data = None
+        with gr.Column():
+            format_choices = [(info['name'], fmt_id) for fmt_id, info in CHAT_TEMPLATES.items()]
+            target_format = gr.Dropdown(
+                label="目标格式",
+                choices=format_choices,
+                value="alpaca"
+            )
+            
+            system_prompt = gr.Textbox(
+                label="System Prompt (可选)",
+                placeholder="自定义 system 提示词"
+            )
+            
+            convert_btn = gr.Button("转换", variant="primary")
+            
+            output_text = gr.Code(
+                label="转换结果",
+                language=None,
+                lines=10
+            )
+            
+            validation_status = gr.Markdown("")
     
-    with col_right:
-        st.markdown("### 输出格式")
-        
-        target_format = st.selectbox(
-            "目标格式",
-            options=list(CHAT_TEMPLATES.keys()),
-            format_func=lambda x: CHAT_TEMPLATES[x]['name']
+    # 事件绑定
+    convert_btn.click(
+        fn=format_and_validate,
+        inputs=[input_json, target_format, system_prompt],
+        outputs=[output_text, validation_status]
+    )
+    
+    # 实时转换
+    for comp in [input_json, target_format, system_prompt]:
+        comp.change(
+            fn=format_and_validate,
+            inputs=[input_json, target_format, system_prompt],
+            outputs=[output_text, validation_status]
         )
-        
-        system_prompt = st.text_input(
-            "System Prompt (可选)",
-            placeholder="自定义 system 提示词"
-        )
-        
-        if data:
-            converted = convert_to_format(data, target_format, system_prompt)
-            
-            st.text_area("转换结果", value=converted, height=200)
-            
-            # 格式验证
-            validation = validate_chat_format(converted, target_format)
-            if not validation['valid']:
-                st.warning("格式问题:")
-                for issue in validation['issues']:
-                    st.caption(f"- {issue}")    
-
-

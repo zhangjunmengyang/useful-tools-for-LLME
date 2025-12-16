@@ -3,7 +3,7 @@ PEFT 参数计算器 - 计算 LoRA/QLoRA 的可训练参数量
 支持从 HuggingFace Hub 实时读取配置
 """
 
-import streamlit as st
+import gradio as gr
 import pandas as pd
 import json
 from huggingface_hub import hf_hub_download
@@ -66,7 +66,10 @@ TARGET_MODULES = {
 }
 
 
-@st.cache_data(show_spinner=False, ttl=3600)
+# 全局配置缓存
+_config_cache = {'config': None, 'display_name': None}
+
+
 def load_config_from_hub(model_name: str, token: str = None) -> dict:
     """从 HuggingFace Hub 加载模型配置"""
     model_name = extract_from_url(model_name)
@@ -113,33 +116,28 @@ def calculate_lora_params(config: dict, rank: int, modules: list) -> dict:
     
     for module in modules:
         if module == "q_proj":
-            # Q: hidden_size -> num_heads * head_dim
             out_dim = num_heads * head_dim
-            module_params = hidden_size * rank + rank * out_dim  # A + B
+            module_params = hidden_size * rank + rank * out_dim
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{hidden_size}→{out_dim}", "每层参数": module_params})
+            details.append({"模块": module, "维度": f"{hidden_size}->{out_dim}", "每层参数": module_params})
         elif module in ["k_proj", "v_proj"]:
-            # K/V: hidden_size -> num_kv_heads * head_dim (GQA)
             out_dim = num_kv_heads * head_dim
             module_params = hidden_size * rank + rank * out_dim
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{hidden_size}→{out_dim}", "每层参数": module_params})
+            details.append({"模块": module, "维度": f"{hidden_size}->{out_dim}", "每层参数": module_params})
         elif module == "o_proj":
-            # O: num_heads * head_dim -> hidden_size
             in_dim = num_heads * head_dim
             module_params = in_dim * rank + rank * hidden_size
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{in_dim}→{hidden_size}", "每层参数": module_params})
+            details.append({"模块": module, "维度": f"{in_dim}->{hidden_size}", "每层参数": module_params})
         elif module in ["gate_proj", "up_proj"]:
-            # gate/up: hidden_size -> intermediate_size
             module_params = hidden_size * rank + rank * intermediate_size
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{hidden_size}→{intermediate_size}", "每层参数": module_params})
+            details.append({"模块": module, "维度": f"{hidden_size}->{intermediate_size}", "每层参数": module_params})
         elif module == "down_proj":
-            # down: intermediate_size -> hidden_size
             module_params = intermediate_size * rank + rank * hidden_size
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{intermediate_size}→{hidden_size}", "每层参数": module_params})
+            details.append({"模块": module, "维度": f"{intermediate_size}->{hidden_size}", "每层参数": module_params})
     
     total_params = params_per_layer * num_layers
     
@@ -159,160 +157,235 @@ def estimate_base_params(config: dict) -> int:
     head_dim = config["head_dim"]
     ff = config["intermediate_size"]
     
-    # Attention
     q_proj = d * (num_heads * head_dim)
     kv_proj = d * (num_kv_heads * head_dim) * 2
     o_proj = (num_heads * head_dim) * d
     attention = (q_proj + kv_proj + o_proj) * L
     
-    # FFN (SwiGLU: gate, up, down)
     ffn = 3 * d * ff * L
     
     return attention + ffn
 
 
+def get_model_list(category: str):
+    """获取指定厂商的模型列表"""
+    if category not in MODEL_CATEGORIES:
+        return []
+    return [m[0] for m in MODEL_CATEGORIES[category]["models"]]
+
+
+def get_model_id(category: str, model_name: str):
+    """获取模型 ID"""
+    if category not in MODEL_CATEGORIES:
+        return None
+    for name, model_id in MODEL_CATEGORIES[category]["models"]:
+        if name == model_name:
+            return model_id
+    return None
+
+
+def load_model_config(input_mode: str, category: str, preset_model: str, custom_model: str, token: str, progress=gr.Progress()):
+    """加载模型配置"""
+    global _config_cache
+    
+    if input_mode == "预设模型":
+        model_id = get_model_id(category, preset_model)
+        display_name = preset_model
+    else:
+        model_id = custom_model
+        display_name = custom_model.split("/")[-1] if custom_model else None
+    
+    if not model_id:
+        return "请选择或输入模型", ""
+    
+    try:
+        progress(0.5, desc=f"加载 {display_name} 配置...")
+        raw_config = load_config_from_hub(model_id, token)
+        config = extract_model_config(raw_config)
+        
+        _config_cache['config'] = config
+        _config_cache['display_name'] = display_name
+        
+        info_text = f"""
+**{display_name}**
+- Hidden: {config['hidden_size']:,}
+- Layers: {config['num_layers']}
+- Heads: {config['num_heads']} (KV: {config['num_kv_heads']})
+- FFN: {config['intermediate_size']:,}
+        """
+        
+        return "配置加载成功", info_text
+        
+    except Exception as e:
+        return f"加载失败: {str(e)}", ""
+
+
+def calculate_results(rank: int, alpha: int, selected_modules: list):
+    """计算 LoRA 参数"""
+    config = _config_cache.get('config')
+    if not config:
+        return "", None, "", "", "", "", "", ""
+    
+    if not selected_modules:
+        return "请选择至少一个目标模块", None, "", "", "", "", "", ""
+    
+    result = calculate_lora_params(config, rank, selected_modules)
+    base_params = estimate_base_params(config)
+    trainable_ratio = result['total_params'] / base_params * 100
+    
+    # 详细表格
+    df = pd.DataFrame(result['details'])
+    df['总参数'] = df['每层参数'] * config['num_layers']
+    df['总参数'] = df['总参数'].apply(lambda x: f"{x:,}")
+    df['每层参数'] = df['每层参数'].apply(lambda x: f"{x:,}")
+    
+    # 显存估算
+    lora_mem_fp16 = result['total_params'] * 2 / 1024 / 1024
+    lora_mem_fp32 = result['total_params'] * 4 / 1024 / 1024
+    train_mem = lora_mem_fp32 + lora_mem_fp32 * 2
+    
+    scale_factor = f"{alpha/rank:.2f}"
+    
+    return (
+        "",
+        df,
+        f"{result['total_params']:,}",
+        f"{result['total_params'] * 2 / 1024 / 1024:.2f}",
+        f"~{trainable_ratio:.3f}%",
+        f"{lora_mem_fp16:.2f} MB",
+        f"{lora_mem_fp32:.2f} MB",
+        f"{train_mem:.2f} MB"
+    )
+
+
 def render():
     """渲染页面"""
-    st.markdown('<h1 class="module-title">PEFT 参数计算器</h1>', unsafe_allow_html=True)
     
+    gr.Markdown("## PEFT 参数计算器")
     
-    col1, col2 = st.columns([1, 2])
-    
-    # ========== 左列：模型选择 ==========
-    with col1:
-        st.markdown("### 模型选择")
-        
-        # 输入方式选择
-        input_mode = st.radio("输入方式", ["预设模型", "自定义模型"], horizontal=True)
-        
-        model_name = None
-        display_name = None
-        
-        if input_mode == "预设模型":
-            categories = list(MODEL_CATEGORIES.keys())
-            selected_category = st.selectbox("选择厂商", categories)
+    with gr.Row():
+        # 左列：模型选择
+        with gr.Column(scale=1):
+            gr.Markdown("### 模型选择")
             
-            models = MODEL_CATEGORIES[selected_category]["models"]
-            model_names = [m[0] for m in models]
-            selected_model = st.selectbox("选择模型", model_names)
-            
-            for name, model_id in models:
-                if name == selected_model:
-                    model_name = model_id
-                    display_name = name
-                    break
-            
-            st.caption(f"`{model_name}`")
-        else:
-            model_name = st.text_input(
-                "模型名称或 URL",
-                placeholder="例如: meta-llama/Llama-2-7b-hf"
+            input_mode = gr.Radio(
+                label="输入方式",
+                choices=["预设模型", "自定义模型"],
+                value="预设模型"
             )
-            display_name = model_name.split("/")[-1] if model_name else None
-        
-        # HF Token
-        token = st.text_input("HF Token (可选)", type="password")
-        
-        # 加载按钮
-        load_clicked = st.button("加载配置", type="primary", width="stretch")
-        
-        if load_clicked and model_name:
-            with st.spinner(f"正在加载 {display_name} 的配置..."):
-                try:
-                    raw_config = load_config_from_hub(model_name, token)
-                    config = extract_model_config(raw_config)
-                    st.session_state["peft_config"] = config
-                    st.session_state["peft_display_name"] = display_name
-                    st.success("配置加载成功")
-                except Exception as e:
-                    st.error(f"加载失败: {str(e)}")
-    
-    # ========== 右列：LoRA 配置 & 结果 ==========
-    with col2:
-        if "peft_config" not in st.session_state:
-            return
-        
-        config = st.session_state["peft_config"]
-
-        # 显示已加载的模型配置
-        if "peft_config" in st.session_state:
-            config = st.session_state["peft_config"]
-            loaded_name = st.session_state.get("peft_display_name", "模型")
             
-            st.info(f"""
-            **{loaded_name}**
-            - Hidden: {config['hidden_size']:,}
-            - Layers: {config['num_layers']}
-            - Heads: {config['num_heads']} (KV: {config['num_kv_heads']})
-            - FFN: {config['intermediate_size']:,}
-            """)
+            category = gr.Dropdown(
+                label="选择厂商",
+                choices=list(MODEL_CATEGORIES.keys()),
+                value="Meta (Llama)",
+                visible=True
+            )
+            
+            preset_model = gr.Dropdown(
+                label="选择模型",
+                choices=get_model_list("Meta (Llama)"),
+                value="Llama-2-7B",
+                visible=True
+            )
+            
+            custom_model = gr.Textbox(
+                label="模型名称或 URL",
+                placeholder="例如: meta-llama/Llama-2-7b-hf",
+                visible=False
+            )
+            
+            token = gr.Textbox(
+                label="HF Token (可选)",
+                type="password"
+            )
+            
+            load_btn = gr.Button("加载配置", variant="primary")
+            load_status = gr.Markdown("")
+            model_info = gr.Markdown("")
         
-        # LoRA 参数配置
-        st.markdown("### LoRA 参数")
-        
-        lora_col1, lora_col2 = st.columns(2)
-        with lora_col1:
-            rank = st.slider("Rank (r)", 4, 256, 16, help="LoRA 低秩维度")
-        with lora_col2:
-            alpha = st.slider("Alpha (α)", 8, 512, 32, help="缩放因子")
-        
-        st.caption(f"缩放系数: α/r = {alpha/rank:.2f}")
-        
-        # 目标模块选择
-        st.markdown("### 目标模块")
-        
-        mod_cols = st.columns(4)
-        selected_modules = []
-        module_items = list(TARGET_MODULES.items())
-        for i, (module_id, module_name) in enumerate(module_items):
-            with mod_cols[i % 4]:
-                if st.checkbox(module_name, value=module_id in ["q_proj", "v_proj"], key=f"mod_{module_id}"):
-                    selected_modules.append(module_id)
-        
-        st.markdown("---")
-        
-        # 计算结果
-        if not selected_modules:
-            st.warning("请选择至少一个目标模块")
-            return
-        
-        st.markdown("### 计算结果")
-        
-        result = calculate_lora_params(config, rank, selected_modules)
-        
-        # 估算原始模型参数量
-        base_params = estimate_base_params(config)
-        trainable_ratio = result['total_params'] / base_params * 100
-        
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            st.metric("LoRA 参数量", f"{result['total_params']:,}")
-        with col_b:
-            st.metric("参数量 (MB)", f"{result['total_params'] * 2 / 1024 / 1024:.2f}")
-        with col_c:
-            st.metric("可训练比例", f"~{trainable_ratio:.3f}%")
-        
-        # 详细表格
-        st.markdown("### 参数分布")
-        df = pd.DataFrame(result['details'])
-        df['总参数'] = df['每层参数'] * config['num_layers']
-        df['总参数'] = df['总参数'].apply(lambda x: f"{x:,}")
-        df['每层参数'] = df['每层参数'].apply(lambda x: f"{x:,}")
-        st.dataframe(df, hide_index=True, width="stretch")
-        
-        # 显存估算
-        st.markdown("### 显存估算")
-        
-        lora_mem_fp16 = result['total_params'] * 2 / 1024 / 1024  # MB
-        lora_mem_fp32 = result['total_params'] * 4 / 1024 / 1024  # MB
-        train_mem = lora_mem_fp32 + lora_mem_fp32 * 2  # weights + optimizer (AdamW)
-        
-        col_m1, col_m2, col_m3 = st.columns(3)
-        with col_m1:
-            st.metric("推理 (fp16)", f"{lora_mem_fp16:.2f} MB")
-        with col_m2:
-            st.metric("训练权重 (fp32)", f"{lora_mem_fp32:.2f} MB")
-        with col_m3:
-            st.metric("训练总计 (含优化器)", f"{train_mem:.2f} MB")
-        
-        st.caption("注: 以上仅为 LoRA 参数的显存占用，不包括基础模型、激活值等。")
+        # 右列：LoRA 配置 & 结果
+        with gr.Column(scale=2):
+            gr.Markdown("### LoRA 参数")
+            
+            with gr.Row():
+                rank = gr.Slider(
+                    label="Rank (r)",
+                    minimum=4,
+                    maximum=256,
+                    value=16,
+                    step=4
+                )
+                alpha = gr.Slider(
+                    label="Alpha",
+                    minimum=8,
+                    maximum=512,
+                    value=32,
+                    step=8
+                )
+            
+            gr.Markdown("### 目标模块")
+            
+            module_choices = [(name, module_id) for module_id, name in TARGET_MODULES.items()]
+            selected_modules = gr.CheckboxGroup(
+                label="选择目标模块",
+                choices=module_choices,
+                value=["q_proj", "v_proj"]
+            )
+            
+            calc_btn = gr.Button("计算参数量", variant="primary")
+            calc_status = gr.Markdown("")
+            
+            gr.Markdown("### 计算结果")
+            
+            with gr.Row():
+                total_params = gr.Textbox(label="LoRA 参数量", interactive=False)
+                params_mb = gr.Textbox(label="参数量 (MB)", interactive=False)
+                trainable_ratio = gr.Textbox(label="可训练比例", interactive=False)
+            
+            gr.Markdown("### 参数分布")
+            params_table = gr.Dataframe(label="详细参数分布")
+            
+            gr.Markdown("### 显存估算")
+            with gr.Row():
+                mem_fp16 = gr.Textbox(label="推理 (fp16)", interactive=False)
+                mem_fp32 = gr.Textbox(label="训练权重 (fp32)", interactive=False)
+                mem_total = gr.Textbox(label="训练总计 (含优化器)", interactive=False)
+            
+            gr.Markdown("*注: 以上仅为 LoRA 参数的显存占用，不包括基础模型、激活值等。*")
+    
+    # 事件绑定
+    def toggle_input_mode(mode):
+        preset_visible = mode == "预设模型"
+        return (
+            gr.update(visible=preset_visible),
+            gr.update(visible=preset_visible),
+            gr.update(visible=not preset_visible)
+        )
+    
+    def update_model_list(category):
+        models = get_model_list(category)
+        return gr.update(choices=models, value=models[0] if models else None)
+    
+    input_mode.change(
+        fn=toggle_input_mode,
+        inputs=[input_mode],
+        outputs=[category, preset_model, custom_model]
+    )
+    
+    category.change(
+        fn=update_model_list,
+        inputs=[category],
+        outputs=[preset_model]
+    )
+    
+    load_btn.click(
+        fn=load_model_config,
+        inputs=[input_mode, category, preset_model, custom_model, token],
+        outputs=[load_status, model_info]
+    )
+    
+    calc_btn.click(
+        fn=calculate_results,
+        inputs=[rank, alpha, selected_modules],
+        outputs=[calc_status, params_table, total_params, params_mb, trainable_ratio, mem_fp16, mem_fp32, mem_total]
+    )

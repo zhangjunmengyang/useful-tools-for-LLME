@@ -6,7 +6,7 @@ import torch
 import numpy as np
 from typing import List, Dict, Tuple, Optional, Any
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
-import streamlit as st
+from functools import lru_cache
 
 # 轻量级模型配置 (用于演示)
 DEMO_MODELS = {
@@ -28,9 +28,15 @@ DEMO_MODELS = {
 }
 
 
-@st.cache_resource(show_spinner=False)
+# 模型缓存
+_model_cache = {}
+
+
 def load_model_and_tokenizer(model_name: str) -> Tuple[Any, Any]:
     """加载模型和 tokenizer"""
+    if model_name in _model_cache:
+        return _model_cache[model_name]
+    
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForCausalLM.from_pretrained(
@@ -39,9 +45,10 @@ def load_model_and_tokenizer(model_name: str) -> Tuple[Any, Any]:
             device_map="cpu"
         )
         model.eval()
+        _model_cache[model_name] = (model, tokenizer)
         return model, tokenizer
     except Exception as e:
-        st.error(f"加载模型失败: {str(e)}")
+        print(f"加载模型失败: {str(e)}")
         return None, None
 
 
@@ -428,4 +435,3 @@ def format_bytes(bytes_val: float) -> str:
         return f"{bytes_val / 1024:.2f} KB"
     else:
         return f"{bytes_val:.0f} B"
-

@@ -4,34 +4,45 @@ EmbeddingLab - Embedding 工具函数
 
 import numpy as np
 from typing import List, Dict, Tuple, Optional, Any
-import streamlit as st
+from functools import lru_cache
 
 # Word2Vec 预训练模型的词汇表（精简版，用于演示）
-# 实际使用时会下载完整模型
 DEMO_WORD_VECTORS = None
 
+# 模型缓存
+_word2vec_model = None
+_sentence_transformer_cache = {}
 
-@st.cache_resource
+
 def load_word2vec_model():
     """加载 Word2Vec 模型（使用 gensim）"""
+    global _word2vec_model
+    if _word2vec_model is not None:
+        return _word2vec_model
+    
     try:
         import gensim.downloader as api
-        model = api.load("glove-wiki-gigaword-100")  # 100维的GloVe模型，较小
-        return model
+        _word2vec_model = api.load("glove-wiki-gigaword-100")  # 100维的GloVe模型，较小
+        return _word2vec_model
     except Exception as e:
-        st.error(f"加载 Word2Vec 模型失败: {e}")
+        print(f"加载 Word2Vec 模型失败: {e}")
         return None
 
 
-@st.cache_resource
 def load_sentence_transformer(model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"):
     """加载 Sentence Transformer 模型"""
+    global _sentence_transformer_cache
+    
+    if model_name in _sentence_transformer_cache:
+        return _sentence_transformer_cache[model_name]
+    
     try:
         from sentence_transformers import SentenceTransformer
         model = SentenceTransformer(model_name)
+        _sentence_transformer_cache[model_name] = model
         return model
     except Exception as e:
-        st.error(f"加载 Sentence Transformer 失败: {e}")
+        print(f"加载 Sentence Transformer 失败: {e}")
         return None
 
 
@@ -396,4 +407,3 @@ LABEL_COLORS = {
 def get_label_color(label: str) -> str:
     """获取标签对应的颜色"""
     return LABEL_COLORS.get(label, "#6B7280")
-
