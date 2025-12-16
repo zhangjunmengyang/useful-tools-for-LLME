@@ -319,6 +319,12 @@ def render():
     
     gr.Markdown("## Config 差异对比")
     
+    # 默认值
+    default_cat_a = "Meta (Llama)"
+    default_model_a = "Llama-2-7B"
+    default_cat_b = "Meta (Llama)"
+    default_model_b = "Llama-3.1-8B"
+    
     with gr.Row():
         # 模型 A 选择
         with gr.Column():
@@ -333,13 +339,13 @@ def render():
             cat_a = gr.Dropdown(
                 label="选择厂商",
                 choices=list(MODEL_CATEGORIES.keys()),
-                value="Meta (Llama)"
+                value=default_cat_a
             )
             
             preset_a = gr.Dropdown(
                 label="选择模型",
-                choices=get_model_list("Meta (Llama)"),
-                value="Llama-2-7B"
+                choices=get_model_list(default_cat_a),
+                value=default_model_a
             )
             
             custom_a = gr.Textbox(
@@ -366,13 +372,13 @@ def render():
             cat_b = gr.Dropdown(
                 label="选择厂商",
                 choices=list(MODEL_CATEGORIES.keys()),
-                value="Meta (Llama)"
+                value=default_cat_b
             )
             
             preset_b = gr.Dropdown(
                 label="选择模型",
-                choices=get_model_list("Meta (Llama)"),
-                value="Llama-3.1-8B"
+                choices=get_model_list(default_cat_b),
+                value=default_model_b
             )
             
             custom_b = gr.Textbox(
@@ -388,9 +394,7 @@ def render():
     
     gr.Markdown("---")
     
-    with gr.Row():
-        load_btn = gr.Button("加载配置", variant="primary")
-        show_all = gr.Checkbox(label="显示全部配置项", value=False)
+    show_all = gr.Checkbox(label="显示全部配置项", value=False)
     
     load_status = gr.Markdown("")
     
@@ -435,7 +439,8 @@ def render():
     cat_a.change(fn=update_models_a, inputs=[cat_a], outputs=[preset_a])
     cat_b.change(fn=update_models_b, inputs=[cat_b], outputs=[preset_b])
     
-    def on_load(mode_a, cat_a, preset_a, custom_a, token_a, mode_b, cat_b, preset_b, custom_b, token_b, show_all):
+    def on_load_and_compare(mode_a, cat_a, preset_a, custom_a, token_a, mode_b, cat_b, preset_b, custom_b, token_b, show_all):
+        """加载配置并自动对比"""
         status, _, _, _, _ = load_configs(
             mode_a, cat_a, preset_a, custom_a, token_a,
             mode_b, cat_b, preset_b, custom_b, token_b
@@ -445,14 +450,30 @@ def render():
             return status, df, analysis, params_a, params_b
         return status, None, "", "", ""
     
-    load_btn.click(
-        fn=on_load,
-        inputs=[mode_a, cat_a, preset_a, custom_a, token_a, mode_b, cat_b, preset_b, custom_b, token_b, show_all],
-        outputs=[load_status, diff_table, analysis_text, params_a_display, params_b_display]
-    )
+    # 所有输入和输出
+    all_inputs = [mode_a, cat_a, preset_a, custom_a, token_a, mode_b, cat_b, preset_b, custom_b, token_b, show_all]
+    all_outputs = [load_status, diff_table, analysis_text, params_a_display, params_b_display]
+    
+    # 模型选择变化时自动加载并对比
+    preset_a.change(fn=on_load_and_compare, inputs=all_inputs, outputs=all_outputs)
+    preset_b.change(fn=on_load_and_compare, inputs=all_inputs, outputs=all_outputs)
+    custom_a.submit(fn=on_load_and_compare, inputs=all_inputs, outputs=all_outputs)
+    custom_b.submit(fn=on_load_and_compare, inputs=all_inputs, outputs=all_outputs)
     
     show_all.change(
         fn=lambda show: generate_comparison(show),
         inputs=[show_all],
         outputs=[diff_table, analysis_text, params_a_display, params_b_display]
     )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        return on_load_and_compare("预设模型", default_cat_a, default_model_a, "", "", 
+                                   "预设模型", default_cat_b, default_model_b, "", "", False)
+    
+    # 返回 load 事件需要的信息供主 app 调用
+    return {
+        'load_fn': on_load,
+        'load_outputs': all_outputs
+    }

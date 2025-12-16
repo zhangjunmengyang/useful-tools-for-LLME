@@ -60,7 +60,8 @@ def render_ppl_histogram(ppl_values: list, threshold_max: float) -> go.Figure:
         title="PPL 分布直方图",
         xaxis_title="Perplexity",
         yaxis_title="样本数",
-        height=350,
+        height=400,
+        autosize=True,
         showlegend=False
     )
     

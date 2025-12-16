@@ -255,7 +255,8 @@ def render_beam_tree(history: Dict) -> go.Figure:
             zeroline=False,
             showticklabels=False
         ),
-        height=400,
+        height=450,
+        autosize=True,
         margin=dict(l=50, r=50, t=50, b=50),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -385,7 +386,18 @@ def render():
     # 参数变化自动触发搜索
     for component in [model_choice, prompt, beam_size, max_steps]:
         component.change(
-        fn=run_beam_search,
-        inputs=[model_choice, prompt, beam_size, max_steps],
-        outputs=[results_md, tree_plot, steps_detail]
-    )
+            fn=run_beam_search,
+            inputs=[model_choice, prompt, beam_size, max_steps],
+            outputs=[results_md, tree_plot, steps_detail]
+        )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        return run_beam_search(list(DEMO_MODELS.keys())[0], "Once upon a time", 3, 5)
+    
+    # 返回 load 事件信息
+    return {
+        'load_fn': on_load,
+        'load_outputs': [results_md, tree_plot, steps_detail]
+    }

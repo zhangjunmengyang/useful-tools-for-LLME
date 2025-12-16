@@ -71,7 +71,8 @@ def create_vector_visualization(words, vectors, result_word=None, result_vector=
         paper_bgcolor='#FFFFFF',
         font=dict(color='#111827', family='Inter, sans-serif'),
         showlegend=False,
-        height=400,
+        height=450,
+        autosize=True,
         margin=dict(l=40, r=40, t=40, b=40),
         xaxis=dict(
             showgrid=True,
@@ -230,8 +231,6 @@ def render():
         preset4 = gr.Button("Brother - Man + Woman", size="sm")
         preset5 = gr.Button("Walking - Walk + Swim", size="sm")
     
-    compute_btn = gr.Button("计算", variant="primary", size="lg")
-    
     gr.Markdown("---")
     
     # 结果展示
@@ -282,13 +281,6 @@ def render():
         outputs=[word_a, word_b, word_c, formula_md, result_df, plot, details_md]
     )
     
-    # 计算按钮
-    compute_btn.click(
-        fn=compute_analogy,
-        inputs=[word_a, word_b, word_c, top_k],
-        outputs=[formula_md, result_df, plot, details_md]
-    )
-    
     # 即时计算 - 输入变化时自动计算
     for inp in [word_a, word_b, word_c]:
         inp.change(
@@ -302,3 +294,14 @@ def render():
         inputs=[word_a, word_b, word_c, top_k],
         outputs=[formula_md, result_df, plot, details_md]
     )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        return compute_analogy("king", "man", "woman", 10)
+    
+    # 返回 load 事件信息
+    return {
+        'load_fn': on_load,
+        'load_outputs': [formula_md, result_df, plot, details_md]
+    }

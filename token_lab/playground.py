@@ -438,10 +438,9 @@ def render():
             decode_input = gr.Textbox(
                 label="Token IDs",
                 placeholder="例如: 128000, 50256 或 [128000, 50256]",
-                lines=1
+                lines=1,
+                value="128000, 50256"
             )
-            
-            decode_btn = gr.Button("解码", variant="primary")
             
             gr.Markdown("### 解码结果")
             decode_result = gr.Textbox(label="解码文本", interactive=False, lines=3)
@@ -452,10 +451,9 @@ def render():
             byte_input = gr.Textbox(
                 label="输入文本",
                 placeholder="输入 Emoji、生僻字等特殊字符查看字节级分词",
-                lines=2
+                lines=2,
+                value="🎉 Hello 你好 𠀀"
             )
-            
-            byte_analyze_btn = gr.Button("分析", variant="primary")
             
             with gr.Row():
                 byte_total = gr.Textbox(label="总 Token", interactive=False)
@@ -474,10 +472,9 @@ def render():
             unicode_input = gr.Textbox(
                 label="输入文本",
                 placeholder="输入要分析的文本",
-                lines=1
+                lines=1,
+                value="café 你好 🎉"
             )
-            
-            unicode_btn = gr.Button("分析", variant="primary")
             
             gr.Markdown("### 规范化对比")
             norm_df = gr.Dataframe(interactive=False)
@@ -487,8 +484,6 @@ def render():
         
         # ========== 特殊 Token Tab ==========
         with gr.Tab("特殊 Token"):
-            special_btn = gr.Button("获取特殊 Token", variant="primary")
-            
             gr.Markdown("### 标准特殊 Token")
             standard_df = gr.Dataframe(interactive=False)
             
@@ -508,18 +503,6 @@ def render():
         outputs=[model_dropdown]
     )
     
-    # 模型变化 -> 更新模型 ID 和信息
-    def on_model_change(category, model_name):
-        model_id = get_model_id(category, model_name)
-        id_text = f"**Tokenizer**: `{model_id}`" if model_id else ""
-        info = get_model_info(category, model_name)
-        return id_text, info
-    
-    model_dropdown.change(
-        fn=on_model_change,
-        inputs=[category_dropdown, model_dropdown],
-        outputs=[model_id_text, model_info_md]
-    )
     
     # 编码功能
     encode_inputs = [category_dropdown, model_dropdown, encode_input, show_ids_cb, add_special_cb]
@@ -529,30 +512,70 @@ def render():
     show_ids_cb.change(fn=encode_text, inputs=encode_inputs, outputs=encode_outputs)
     add_special_cb.change(fn=encode_text, inputs=encode_inputs, outputs=encode_outputs)
     
-    # 解码功能
-    decode_btn.click(
+    # 解码功能 - 自动触发
+    decode_input.change(
         fn=decode_ids,
         inputs=[category_dropdown, model_dropdown, decode_input],
         outputs=[decode_result, decode_details]
     )
     
-    # 字节分析
-    byte_analyze_btn.click(
+    # 字节分析 - 自动触发
+    byte_input.change(
         fn=analyze_bytes,
         inputs=[category_dropdown, model_dropdown, byte_input],
         outputs=[byte_tokens_html, byte_total, byte_fallback, byte_bpe, byte_special, byte_fallback_df]
     )
     
-    # Unicode 分析
-    unicode_btn.click(
+    # Unicode 分析 - 自动触发
+    unicode_input.change(
         fn=analyze_unicode,
         inputs=[unicode_input],
         outputs=[norm_df, unicode_df]
     )
     
-    # 特殊 Token
-    special_btn.click(
-        fn=get_special_tokens,
+    # 模型变化时更新所有 Tab 的数据
+    def on_model_change_all(category, model_name):
+        """模型变化时更新所有相关内容"""
+        model_id = get_model_id(category, model_name)
+        id_text = f"**Tokenizer**: `{model_id}`" if model_id else ""
+        info = get_model_info(category, model_name)
+        special_standard, special_additional = get_special_tokens(category, model_name)
+        return id_text, info, special_standard, special_additional
+    
+    model_dropdown.change(
+        fn=on_model_change_all,
         inputs=[category_dropdown, model_dropdown],
-        outputs=[standard_df, additional_df]
+        outputs=[model_id_text, model_info_md, standard_df, additional_df]
     )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        # 获取模型信息和特殊 Token
+        id_text, info, special_standard, special_additional = on_model_change_all(
+            initial_category, initial_models[0] if initial_models else None
+        )
+        # 解码默认值
+        decode_text, decode_detail = decode_ids(initial_category, initial_models[0] if initial_models else None, "128000, 50256")
+        # 字节分析默认值
+        byte_result = analyze_bytes(initial_category, initial_models[0] if initial_models else None, "🎉 Hello 你好 𠀀")
+        # Unicode 分析默认值
+        norm_result, unicode_result = analyze_unicode("café 你好 🎉")
+        
+        return (
+            id_text, info, special_standard, special_additional,
+            decode_text, decode_detail,
+            byte_result[0], byte_result[1], byte_result[2], byte_result[3], byte_result[4], byte_result[5],
+            norm_result, unicode_result
+        )
+    
+    # 返回 load 事件信息供主 app 调用
+    return {
+        'load_fn': on_load,
+        'load_outputs': [
+            model_id_text, model_info_md, standard_df, additional_df,
+            decode_result, decode_details,
+            byte_tokens_html, byte_total, byte_fallback, byte_bpe, byte_special, byte_fallback_df,
+            norm_df, unicode_df
+        ]
+    }

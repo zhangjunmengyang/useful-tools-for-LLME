@@ -99,7 +99,8 @@ def create_comparison_chart(stats_a, stats_b, model_a, model_b):
         font=dict(color='#111827', family='Inter, sans-serif', size=14),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         margin=dict(l=40, r=40, t=60, b=40),
-        height=350
+        height=400,
+        autosize=True
     )
     
     fig.update_xaxes(gridcolor='#E5E7EB', linecolor='#E5E7EB')
@@ -240,10 +241,9 @@ def render():
     test_input = gr.Textbox(
         label="测试文本",
         placeholder="输入文本查看对比结果...",
-        lines=3
+        lines=3,
+        value="Hello, world! 你好，世界！This is a test for tokenizer comparison."
     )
-    
-    compare_btn = gr.Button("开始对比", variant="primary", size="lg")
     
     # 结果区域
     summary_md = gr.Markdown("")
@@ -270,16 +270,24 @@ def render():
     cat_a.change(fn=update_models_a, inputs=[cat_a], outputs=[model_a])
     cat_b.change(fn=update_models_b, inputs=[cat_b], outputs=[model_b])
     
-    compare_btn.click(
-        fn=compare_models,
-        inputs=[cat_a, model_a, cat_b, model_b, test_input],
-        outputs=[summary_md, tokens_a_html, tokens_b_html, chart, detail_df]
-    )
+    # 所有参数变化都自动触发对比
+    for component in [model_a, model_b, test_input]:
+        component.change(
+            fn=compare_models,
+            inputs=[cat_a, model_a, cat_b, model_b, test_input],
+            outputs=[summary_md, tokens_a_html, tokens_b_html, chart, detail_df]
+        )
     
-    # 文本变化也触发对比
-    test_input.change(
-        fn=compare_models,
-        inputs=[cat_a, model_a, cat_b, model_b, test_input],
-        outputs=[summary_md, tokens_a_html, tokens_b_html, chart, detail_df]
-    )
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        default_text = "Hello, world! 你好，世界！This is a test for tokenizer comparison."
+        return compare_models(cat_a_init, models_a_init[0] if models_a_init else None, 
+                             cat_b_init, models_b_init[0] if models_b_init else None, default_text)
+    
+    # 返回 load 事件信息
+    return {
+        'load_fn': on_load,
+        'load_outputs': [summary_md, tokens_a_html, tokens_b_html, chart, detail_df]
+    }
 

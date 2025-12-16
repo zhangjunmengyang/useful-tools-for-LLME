@@ -199,6 +199,9 @@ CUSTOM_THEME = gr.themes.Soft(
 def create_app():
     """创建 Gradio 应用"""
     
+    # 收集所有需要初始化的 load 事件
+    load_events = []
+    
     with gr.Blocks(title="LLM Tools Workbench") as app:
         
         # 标题
@@ -216,10 +219,14 @@ def create_app():
                 
                 with gr.Tabs() as token_tabs:
                     with gr.Tab("分词编码", id="playground"):
-                        playground.render()
+                        result = playground.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("模型对比", id="arena"):
-                        arena.render()
+                        result = arena.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("Chat Template", id="chat"):
                         chat_builder.render()
@@ -235,16 +242,24 @@ def create_app():
                 
                 with gr.Tabs() as embed_tabs:
                     with gr.Tab("向量运算", id="vector_arithmetic"):
-                        vector_arithmetic.render()
+                        result = vector_arithmetic.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("模型对比", id="model_comparison"):
-                        model_comparison.render()
+                        result = model_comparison.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("向量可视化", id="vector_viz"):
-                        vector_visualization.render()
+                        result = vector_visualization.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("语义相似度", id="semantic_sim"):
-                        semantic_similarity.render()
+                        result = semantic_similarity.render()
+                        if result:
+                            load_events.append(result)
             
             # ==================== GenerationLab ====================
             with gr.Tab("GenerationLab", id="generationlab"):
@@ -256,13 +271,19 @@ def create_app():
                 
                 with gr.Tabs() as gen_tabs:
                     with gr.Tab("Logits Inspector", id="logits"):
-                        logits_inspector.render()
+                        result = logits_inspector.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("Beam Search", id="beam"):
-                        beam_visualizer.render()
+                        result = beam_visualizer.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("KV Cache", id="kvcache"):
-                        kv_cache_sim.render()
+                        result = kv_cache_sim.render()
+                        if result:
+                            load_events.append(result)
             
             # ==================== InterpretabilityLab ====================
             with gr.Tab("InterpretabilityLab", id="interpretabilitylab"):
@@ -274,13 +295,17 @@ def create_app():
                 
                 with gr.Tabs() as interp_tabs:
                     with gr.Tab("Attention", id="attention"):
-                        attention_map.render()
+                        result = attention_map.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("RoPE 探索", id="rope"):
                         rope_explorer.render()
                     
                     with gr.Tab("FFN 激活", id="ffn"):
-                        ffn_activation.render()
+                        result = ffn_activation.render()
+                        if result:
+                            load_events.append(result)
             
             # ==================== DataLab ====================
             with gr.Tab("DataLab", id="datalab"):
@@ -310,13 +335,19 @@ def create_app():
                 
                 with gr.Tabs() as model_tabs:
                     with gr.Tab("显存估算", id="memory"):
-                        memory_estimator.render()
+                        result = memory_estimator.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("PEFT 计算器", id="peft"):
-                        peft_calculator.render()
+                        result = peft_calculator.render()
+                        if result:
+                            load_events.append(result)
                     
                     with gr.Tab("Config 对比", id="config"):
-                        config_diff.render()
+                        result = config_diff.render()
+                        if result:
+                            load_events.append(result)
         
         # 页脚
         gr.Markdown("""
@@ -325,6 +356,31 @@ def create_app():
             LLM Tools Workbench | Built with Gradio
         </div>
         """)
+        
+        # 页面加载时执行所有初始化函数
+        if load_events:
+            def combined_load():
+                """合并所有 load 事件"""
+                all_outputs = []
+                for event in load_events:
+                    try:
+                        result = event['load_fn']()
+                        if isinstance(result, tuple):
+                            all_outputs.extend(result)
+                        else:
+                            all_outputs.append(result)
+                    except Exception as e:
+                        print(f"Load event error: {e}")
+                        # 填充空值
+                        all_outputs.extend([None] * len(event['load_outputs']))
+                return all_outputs
+            
+            # 收集所有输出组件
+            all_load_outputs = []
+            for event in load_events:
+                all_load_outputs.extend(event['load_outputs'])
+            
+            app.load(fn=combined_load, outputs=all_load_outputs)
     
     return app
 

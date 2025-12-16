@@ -28,7 +28,8 @@ def render_frequency_heatmap(freqs: np.ndarray, positions: np.ndarray, dim: int)
         title="Frequency Heatmap (sin θ)",
         xaxis_title="Dimension Pair",
         yaxis_title="Position",
-        height=400,
+        height=450,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -109,7 +110,8 @@ def render_rotation_animation(dim: int = 8, num_positions: int = 20, base: float
     
     fig.update_layout(
         title=f"RoPE Rotation (base={base:.0f})",
-        height=450,
+        height=480,
+        autosize=True,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
         plot_bgcolor='#FFFFFF',
@@ -151,7 +153,8 @@ def render_decay_curve(decay: np.ndarray) -> go.Figure:
         title="Relative Position Decay",
         xaxis_title="Distance",
         yaxis_title="Q·K",
-        height=400,
+        height=450,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -236,7 +239,8 @@ def render_multi_freq_visualization(dim: int, base: float) -> go.Figure:
     fig.update_xaxes(title_text="维度对", row=2, col=2)
     
     fig.update_layout(
-        height=650,
+        height=680,
+        autosize=True,
         showlegend=False,
         title_text=f"RoPE Frequency Decomposition (dim={dim}, base={base:.0f})",
         plot_bgcolor='#FFFFFF',
@@ -290,7 +294,8 @@ def render_base_comparison():
         title="Base Comparison",
         xaxis_title="Distance",
         yaxis_title="Q·K (smoothed)",
-        height=400,
+        height=450,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -414,3 +419,5 @@ def render():
         inputs=[decay_dim, decay_base, max_dist],
         outputs=[decay_plot]
     )
+    
+    # RoPE 探索不需要额外的初始化，因为已经设置了默认 value

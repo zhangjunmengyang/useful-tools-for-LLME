@@ -78,7 +78,7 @@ def create_anisotropy_histogram(similarities, mean_sim, title):
                   annotation_text="理想: 0")
     fig.update_layout(
         title=title, xaxis_title="余弦相似度", yaxis_title="词对数量",
-        height=320, xaxis=dict(range=[-0.3, 1.1]),
+        height=380, autosize=True, xaxis=dict(range=[-0.3, 1.1]),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -209,8 +209,6 @@ def render():
                 label="Embedding 模型", value="Multilingual MiniLM"
             )
             
-            hm_btn = gr.Button("计算热力图", variant="primary")
-            
             heatmap = gr.Plot()
             
             with gr.Row():
@@ -233,8 +231,6 @@ def render():
                 label="Embedding 模型", value="Multilingual MiniLM"
             )
             
-            an_btn = gr.Button("分析", variant="primary")
-            
             diagnosis_md = gr.Markdown("")
             
             with gr.Row():
@@ -245,20 +241,63 @@ def render():
                 original_info = gr.Markdown("")
                 whitened_info = gr.Markdown("")
     
-    # 事件绑定
-    p1.click(fn=lambda: ("我看过这部电影", "这片子我看过"), outputs=[text_a, text_b])
-    p2.click(fn=lambda: ("我非常喜欢这本书", "我特别爱这本书籍"), outputs=[text_a, text_b])
-    p3.click(fn=lambda: ("我爱你", "I love you"), outputs=[text_a, text_b])
-    p4.click(fn=lambda: ("今天天气很好", "量子力学很难"), outputs=[text_a, text_b])
+    # 预设按钮 - 设置并自动计算
+    def set_and_compute_hm(a, b, model):
+        result = compute_heatmap(a, b, model)
+        return (a, b) + result
     
-    hm_btn.click(
-        fn=compute_heatmap,
-        inputs=[text_a, text_b, model_hm],
-        outputs=[heatmap, sent_sim, tokens_a_count, tokens_b_count, insight_md]
+    p1.click(
+        fn=lambda m: set_and_compute_hm("我看过这部电影", "这片子我看过", m),
+        inputs=[model_hm],
+        outputs=[text_a, text_b, heatmap, sent_sim, tokens_a_count, tokens_b_count, insight_md]
+    )
+    p2.click(
+        fn=lambda m: set_and_compute_hm("我非常喜欢这本书", "我特别爱这本书籍", m),
+        inputs=[model_hm],
+        outputs=[text_a, text_b, heatmap, sent_sim, tokens_a_count, tokens_b_count, insight_md]
+    )
+    p3.click(
+        fn=lambda m: set_and_compute_hm("我爱你", "I love you", m),
+        inputs=[model_hm],
+        outputs=[text_a, text_b, heatmap, sent_sim, tokens_a_count, tokens_b_count, insight_md]
+    )
+    p4.click(
+        fn=lambda m: set_and_compute_hm("今天天气很好", "量子力学很难", m),
+        inputs=[model_hm],
+        outputs=[text_a, text_b, heatmap, sent_sim, tokens_a_count, tokens_b_count, insight_md]
     )
     
-    an_btn.click(
-        fn=compute_anisotropy_analysis,
-        inputs=[words_input, model_an],
-        outputs=[fig_original, fig_whitened, diagnosis_md, original_info, whitened_info]
-    )
+    # 自动计算热力图
+    for component in [text_a, text_b, model_hm]:
+        component.change(
+            fn=compute_heatmap,
+            inputs=[text_a, text_b, model_hm],
+            outputs=[heatmap, sent_sim, tokens_a_count, tokens_b_count, insight_md]
+        )
+    
+    # 自动计算各向异性分析
+    for component in [words_input, model_an]:
+        component.change(
+            fn=compute_anisotropy_analysis,
+            inputs=[words_input, model_an],
+            outputs=[fig_original, fig_whitened, diagnosis_md, original_info, whitened_info]
+        )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        hm_result = compute_heatmap("我看过这部电影", "这片子我看过", "Multilingual MiniLM")
+        an_result = compute_anisotropy_analysis(
+            "苹果\n汽车\n音乐\n电脑\n咖啡\n书籍\n天空\n海洋\n山峰\n河流",
+            "Multilingual MiniLM"
+        )
+        return hm_result + an_result
+    
+    # 返回 load 事件信息
+    return {
+        'load_fn': on_load,
+        'load_outputs': [
+            heatmap, sent_sim, tokens_a_count, tokens_b_count, insight_md,
+            fig_original, fig_whitened, diagnosis_md, original_info, whitened_info
+        ]
+    }

@@ -20,10 +20,10 @@ from model_lab.model_utils import (
 def estimate_memory(model_name: str, library: str, selected_dtypes: list, access_token: str, progress=gr.Progress()):
     """估算模型显存"""
     if not model_name:
-        return "请输入模型名称", None, None, ""
+        return "请输入模型名称", None, None
     
     if not selected_dtypes:
-        return "请至少选择一种精度类型", None, None, ""
+        return "请至少选择一种精度类型", None, None
     
     try:
         progress(0.3, desc=f"正在加载模型 {model_name}...")
@@ -46,11 +46,11 @@ def estimate_memory(model_name: str, library: str, selected_dtypes: list, access
         
         result_msg = f"模型 `{model_name}` 的显存需求计算完成"
         
-        return result_msg, df_main, df_stages, ""
+        return result_msg, df_main, df_stages
         
     except Exception as e:
         error_msg = get_model_error_message(e, model_name)
-        return error_msg, None, None, ""
+        return error_msg, None, None
 
 
 def render():
@@ -58,33 +58,36 @@ def render():
     
     gr.Markdown("## 显存估算")
     
+    # 默认值
+    default_model = "bert-base-cased"
+    default_library = "auto"
+    default_dtypes = ["float32"]
+    
     # 输入区域
     with gr.Group():
         with gr.Row():
             model_name = gr.Textbox(
                 label="模型名称或 URL",
-                value="bert-base-cased",
+                value=default_model,
                 placeholder="例如: bert-base-cased, meta-llama/Llama-2-7b-hf"
             )
             library = gr.Dropdown(
                 label="模型库",
                 choices=LIBRARY_OPTIONS,
-                value="auto"
+                value=default_library
             )
         
         with gr.Row():
             selected_dtypes = gr.CheckboxGroup(
                 label="选择精度类型",
                 choices=DTYPE_OPTIONS,
-                value=["float32"]
+                value=default_dtypes
             )
             access_token = gr.Textbox(
                 label="API Token (可选)",
                 type="password",
                 placeholder="用于访问私有模型"
             )
-        
-        calculate_btn = gr.Button("计算显存", variant="primary")
     
     # 结果区域
     result_status = gr.Markdown("")
@@ -94,9 +97,22 @@ def render():
     with gr.Accordion("训练各阶段详情", open=False):
         stages_table = gr.Dataframe(label="训练阶段详情")
     
-    # 事件绑定
-    calculate_btn.click(
-        fn=estimate_memory,
-        inputs=[model_name, library, selected_dtypes, access_token],
-        outputs=[result_status, main_table, stages_table]
-    )
+    # 参数变化自动触发计算
+    inputs = [model_name, library, selected_dtypes, access_token]
+    outputs = [result_status, main_table, stages_table]
+    
+    # 模型名称使用 submit 事件（按回车触发），避免每次输入都触发
+    model_name.submit(fn=estimate_memory, inputs=inputs, outputs=outputs)
+    library.change(fn=estimate_memory, inputs=inputs, outputs=outputs)
+    selected_dtypes.change(fn=estimate_memory, inputs=inputs, outputs=outputs)
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        return estimate_memory(default_model, default_library, default_dtypes, "")
+    
+    # 返回 load 事件需要的信息供主 app 调用
+    return {
+        'load_fn': on_load,
+        'load_outputs': outputs
+    }

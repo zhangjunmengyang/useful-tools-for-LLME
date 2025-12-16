@@ -64,7 +64,8 @@ def create_comparison_chart(candidates, scores_dict, query):
             x=1
         ),
         margin=dict(l=40, r=40, t=80, b=80),
-        height=450,
+        height=480,
+        autosize=True,
         xaxis=dict(
             tickangle=-20,
             gridcolor='#E5E7EB'
@@ -85,8 +86,7 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
         return (
             "请输入查询文本",
             None,
-            pd.DataFrame(),
-            ""
+            pd.DataFrame()
         )
     
     candidates = [c.strip() for c in candidates_text.strip().split('\n') if c.strip()]
@@ -94,8 +94,7 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
         return (
             "请输入候选文本",
             None,
-            pd.DataFrame(),
-            ""
+            pd.DataFrame()
         )
     
     selected_models = []
@@ -112,8 +111,7 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
         return (
             "请至少选择一个模型",
             None,
-            pd.DataFrame(),
-            ""
+            pd.DataFrame()
         )
     
     all_texts = [query] + candidates
@@ -142,8 +140,7 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
         return (
             "所有模型计算失败",
             None,
-            pd.DataFrame(),
-            ""
+            pd.DataFrame()
         )
     
     # 创建图表
@@ -190,7 +187,7 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
 _这说明不同模型对语义的理解存在显著差异。_
 """
     
-    return ranking_md + insight, fig, df, ""
+    return ranking_md + insight, fig, df
 
 
 def render():
@@ -228,8 +225,6 @@ def render():
         preset3 = gr.Button("特斯拉", size="sm")
         preset4 = gr.Button("语义搜索", size="sm")
     
-    compare_btn = gr.Button("开始对比", variant="primary", size="lg")
-    
     # 结果展示
     chart = gr.Plot(label="相似度对比图")
     
@@ -256,13 +251,47 @@ def render():
     def set_preset4():
         return "如何学习编程", "编程入门教程\n学习Python\n代码怎么写\n程序员成长\n软件开发"
     
-    preset1.click(fn=set_preset1, outputs=[query, candidates])
-    preset2.click(fn=set_preset2, outputs=[query, candidates])
-    preset3.click(fn=set_preset3, outputs=[query, candidates])
-    preset4.click(fn=set_preset4, outputs=[query, candidates])
+    # 预设按钮 - 设置并自动计算
+    def set_and_compute(q, c, t1, t2, t3, t4):
+        result = compare_models(q, c, t1, t2, t3, t4)
+        return (q, c) + result[:3]
     
-    compare_btn.click(
-        fn=compare_models,
-        inputs=inputs,
-        outputs=[analysis_md, chart, score_df, gr.Markdown()]
+    preset1.click(
+        fn=lambda t1, t2, t3, t4: set_and_compute("苹果", "水果\n手机\n乔布斯\n红色的球\n苹果发布新产品\n我喜欢吃苹果", t1, t2, t3, t4),
+        inputs=[use_tfidf, use_bm25, use_multilingual, use_minilm],
+        outputs=[query, candidates, analysis_md, chart, score_df]
     )
+    preset2.click(
+        fn=lambda t1, t2, t3, t4: set_and_compute("银行", "金融机构\n河边\n存款取款\n银行卡\n河岸风景", t1, t2, t3, t4),
+        inputs=[use_tfidf, use_bm25, use_multilingual, use_minilm],
+        outputs=[query, candidates, analysis_md, chart, score_df]
+    )
+    preset3.click(
+        fn=lambda t1, t2, t3, t4: set_and_compute("特斯拉", "电动汽车\n科学家\n马斯克\n电磁感应\nModel 3", t1, t2, t3, t4),
+        inputs=[use_tfidf, use_bm25, use_multilingual, use_minilm],
+        outputs=[query, candidates, analysis_md, chart, score_df]
+    )
+    preset4.click(
+        fn=lambda t1, t2, t3, t4: set_and_compute("如何学习编程", "编程入门教程\n学习Python\n代码怎么写\n程序员成长\n软件开发", t1, t2, t3, t4),
+        inputs=[use_tfidf, use_bm25, use_multilingual, use_minilm],
+        outputs=[query, candidates, analysis_md, chart, score_df]
+    )
+    
+    # 自动计算 - 参数变化时触发
+    for component in [query, candidates, use_tfidf, use_bm25, use_multilingual, use_minilm]:
+        component.change(
+            fn=compare_models,
+            inputs=inputs,
+            outputs=outputs
+        )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        return compare_models("苹果", "水果\n手机\n乔布斯\n红色的球\n苹果公司发布新产品\n我喜欢吃苹果", True, True, False, False)
+    
+    # 返回 load 事件信息
+    return {
+        'load_fn': on_load,
+        'load_outputs': outputs
+    }

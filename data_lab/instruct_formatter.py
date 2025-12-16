@@ -10,12 +10,12 @@ from data_lab.data_utils import CHAT_TEMPLATES, convert_to_format, validate_chat
 def format_and_validate(input_json: str, target_format: str, system_prompt: str):
     """格式化并验证"""
     if not input_json or not input_json.strip():
-        return "", "", ""
+        return "", ""
     
     try:
         data = json.loads(input_json)
     except json.JSONDecodeError as e:
-        return "", f"JSON 解析错误: {e}", ""
+        return "", f"JSON 解析错误: {e}"
     
     converted = convert_to_format(data, target_format, system_prompt)
     
@@ -27,7 +27,7 @@ def format_and_validate(input_json: str, target_format: str, system_prompt: str)
         issues = "\n".join([f"- {issue}" for issue in validation['issues']])
         validation_msg = f"格式问题:\n{issues}"
     
-    return converted, validation_msg, ""
+    return converted, validation_msg
 
 
 def render():

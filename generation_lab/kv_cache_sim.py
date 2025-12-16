@@ -78,6 +78,7 @@ def render_kv_cache_growth_chart(growth_data: list) -> go.Figure:
     
     fig.update_layout(
         height=600,
+        autosize=True,
         showlegend=False,
         margin=dict(l=60, r=40, t=60, b=40),
         plot_bgcolor='#FFFFFF',
@@ -138,7 +139,8 @@ def render_paged_attention_viz(paged_data: dict) -> go.Figure:
         title=f"PagedAttention Block 分配 (Block Size = {block_size})",
         xaxis=dict(title="Column", showgrid=False),
         yaxis=dict(title="Row", showgrid=False, autorange='reversed'),
-        height=300,
+        height=350,
+        autosize=True,
         margin=dict(l=50, r=50, t=60, b=50),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -173,7 +175,8 @@ def render_utilization_chart(paged_data: dict) -> go.Figure:
         xaxis_title="序列",
         yaxis_title="利用率 (%)",
         yaxis_range=[0, 110],
-        height=300,
+        height=350,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -443,8 +446,38 @@ def render():
             # 参数变化自动触发模拟
             for component in [block_size, num_seqs, avg_tokens]:
                 component.change(
-                fn=simulate_paged,
-                inputs=[block_size, num_seqs, avg_tokens],
-                outputs=[total_blocks, total_capacity, total_used, overall_util,
-                        blocks_chart, util_chart, seq_df, analysis_md]
-            )
+                    fn=simulate_paged,
+                    inputs=[block_size, num_seqs, avg_tokens],
+                    outputs=[total_blocks, total_capacity, total_used, overall_util,
+                            blocks_chart, util_chart, seq_df, analysis_md]
+                )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        # 显存计算默认值
+        kv_result = calculate_kv_cache("Llama-2-7B", 32, 4096, 32, 2048, 1, "float16/bfloat16")
+        # 增长模拟默认值
+        growth_result = simulate_growth("Llama-2-7B", 512, 128)
+        # PagedAttention 默认值
+        paged_result = simulate_paged(16, 4, 256)
+        
+        return (
+            gr.update(visible=False), gr.update(visible=False), gr.update(visible=False),  # custom fields
+            kv_result[0], kv_result[1], kv_result[2], kv_result[3], kv_result[4], kv_result[5],  # KV Cache
+            growth_result[0], growth_result[1], growth_result[2], growth_result[3], growth_result[4],  # Growth
+            paged_result[0], paged_result[1], paged_result[2], paged_result[3],  # Paged metrics
+            paged_result[4], paged_result[5], paged_result[6], paged_result[7]  # Paged charts
+        )
+    
+    # 返回 load 事件信息
+    return {
+        'load_fn': on_load,
+        'load_outputs': [
+            custom_layers, custom_hidden, custom_heads,
+            total_kv, per_layer, k_cache, v_cache, config_info, breakdown_df,
+            prefill_metric, final_metric, decode_metric, growth_chart, growth_df,
+            total_blocks, total_capacity, total_used, overall_util,
+            blocks_chart, util_chart, seq_df, analysis_md
+        ]
+    }

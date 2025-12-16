@@ -42,7 +42,8 @@ def render_activation_curves() -> go.Figure:
         title="激活函数对比",
         xaxis_title="输入 x",
         yaxis_title="输出 f(x)",
-        height=400,
+        height=450,
+        autosize=True,
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -76,7 +77,8 @@ def render_swiglu_visualization() -> go.Figure:
     fig.add_trace(go.Scatter(x=x, y=swiglu_out, line=dict(color='#DC2626')), row=1, col=3)
     
     fig.update_layout(
-        height=300,
+        height=350,
+        autosize=True,
         showlegend=False,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -102,7 +104,8 @@ def render_activation_histogram(activations: np.ndarray, title: str) -> go.Figur
         title=title,
         xaxis_title="激活值",
         yaxis_title="频次",
-        height=350,
+        height=400,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -123,7 +126,8 @@ def render_sparsity_comparison(code_values, text_values, thresholds) -> go.Figur
         fig.add_trace(go.Bar(x=[f'<{t}' for t in thresholds], y=text_sparse, marker_color='#059669'), row=1, col=2)
     
     fig.update_layout(
-        height=350,
+        height=400,
+        autosize=True,
         showlegend=False,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -212,7 +216,8 @@ def render_params_pie():
     
     fig.update_layout(
         title="Transformer 参数分布 (典型 Decoder-only 模型)",
-        height=400,
+        height=450,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -225,6 +230,12 @@ def render():
     
     gr.Markdown("## FFN 激活探测")
     
+    # 默认值
+    default_model = list(INTERPRETABILITY_MODELS.keys())[0]
+    default_code = "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)"
+    default_text = "The sun rises in the east and sets in the west. Birds fly south for the winter."
+    default_layer = 0
+    
     with gr.Tabs():
         # Tab 1: 激活函数
         with gr.Tab("激活函数"):
@@ -235,19 +246,19 @@ def render():
         with gr.Tab("激活分析"):
             model_choice = gr.Dropdown(
                 choices=list(INTERPRETABILITY_MODELS.keys()),
-                value=list(INTERPRETABILITY_MODELS.keys())[0],
+                value=default_model,
                 label="模型"
             )
             
             with gr.Row():
                 code_input = gr.Textbox(
                     label="代码输入",
-                    value="def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
+                    value=default_code,
                     lines=5
                 )
                 text_input = gr.Textbox(
                     label="文本输入",
-                    value="The sun rises in the east and sets in the west. Birds fly south for the winter.",
+                    value=default_text,
                     lines=5
                 )
             
@@ -255,7 +266,7 @@ def render():
                 label="Layer",
                 minimum=0,
                 maximum=11,
-                value=0,
+                value=default_layer,
                 step=1
             )
             
@@ -281,14 +292,29 @@ def render():
             # 参数变化自动触发分析
             for component in [model_choice, code_input, text_input, layer_idx]:
                 component.change(
-                fn=analyze_activations,
-                inputs=[model_choice, code_input, text_input, layer_idx],
-                outputs=[code_hist, text_hist, sparse_plot, 
-                        code_mean, code_std, code_sparse,
-                        text_mean, text_std, text_sparse]
-            )
+                    fn=analyze_activations,
+                    inputs=[model_choice, code_input, text_input, layer_idx],
+                    outputs=[code_hist, text_hist, sparse_plot, 
+                            code_mean, code_std, code_sparse,
+                            text_mean, text_std, text_sparse]
+                )
         
         # Tab 3: 架构对比
         with gr.Tab("架构对比"):
             arch_df = gr.Dataframe(value=render_architecture_comparison(), interactive=False)
             params_plot = gr.Plot(value=render_params_pie())
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        return analyze_activations(default_model, default_code, default_text, default_layer)
+    
+    # 返回 load 事件需要的信息供主 app 调用
+    return {
+        'load_fn': on_load,
+        'load_outputs': [
+            code_hist, text_hist, sparse_plot,
+            code_mean, code_std, code_sparse,
+            text_mean, text_std, text_sparse
+        ]
+    }

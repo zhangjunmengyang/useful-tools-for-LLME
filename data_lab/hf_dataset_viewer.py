@@ -89,7 +89,8 @@ def render_length_distribution(df: pd.DataFrame, field: str) -> go.Figure:
         title=f"'{field}' 长度分布",
         xaxis_title="字符长度",
         yaxis_title="样本数",
-        height=350,
+        height=400,
+        autosize=True,
         margin=dict(l=50, r=50, t=80, b=50),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
         showlegend=True
@@ -130,7 +131,8 @@ def render_word_count_distribution(df: pd.DataFrame, field: str) -> go.Figure:
         title=f"'{field}' 词数分布 (空格分词)",
         xaxis_title="词数",
         yaxis_title="样本数",
-        height=350,
+        height=400,
+        autosize=True,
         margin=dict(l=50, r=50, t=80, b=50),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
         showlegend=True
@@ -176,7 +178,8 @@ def render_field_stats_chart(field_stats: List[Dict]) -> Optional[go.Figure]:
         yaxis=dict(title="平均长度 (字符)", side='left'),
         yaxis2=dict(title="空值率 (%)", side='right', overlaying='y', range=[0, 100]),
         barmode='group',
-        height=400,
+        height=450,
+        autosize=True,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     

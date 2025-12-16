@@ -40,7 +40,7 @@ def render_attention_heatmap(
         xaxis=dict(tickangle=45, side='bottom'),
         yaxis=dict(autorange='reversed'),
         height=500,
-        width=600,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -91,7 +91,8 @@ def render_attention_grid(
     
     fig.update_layout(
         title=f"Layer {layer_idx} - Attention Heads",
-        height=400,
+        height=450,
+        autosize=True,
         margin=dict(l=100, r=50, t=80, b=100),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -138,7 +139,8 @@ def render_token_attention_flow(
     )
     
     fig.update_layout(
-        height=350,
+        height=400,
+        autosize=True,
         showlegend=False,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -254,7 +256,8 @@ def analyze_token(model_choice, selected_token):
         title=f'"{tokens[selected_idx]}" 在各层的注意力分布',
         xaxis_title="Key Token",
         yaxis_title="Layer",
-        height=400,
+        height=450,
+        autosize=True,
         xaxis=dict(tickangle=45),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -319,7 +322,8 @@ def analyze_patterns(model_choice):
         title="对角线注意力强度 (每个 token 关注自己的程度)",
         xaxis_title="Head",
         yaxis_title="Layer",
-        height=400,
+        height=450,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -350,7 +354,8 @@ def analyze_patterns(model_choice):
         title="注意力熵 (值越大表示注意力越分散)",
         xaxis_title="Head",
         yaxis_title="Layer",
-        height=400,
+        height=450,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -371,9 +376,10 @@ def render():
     )
     
     # 输入文本
+    default_text = "The animal didn't cross the street because it was too tired"
     text = gr.Textbox(
         label="输入文本",
-        value="The animal didn't cross the street because it was too tired",
+        value=default_text,
         lines=2
     )
     
@@ -407,7 +413,9 @@ def render():
         with gr.Tab("Token 分析"):
             token_select = gr.Dropdown(
                 choices=[],
-                label="选择要分析的 Token"
+                label="选择要分析的 Token",
+                allow_custom_value=True,
+                value=None
             )
             
             flow_plot = gr.Plot(label="注意力流向")
@@ -426,29 +434,67 @@ def render():
         """分析注意力并自动更新热力图"""
         result = load_and_analyze(model_choice, text, use_causal)
         if result[0] is None:
-            return result[1], result[2], None
+            return result[1], gr.update(choices=[], value=None), None
         
         # 自动更新热力图
         heatmap = analyze_heatmap(model_choice, layer_idx, head_choice)
-        return result[1], result[2], heatmap
+        token_choices = result[2]
+        return result[1], gr.update(choices=token_choices, value=token_choices[0] if token_choices else None), heatmap
+    
+    def on_analyze_full(model_choice, text, use_causal, layer_idx, head_choice):
+        """完整分析：包括热力图、token分析、模式分析"""
+        result = load_and_analyze(model_choice, text, use_causal)
+        if result[0] is None:
+            return result[1], gr.update(choices=[], value=None), None, None, None, "", None, None
+        
+        token_choices = result[2]
+        first_token = token_choices[0] if token_choices else None
+        
+        # 热力图
+        heatmap = analyze_heatmap(model_choice, layer_idx, head_choice)
+        
+        # Token 分析（默认选第一个）
+        flow_fig, layer_fig = None, None
+        if first_token:
+            flow_fig, layer_fig = analyze_token(model_choice, first_token)
+        
+        # 模式分析
+        stats, pattern_fig, entropy_fig = analyze_patterns(model_choice)
+        
+        return (
+            result[1], 
+            gr.update(choices=token_choices, value=first_token), 
+            heatmap, 
+            flow_fig, 
+            layer_fig, 
+            stats, 
+            pattern_fig, 
+            entropy_fig
+        )
+    
+    # 页面加载时自动计算默认值
+    def on_load():
+        """页面加载时的初始化"""
+        default_model = list(INTERPRETABILITY_MODELS.keys())[0]
+        return on_analyze_full(default_model, default_text, True, 0, "All Heads")
     
     # 事件绑定 - 输入变化自动触发分析
     text.change(
-        fn=on_analyze,
+        fn=on_analyze_full,
         inputs=[model_choice, text, use_causal, layer_select, head_select],
-        outputs=[token_info, token_select, heatmap_plot]
+        outputs=[token_info, token_select, heatmap_plot, flow_plot, layer_plot, stats_md, pattern_plot, entropy_plot]
     )
     
     use_causal.change(
-        fn=on_analyze,
+        fn=on_analyze_full,
         inputs=[model_choice, text, use_causal, layer_select, head_select],
-        outputs=[token_info, token_select, heatmap_plot]
+        outputs=[token_info, token_select, heatmap_plot, flow_plot, layer_plot, stats_md, pattern_plot, entropy_plot]
     )
     
     model_choice.change(
-        fn=on_analyze,
+        fn=on_analyze_full,
         inputs=[model_choice, text, use_causal, layer_select, head_select],
-        outputs=[token_info, token_select, heatmap_plot]
+        outputs=[token_info, token_select, heatmap_plot, flow_plot, layer_plot, stats_md, pattern_plot, entropy_plot]
     )
     
     # Layer/Head 选择自动更新热力图
@@ -471,8 +517,8 @@ def render():
         outputs=[flow_plot, layer_plot]
     )
     
-    # 模式分析 Tab 自动更新（当有数据时）
-    def auto_pattern_analyze(model_choice):
-        if _loaded_model.get("attention") is not None:
-            return analyze_patterns(model_choice)
-        return "", None, None
+    # 返回 load 事件需要的信息供主 app 调用
+    return {
+        'load_fn': on_load,
+        'load_outputs': [token_info, token_select, heatmap_plot, flow_plot, layer_plot, stats_md, pattern_plot, entropy_plot]
+    }

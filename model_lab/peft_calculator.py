@@ -263,6 +263,13 @@ def render():
     
     gr.Markdown("## PEFT 参数计算器")
     
+    # 默认值
+    default_category = "Meta (Llama)"
+    default_model = "Llama-2-7B"
+    default_rank = 16
+    default_alpha = 32
+    default_modules = ["q_proj", "v_proj"]
+    
     with gr.Row():
         # 左列：模型选择
         with gr.Column(scale=1):
@@ -277,14 +284,14 @@ def render():
             category = gr.Dropdown(
                 label="选择厂商",
                 choices=list(MODEL_CATEGORIES.keys()),
-                value="Meta (Llama)",
+                value=default_category,
                 visible=True
             )
             
             preset_model = gr.Dropdown(
                 label="选择模型",
-                choices=get_model_list("Meta (Llama)"),
-                value="Llama-2-7B",
+                choices=get_model_list(default_category),
+                value=default_model,
                 visible=True
             )
             
@@ -299,7 +306,6 @@ def render():
                 type="password"
             )
             
-            load_btn = gr.Button("加载配置", variant="primary")
             load_status = gr.Markdown("")
             model_info = gr.Markdown("")
         
@@ -312,14 +318,14 @@ def render():
                     label="Rank (r)",
                     minimum=4,
                     maximum=256,
-                    value=16,
+                    value=default_rank,
                     step=4
                 )
                 alpha = gr.Slider(
                     label="Alpha",
                     minimum=8,
                     maximum=512,
-                    value=32,
+                    value=default_alpha,
                     step=8
                 )
             
@@ -329,10 +335,9 @@ def render():
             selected_modules = gr.CheckboxGroup(
                 label="选择目标模块",
                 choices=module_choices,
-                value=["q_proj", "v_proj"]
+                value=default_modules
             )
             
-            calc_btn = gr.Button("计算参数量", variant="primary")
             calc_status = gr.Markdown("")
             
             gr.Markdown("### 计算结果")
@@ -362,9 +367,18 @@ def render():
             gr.update(visible=not preset_visible)
         )
     
-    def update_model_list(category):
-        models = get_model_list(category)
+    def update_model_list(cat):
+        models = get_model_list(cat)
         return gr.update(choices=models, value=models[0] if models else None)
+    
+    # 加载配置并自动计算
+    def load_and_calculate(input_mode, category, preset_model, custom_model, token, rank, alpha, selected_modules):
+        """加载模型配置并自动计算参数"""
+        status, info = load_model_config(input_mode, category, preset_model, custom_model, token)
+        if "成功" in status:
+            calc_result = calculate_results(rank, alpha, selected_modules)
+            return (status, info) + calc_result
+        return status, info, "", None, "", "", "", "", "", ""
     
     input_mode.change(
         fn=toggle_input_mode,
@@ -378,14 +392,26 @@ def render():
         outputs=[preset_model]
     )
     
-    load_btn.click(
-        fn=load_model_config,
-        inputs=[input_mode, category, preset_model, custom_model, token],
-        outputs=[load_status, model_info]
-    )
+    # 模型选择变化时自动加载并计算
+    load_calc_inputs = [input_mode, category, preset_model, custom_model, token, rank, alpha, selected_modules]
+    load_calc_outputs = [load_status, model_info, calc_status, params_table, total_params, params_mb, trainable_ratio, mem_fp16, mem_fp32, mem_total]
     
-    calc_btn.click(
-        fn=calculate_results,
-        inputs=[rank, alpha, selected_modules],
-        outputs=[calc_status, params_table, total_params, params_mb, trainable_ratio, mem_fp16, mem_fp32, mem_total]
-    )
+    preset_model.change(fn=load_and_calculate, inputs=load_calc_inputs, outputs=load_calc_outputs)
+    custom_model.submit(fn=load_and_calculate, inputs=load_calc_inputs, outputs=load_calc_outputs)
+    
+    # LoRA 参数变化时自动计算（如果配置已加载）
+    calc_outputs = [calc_status, params_table, total_params, params_mb, trainable_ratio, mem_fp16, mem_fp32, mem_total]
+    rank.change(fn=calculate_results, inputs=[rank, alpha, selected_modules], outputs=calc_outputs)
+    alpha.change(fn=calculate_results, inputs=[rank, alpha, selected_modules], outputs=calc_outputs)
+    selected_modules.change(fn=calculate_results, inputs=[rank, alpha, selected_modules], outputs=calc_outputs)
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        return load_and_calculate("预设模型", default_category, default_model, "", "", default_rank, default_alpha, default_modules)
+    
+    # 返回 load 事件需要的信息供主 app 调用
+    return {
+        'load_fn': on_load,
+        'load_outputs': load_calc_outputs
+    }

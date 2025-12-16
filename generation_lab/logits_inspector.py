@@ -72,7 +72,8 @@ def render_probability_bar_chart(
         xaxis_title="Token",
         yaxis_title="概率",
         yaxis_tickformat='.1%',
-        height=400,
+        height=450,
+        autosize=True,
         margin=dict(l=50, r=50, t=50, b=100),
         showlegend=False,
         plot_bgcolor='#FFFFFF',
@@ -112,7 +113,8 @@ def render_temperature_comparison(logits: torch.Tensor, temperatures: list, toke
         yaxis_title="概率",
         yaxis_tickformat='.1%',
         barmode='group',
-        height=450,
+        height=480,
+        autosize=True,
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -160,7 +162,8 @@ def render_entropy_gauge(probs: torch.Tensor) -> go.Figure:
     ))
     
     fig.update_layout(
-        height=250,
+        height=280,
+        autosize=True,
         margin=dict(l=20, r=20, t=40, b=20)
     )
     
@@ -342,7 +345,8 @@ def analyze_sampling(model_choice, prompt, top_k, top_p):
         xaxis_title="Token",
         yaxis_title="概率",
         yaxis_tickformat='.1%',
-        height=450,
+        height=480,
+        autosize=True,
         margin=dict(l=50, r=50, t=60, b=100),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -368,7 +372,8 @@ def analyze_sampling(model_choice, prompt, top_k, top_p):
         xaxis_title="Token 数量",
         yaxis_title="累积概率",
         yaxis_tickformat='.0%',
-        height=350,
+        height=380,
+        autosize=True,
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
@@ -381,17 +386,24 @@ def render():
     
     gr.Markdown("## Logits Inspector")
     
+    # 默认值
+    default_model = list(DEMO_MODELS.keys())[0]
+    default_prompt = "The quick brown fox jumps over the"
+    default_temp = 1.0
+    default_top_k = 10
+    default_top_p = 0.9
+    
     # 模型选择
     model_choice = gr.Dropdown(
         choices=list(DEMO_MODELS.keys()),
-        value=list(DEMO_MODELS.keys())[0],
+        value=default_model,
         label="选择演示模型"
     )
     
     # Prompt 输入
     prompt = gr.Textbox(
         label="输入 Prompt",
-        value="The quick brown fox jumps over the",
+        value=default_prompt,
         lines=3,
         placeholder="输入文本，模型将预测下一个 token..."
     )
@@ -416,7 +428,7 @@ def render():
                 label="Temperature",
                 minimum=0.1,
                 maximum=3.0,
-                value=1.0,
+                value=default_temp,
                 step=0.1
             )
             
@@ -433,14 +445,14 @@ def render():
                     label="Top-K",
                     minimum=1,
                     maximum=50,
-                    value=10,
+                    value=default_top_k,
                     step=1
                 )
                 top_p_slider = gr.Slider(
                     label="Top-P (Nucleus)",
                     minimum=0.1,
                     maximum=1.0,
-                    value=0.9,
+                    value=default_top_p,
                     step=0.05
                 )
             
@@ -451,21 +463,44 @@ def render():
     # 参数变化自动触发分析
     for component in [model_choice, prompt]:
         component.change(
-        fn=analyze_probability,
-        inputs=[model_choice, prompt],
-        outputs=[prob_chart, detail_df, top1_token, top1_prob, top1_logit, top5_prob]
-    )
+            fn=analyze_probability,
+            inputs=[model_choice, prompt],
+            outputs=[prob_chart, detail_df, top1_token, top1_prob, top1_logit, top5_prob]
+        )
     
     for component in [model_choice, prompt, temperature]:
         component.change(
-        fn=analyze_temperature,
-        inputs=[model_choice, prompt, temperature],
-        outputs=[temp_chart1, temp_chart2, temp_compare_chart]
-    )
+            fn=analyze_temperature,
+            inputs=[model_choice, prompt, temperature],
+            outputs=[temp_chart1, temp_chart2, temp_compare_chart]
+        )
     
     for component in [model_choice, prompt, top_k_slider, top_p_slider]:
         component.change(
-        fn=analyze_sampling,
-        inputs=[model_choice, prompt, top_k_slider, top_p_slider],
-        outputs=[sampling_chart, cdf_chart, sampling_summary]
-    )
+            fn=analyze_sampling,
+            inputs=[model_choice, prompt, top_k_slider, top_p_slider],
+            outputs=[sampling_chart, cdf_chart, sampling_summary]
+        )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        prob_result = analyze_probability(default_model, default_prompt)
+        temp_result = analyze_temperature(default_model, default_prompt, default_temp)
+        sampling_result = analyze_sampling(default_model, default_prompt, default_top_k, default_top_p)
+        
+        return (
+            prob_result[0], prob_result[1], prob_result[2], prob_result[3], prob_result[4], prob_result[5],  # 概率分布
+            temp_result[0], temp_result[1], temp_result[2],  # Temperature
+            sampling_result[0], sampling_result[1], sampling_result[2]  # Sampling
+        )
+    
+    # 返回 load 事件需要的信息供主 app 调用
+    return {
+        'load_fn': on_load,
+        'load_outputs': [
+            prob_chart, detail_df, top1_token, top1_prob, top1_logit, top5_prob,
+            temp_chart1, temp_chart2, temp_compare_chart,
+            sampling_chart, cdf_chart, sampling_summary
+        ]
+    }

@@ -93,7 +93,8 @@ def create_2d_scatter(coords, labels, texts, title="向量空间可视化"):
         font=dict(color='#111827', family='Inter, sans-serif'),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         margin=dict(l=40, r=40, t=60, b=40),
-        height=500,
+        height=550,
+        autosize=True,
         xaxis=dict(showgrid=True, gridcolor='#E5E7EB', zeroline=True, zerolinecolor='#D1D5DB'),
         yaxis=dict(showgrid=True, gridcolor='#E5E7EB', zeroline=True, zerolinecolor='#D1D5DB')
     )
@@ -319,7 +320,8 @@ def check_ood_with_viz(new_text, embeddings, texts, labels, model_choice, method
             paper_bgcolor='#FFFFFF',
             font=dict(color='#111827', family='Inter, sans-serif'),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            height=500,
+            height=550,
+            autosize=True,
             xaxis=dict(showgrid=True, gridcolor='#E5E7EB'),
             yaxis=dict(showgrid=True, gridcolor='#E5E7EB')
         )
@@ -364,8 +366,6 @@ def render():
             label="维度",
             value="3"
         )
-    
-    viz_btn = gr.Button("开始可视化", variant="primary")
     
     # 结果展示
     method_info = gr.Markdown("")
@@ -426,11 +426,13 @@ def render():
         
         return fig, info, df, embeddings, texts, labels
     
-    viz_btn.click(
-        fn=run_viz,
-        inputs=[dataset_choice, custom_data, model_choice, method_choice, n_dims],
-        outputs=[plot, method_info, data_df, embeddings_state, texts_state, labels_state]
-    )
+    # 自动触发可视化
+    for component in [dataset_choice, custom_data, model_choice, method_choice, n_dims]:
+        component.change(
+            fn=run_viz,
+            inputs=[dataset_choice, custom_data, model_choice, method_choice, n_dims],
+            outputs=[plot, method_info, data_df, embeddings_state, texts_state, labels_state]
+        )
     
     # OOD 检测 - 即时回显并更新图表
     ood_input.change(
@@ -438,3 +440,16 @@ def render():
         inputs=[ood_input, embeddings_state, texts_state, labels_state, model_choice, method_choice, n_dims],
         outputs=[plot, ood_result]
     )
+    
+    # 初始化加载函数
+    def on_load():
+        """页面加载时计算默认值"""
+        dataset_options = list(get_dataset_options().keys())
+        default_dataset = dataset_options[0] if dataset_options else None
+        return run_viz(default_dataset, "", "Multilingual MiniLM", "PCA (全局结构)", "3")
+    
+    # 返回 load 事件信息
+    return {
+        'load_fn': on_load,
+        'load_outputs': [plot, method_info, data_df, embeddings_state, texts_state, labels_state]
+    }
