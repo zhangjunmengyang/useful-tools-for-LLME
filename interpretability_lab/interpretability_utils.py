@@ -10,15 +10,9 @@ import math
 
 # 轻量级模型配置
 INTERPRETABILITY_MODELS = {
-    "GPT-2 (12层)": {
+    "GPT-2 (12 layers)": {
         "id": "openai-community/gpt2",
         "layers": 12,
-        "heads": 12,
-        "hidden": 768
-    },
-    "DistilGPT-2 (6层)": {
-        "id": "distilgpt2",
-        "layers": 6,
         "heads": 12,
         "hidden": 768
     }
@@ -29,18 +23,19 @@ INTERPRETABILITY_MODELS = {
 _model_cache = {}
 
 
-def load_model_with_attention(model_name: str) -> Tuple[Any, Any]:
+def load_model_with_attention(model_name: str, token: Optional[str] = None) -> Tuple[Any, Any]:
     """加载模型并启用 attention 输出"""
     if model_name in _model_cache:
         return _model_cache[model_name]
-    
+
     try:
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, token=token)
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
             output_attentions=True,
             torch_dtype=torch.float32,
-            device_map="cpu"
+            device_map="cpu",
+            token=token
         )
         model.eval()
         _model_cache[model_name] = (model, tokenizer)

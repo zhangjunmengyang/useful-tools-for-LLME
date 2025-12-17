@@ -12,15 +12,6 @@ from model_lab.model_utils import extract_from_url
 
 # 按厂商/系列分类的预设模型
 MODEL_CATEGORIES = {
-    "Meta (Llama)": {
-        "models": [
-            ("Llama-2-7B", "meta-llama/Llama-2-7b-hf"),
-            ("Llama-2-13B", "meta-llama/Llama-2-13b-hf"),
-            ("Llama-2-70B", "meta-llama/Llama-2-70b-hf"),
-            ("Llama-3.1-8B", "meta-llama/Llama-3.1-8B"),
-            ("Llama-3.2-3B", "meta-llama/Llama-3.2-3B"),
-        ],
-    },
     "Alibaba (Qwen)": {
         "models": [
             ("Qwen2.5-7B", "Qwen/Qwen2.5-7B"),
@@ -196,7 +187,7 @@ def load_model_config(input_mode: str, category: str, preset_model: str, custom_
         display_name = custom_model.split("/")[-1] if custom_model else None
     
     if not model_id:
-        return "请选择或输入模型", ""
+        return "Please select或输入模型", ""
     
     try:
         progress(0.5, desc=f"加载 {display_name} 配置...")
@@ -227,7 +218,7 @@ def calculate_results(rank: int, alpha: int, selected_modules: list):
         return "", None, "", "", "", "", "", ""
     
     if not selected_modules:
-        return "请选择至少一个目标模块", None, "", "", "", "", "", ""
+        return "Please select至少一个目标模块", None, "", "", "", "", "", ""
     
     result = calculate_lora_params(config, rank, selected_modules)
     base_params = estimate_base_params(config)
@@ -260,12 +251,10 @@ def calculate_results(rank: int, alpha: int, selected_modules: list):
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## PEFT 参数计算器")
-    
+
     # 默认值
-    default_category = "Meta (Llama)"
-    default_model = "Llama-2-7B"
+    default_category = "Alibaba (Qwen)"
+    default_model = "Qwen2.5-7B"
     default_rank = 16
     default_alpha = 32
     default_modules = ["q_proj", "v_proj"]
@@ -273,36 +262,36 @@ def render():
     with gr.Row():
         # 左列：模型选择
         with gr.Column(scale=1):
-            gr.Markdown("### 模型选择")
-            
+            gr.Markdown("### Model Selection")
+
             input_mode = gr.Radio(
-                label="输入方式",
-                choices=["预设模型", "自定义模型"],
-                value="预设模型"
+                label="Input Method",
+                choices=["Preset Model", "Custom Model"],
+                value="Preset Model"
             )
-            
+
             category = gr.Dropdown(
-                label="选择厂商",
+                label="Select Vendor",
                 choices=list(MODEL_CATEGORIES.keys()),
                 value=default_category,
                 visible=True
             )
-            
+
             preset_model = gr.Dropdown(
-                label="选择模型",
+                label="Select Model",
                 choices=get_model_list(default_category),
                 value=default_model,
                 visible=True
             )
-            
+
             custom_model = gr.Textbox(
-                label="模型名称或 URL",
-                placeholder="例如: meta-llama/Llama-2-7b-hf",
+                label="Model Name or URL",
+                placeholder="e.g., meta-llama/Llama-2-7b-hf",
                 visible=False
             )
-            
+
             token = gr.Textbox(
-                label="HF Token (可选)",
+                label="HF Token (Optional)",
                 type="password"
             )
             
@@ -311,8 +300,8 @@ def render():
         
         # 右列：LoRA 配置 & 结果
         with gr.Column(scale=2):
-            gr.Markdown("### LoRA 参数")
-            
+            gr.Markdown("### LoRA Parameters")
+
             with gr.Row():
                 rank = gr.Slider(
                     label="Rank (r)",
@@ -328,39 +317,39 @@ def render():
                     value=default_alpha,
                     step=8
                 )
-            
-            gr.Markdown("### 目标模块")
-            
+
+            gr.Markdown("### Target Modules")
+
             module_choices = [(name, module_id) for module_id, name in TARGET_MODULES.items()]
             selected_modules = gr.CheckboxGroup(
-                label="选择目标模块",
+                label="Select Target Modules",
                 choices=module_choices,
                 value=default_modules
             )
-            
+
             calc_status = gr.Markdown("")
-            
-            gr.Markdown("### 计算结果")
-            
+
+            gr.Markdown("### Calculation Results")
+
             with gr.Row():
-                total_params = gr.Textbox(label="LoRA 参数量", interactive=False)
-                params_mb = gr.Textbox(label="参数量 (MB)", interactive=False)
-                trainable_ratio = gr.Textbox(label="可训练比例", interactive=False)
-            
-            gr.Markdown("### 参数分布")
-            params_table = gr.Dataframe(label="详细参数分布")
-            
-            gr.Markdown("### 显存估算")
+                total_params = gr.Textbox(label="LoRA Parameter Count", interactive=False)
+                params_mb = gr.Textbox(label="Parameter Size (MB)", interactive=False)
+                trainable_ratio = gr.Textbox(label="Trainable Ratio", interactive=False)
+
+            gr.Markdown("### Parameter Distribution")
+            params_table = gr.Dataframe(label="Detailed Distribution")
+
+            gr.Markdown("### Memory Estimator")
             with gr.Row():
-                mem_fp16 = gr.Textbox(label="推理 (fp16)", interactive=False)
-                mem_fp32 = gr.Textbox(label="训练权重 (fp32)", interactive=False)
-                mem_total = gr.Textbox(label="训练总计 (含优化器)", interactive=False)
-            
-            gr.Markdown("*注: 以上仅为 LoRA 参数的显存占用，不包括基础模型、激活值等。*")
+                mem_fp16 = gr.Textbox(label="Inference (fp16)", interactive=False)
+                mem_fp32 = gr.Textbox(label="Training Weights (fp32)", interactive=False)
+                mem_total = gr.Textbox(label="Training Total (w/ Optimizer)", interactive=False)
+
+            gr.Markdown("*Note: Above only accounts for LoRA parameter memory, excluding base model, activations, etc.*")
     
     # 事件绑定
     def toggle_input_mode(mode):
-        preset_visible = mode == "预设模型"
+        preset_visible = mode == "Preset Model"
         return (
             gr.update(visible=preset_visible),
             gr.update(visible=preset_visible),
@@ -375,7 +364,7 @@ def render():
     def load_and_calculate(input_mode, category, preset_model, custom_model, token, rank, alpha, selected_modules):
         """加载模型配置并自动计算参数"""
         status, info = load_model_config(input_mode, category, preset_model, custom_model, token)
-        if "成功" in status:
+        if "Success" in status:
             calc_result = calculate_results(rank, alpha, selected_modules)
             return (status, info) + calc_result
         return status, info, "", None, "", "", "", "", "", ""

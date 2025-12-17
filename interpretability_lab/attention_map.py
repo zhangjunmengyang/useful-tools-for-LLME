@@ -16,6 +16,7 @@ from interpretability_lab.interpretability_utils import (
     compute_attention_entropy,
     get_attention_patterns
 )
+from model_lab.model_utils import extract_from_url
 
 
 def render_attention_heatmap(
@@ -119,8 +120,8 @@ def render_token_attention_flow(
     fig = make_subplots(
         rows=1, cols=2,
         subplot_titles=[
-            f'"{tokens[selected_token_idx]}" 关注哪些 tokens',
-            f'哪些 tokens 关注 "{tokens[selected_token_idx]}"'
+            f'What "{tokens[selected_token_idx]}" attends to',
+            f'What attends to "{tokens[selected_token_idx]}"'
         ]
     )
     
@@ -152,56 +153,86 @@ def render_token_attention_flow(
 
 
 # 模型状态缓存
-_loaded_model = {"name": None, "model": None, "tokenizer": None, "attention": None, "tokens": None}
+_loaded_model = {"name": None, "model": None, "tokenizer": None, "attention": None, "tokens": None, "config": None}
 
 
-def load_and_analyze(model_choice, text, use_causal):
+def get_model_id_from_ui(mode, preset_choice, custom_url):
+    """从 UI 输入解析模型 ID"""
+    if mode == "Preset Model":
+        return INTERPRETABILITY_MODELS[preset_choice]['id']
+    else:
+        return extract_from_url(custom_url) if custom_url else None
+
+
+def load_and_analyze(mode, preset_choice, custom_url, token, text, use_causal):
     """加载模型并分析注意力"""
     if not text:
         return None, "", []
-    
-    model_info = INTERPRETABILITY_MODELS[model_choice]
-    
+
+    model_id = get_model_id_from_ui(mode, preset_choice, custom_url)
+    if not model_id:
+        return None, "Please enter a valid model name or URL", []
+
+    # 获取配置信息（用于获取层数和头数）
+    if mode == "Preset Model":
+        config = INTERPRETABILITY_MODELS[preset_choice]
+    else:
+        # 从 HuggingFace 获取配置
+        if _loaded_model["name"] != model_id or _loaded_model["config"] is None:
+            try:
+                from transformers import AutoConfig
+                hf_config = AutoConfig.from_pretrained(model_id, token=token if token else None)
+                config = {
+                    'id': model_id,
+                    'layers': getattr(hf_config, 'num_hidden_layers', getattr(hf_config, 'n_layer', 12)),
+                    'heads': getattr(hf_config, 'num_attention_heads', getattr(hf_config, 'n_head', 12)),
+                    'hidden': getattr(hf_config, 'hidden_size', getattr(hf_config, 'n_embd', 768))
+                }
+                _loaded_model["config"] = config
+            except Exception as e:
+                return None, f"Failed to load config: {e}", []
+        else:
+            config = _loaded_model["config"]
+
     # 加载模型
-    if _loaded_model["name"] != model_info['id']:
-        model, tokenizer = load_model_with_attention(model_info['id'])
+    if _loaded_model["name"] != model_id:
+        model, tokenizer = load_model_with_attention(model_id, token=token if token else None)
         if model is None:
-            return None, "模型加载失败", []
-        _loaded_model["name"] = model_info['id']
+            return None, f"Failed to load model: {model_id}", []
+        _loaded_model["name"] = model_id
         _loaded_model["model"] = model
         _loaded_model["tokenizer"] = tokenizer
+        _loaded_model["config"] = config
     else:
         model = _loaded_model["model"]
         tokenizer = _loaded_model["tokenizer"]
-    
+
     # 获取注意力权重
     attention_weights, tokens = get_attention_weights(model, tokenizer, text)
-    
+
     # 应用 causal mask
     if use_causal:
         seq_len = attention_weights.shape[-1]
         causal_mask = torch.tril(torch.ones(seq_len, seq_len))
         attention_weights = attention_weights * causal_mask.unsqueeze(0).unsqueeze(0)
-    
+
     _loaded_model["attention"] = attention_weights
     _loaded_model["tokens"] = tokens
-    
-    token_info = f"序列长度: {len(tokens)} tokens"
+
+    token_info = f"Sequence length: {len(tokens)} tokens"
     token_choices = [f"{i}: {tokens[i]}" for i in range(len(tokens))]
-    
+
     return attention_weights, token_info, token_choices
 
 
-def analyze_heatmap(model_choice, layer_idx, head_choice):
+def analyze_heatmap(layer_idx, head_choice):
     """分析热力图 Tab 1"""
     attention_weights = _loaded_model.get("attention")
     tokens = _loaded_model.get("tokens")
-    
+
     if attention_weights is None or tokens is None:
         return None
-    
-    model_info = INTERPRETABILITY_MODELS[model_choice]
-    
+
     if head_choice == "All Heads":
         fig = render_attention_grid(
             attention_weights[layer_idx],
@@ -217,43 +248,42 @@ def analyze_heatmap(model_choice, layer_idx, head_choice):
             tokens,
             f"Layer {layer_idx}, Head {head_idx}"
         )
-    
+
     return fig
 
 
-def analyze_token(model_choice, selected_token):
+def analyze_token(selected_token):
     """分析 Token Tab 2"""
     attention_weights = _loaded_model.get("attention")
     tokens = _loaded_model.get("tokens")
-    
-    if attention_weights is None or tokens is None or not selected_token:
+    config = _loaded_model.get("config")
+
+    if attention_weights is None or tokens is None or not selected_token or config is None:
         return None, None
-    
-    model_info = INTERPRETABILITY_MODELS[model_choice]
-    
+
     # 解析选中的 token 索引
     selected_idx = int(selected_token.split(":")[0])
-    
+
     # 注意力流向图
     fig_flow = render_token_attention_flow(attention_weights, tokens, selected_idx)
-    
+
     # 各层注意力变化
     layer_attention = []
-    for l in range(model_info['layers']):
+    for l in range(config['layers']):
         avg_attn = attention_weights[l].mean(dim=0).numpy()
         layer_attention.append(avg_attn[selected_idx, :])
-    
+
     layer_attn_matrix = np.array(layer_attention)
-    
+
     fig_layers = go.Figure(data=go.Heatmap(
         z=layer_attn_matrix,
         x=tokens,
-        y=[f'Layer {i}' for i in range(model_info['layers'])],
+        y=[f'Layer {i}' for i in range(config['layers'])],
         colorscale='Viridis'
     ))
-    
+
     fig_layers.update_layout(
-        title=f'"{tokens[selected_idx]}" 在各层的注意力分布',
+        title=f'Attention distribution of "{tokens[selected_idx]}" across layers',
         xaxis_title="Key Token",
         yaxis_title="Layer",
         height=450,
@@ -262,64 +292,63 @@ def analyze_token(model_choice, selected_token):
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
-    
+
     return fig_flow, fig_layers
 
 
-def analyze_patterns(model_choice):
+def analyze_patterns():
     """分析模式 Tab 3"""
     attention_weights = _loaded_model.get("attention")
     tokens = _loaded_model.get("tokens")
-    
-    if attention_weights is None or tokens is None:
+    config = _loaded_model.get("config")
+
+    if attention_weights is None or tokens is None or config is None:
         return "", None, None
-    
-    model_info = INTERPRETABILITY_MODELS[model_choice]
-    
+
     # 分析各层各头的模式
     patterns_data = []
-    
-    for l in range(model_info['layers']):
-        for h in range(model_info['heads']):
+
+    for l in range(config['layers']):
+        for h in range(config['heads']):
             attn = attention_weights[l, h].numpy()
             patterns = get_attention_patterns(torch.tensor(attn))
             patterns_data.append({
                 'Layer': l,
                 'Head': h,
-                '对角线': patterns['diagonal'],
-                '首 Token': patterns['first_token'],
-                '局部': patterns['local'],
-                '全局': patterns['global']
+                'Diagonal': patterns['diagonal'],
+                'First Token': patterns['first_token'],
+                'Local': patterns['local'],
+                'Global': patterns['global']
             })
-    
+
     df_patterns = pd.DataFrame(patterns_data)
-    
+
     # 汇总统计
     stats_md = f"""
-### 注意力模式统计
+### Attention Pattern Statistics
 
-| 指标 | 平均值 |
+| Metric | Mean |
 |------|--------|
-| 对角线注意力 | {df_patterns['对角线'].mean():.2%} |
-| 首 Token 注意力 | {df_patterns['首 Token'].mean():.2%} |
-| 局部注意力 | {df_patterns['局部'].mean():.2%} |
-| 全局注意力 | {df_patterns['全局'].mean():.2%} |
+| Diagonal Attention | {df_patterns['Diagonal'].mean():.2%} |
+| First Token Attention | {df_patterns['First Token'].mean():.2%} |
+| Local Attention | {df_patterns['Local'].mean():.2%} |
+| Global Attention | {df_patterns['Global'].mean():.2%} |
 """
-    
+
     # 热力图展示各头的模式
-    diagonal_matrix = df_patterns.pivot(index='Layer', columns='Head', values='对角线')
-    
+    diagonal_matrix = df_patterns.pivot(index='Layer', columns='Head', values='Diagonal')
+
     fig_pattern = go.Figure(data=go.Heatmap(
         z=diagonal_matrix.values,
-        x=[f'H{i}' for i in range(model_info['heads'])],
-        y=[f'L{i}' for i in range(model_info['layers'])],
+        x=[f'H{i}' for i in range(config['heads'])],
+        y=[f'L{i}' for i in range(config['layers'])],
         colorscale='RdBu',
         zmid=0.5,
         hovertemplate='Layer %{y}, Head %{x}<br>Diagonal Attention: %{z:.2%}<extra></extra>'
     ))
-    
+
     fig_pattern.update_layout(
-        title="对角线注意力强度 (每个 token 关注自己的程度)",
+        title="Diagonal Attention Strength (self-attention intensity)",
         xaxis_title="Head",
         yaxis_title="Layer",
         height=450,
@@ -327,11 +356,11 @@ def analyze_patterns(model_choice):
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
-    
+
     # 熵分析
     entropy_data = []
-    for l in range(model_info['layers']):
-        for h in range(model_info['heads']):
+    for l in range(config['layers']):
+        for h in range(config['heads']):
             attn = attention_weights[l, h]
             entropy = compute_attention_entropy(attn).mean().item()
             entropy_data.append({
@@ -339,19 +368,19 @@ def analyze_patterns(model_choice):
                 'Head': h,
                 'Entropy': entropy
             })
-    
+
     df_entropy = pd.DataFrame(entropy_data)
     entropy_matrix = df_entropy.pivot(index='Layer', columns='Head', values='Entropy')
-    
+
     fig_entropy = go.Figure(data=go.Heatmap(
         z=entropy_matrix.values,
-        x=[f'H{i}' for i in range(model_info['heads'])],
-        y=[f'L{i}' for i in range(model_info['layers'])],
+        x=[f'H{i}' for i in range(config['heads'])],
+        y=[f'L{i}' for i in range(config['layers'])],
         colorscale='Plasma'
     ))
-    
+
     fig_entropy.update_layout(
-        title="注意力熵 (值越大表示注意力越分散)",
+        title="Attention Entropy (higher = more dispersed)",
         xaxis_title="Head",
         yaxis_title="Layer",
         height=450,
@@ -359,43 +388,62 @@ def analyze_patterns(model_choice):
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
     )
-    
+
     return stats_md, fig_pattern, fig_entropy
 
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## Attention 可视化")
-    
+
     # 模型选择
-    model_choice = gr.Dropdown(
-        choices=list(INTERPRETABILITY_MODELS.keys()),
-        value=list(INTERPRETABILITY_MODELS.keys())[0],
-        label="选择模型"
+    with gr.Row():
+        model_mode = gr.Radio(
+            label="Input Method",
+            choices=["Preset Model", "Custom Model"],
+            value="Preset Model"
+        )
+
+    with gr.Row():
+        preset_model = gr.Dropdown(
+            choices=list(INTERPRETABILITY_MODELS.keys()),
+            value=list(INTERPRETABILITY_MODELS.keys())[0],
+            label="Select Model"
+        )
+
+        custom_model = gr.Textbox(
+            label="Model Name or URL",
+            placeholder="e.g., openai-community/gpt2",
+            visible=False
+        )
+
+    hf_token = gr.Textbox(
+        label="HF Token (Optional)",
+        type="password",
+        placeholder="For private models",
+        visible=False
     )
-    
+
     # 输入文本
     default_text = "The animal didn't cross the street because it was too tired"
     text = gr.Textbox(
-        label="输入文本",
+        label="Input Text",
         value=default_text,
         lines=2
     )
-    
+
     use_causal = gr.Checkbox(
-        label="应用 Causal Mask",
+        label="Apply Causal Mask",
         value=True
     )
-    
-    token_info = gr.Textbox(label="Token 信息", interactive=False)
+
+    token_info = gr.Textbox(label="Token Info", interactive=False)
     
     with gr.Tabs():
-        # Tab 1: 热力图
-        with gr.Tab("热力图"):
+        # Tab 1: Heatmap
+        with gr.Tab("Heatmap") as heatmap_tab:
             with gr.Row():
                 layer_select = gr.Slider(
-                    label="选择层",
+                    label="Select Layer",
                     minimum=0,
                     maximum=11,
                     value=0,
@@ -404,119 +452,125 @@ def render():
                 head_select = gr.Dropdown(
                     choices=["All Heads"] + [f"Head {i}" for i in range(12)],
                     value="All Heads",
-                    label="选择 Head"
+                    label="Select Head"
                 )
-            
+
             heatmap_plot = gr.Plot()
-        
-        # Tab 2: Token 分析
-        with gr.Tab("Token 分析"):
+
+        # Tab 2: Token Analysis
+        with gr.Tab("Token Analysis") as token_analysis_tab:
             token_select = gr.Dropdown(
                 choices=[],
-                label="选择要分析的 Token",
+                label="Select Token to Analyze",
                 allow_custom_value=True,
                 value=None
             )
-            
-            flow_plot = gr.Plot(label="注意力流向")
-            layer_plot = gr.Plot(label="各层注意力分布")
-        
-        # Tab 3: 模式分析
-        with gr.Tab("模式分析"):
+
+            flow_plot = gr.Plot(label="Attention Flow")
+            layer_plot = gr.Plot(label="Layer-wise Attention")
+
+        # Tab 3: Pattern Analysis
+        with gr.Tab("Pattern Analysis") as pattern_analysis_tab:
             stats_md = gr.Markdown("")
-            
+
             with gr.Row():
-                pattern_plot = gr.Plot(label="注意力模式")
-                entropy_plot = gr.Plot(label="注意力熵")
+                pattern_plot = gr.Plot(label="Attention Patterns")
+                entropy_plot = gr.Plot(label="Attention Entropy")
     
+    # Toggle函数：切换预设/自定义模型模式
+    def toggle_model_mode(mode):
+        return (
+            gr.update(visible=(mode == "Preset Model")),
+            gr.update(visible=(mode == "Custom Model")),
+            gr.update(visible=(mode == "Custom Model"))
+        )
+
     # 定义级联更新函数
-    def on_analyze(model_choice, text, use_causal, layer_idx, head_choice):
-        """分析注意力并自动更新热力图"""
-        result = load_and_analyze(model_choice, text, use_causal)
-        if result[0] is None:
-            return result[1], gr.update(choices=[], value=None), None
-        
-        # 自动更新热力图
-        heatmap = analyze_heatmap(model_choice, layer_idx, head_choice)
-        token_choices = result[2]
-        return result[1], gr.update(choices=token_choices, value=token_choices[0] if token_choices else None), heatmap
-    
-    def on_analyze_full(model_choice, text, use_causal, layer_idx, head_choice):
+    def on_analyze_full(mode, preset_choice, custom_url, token, text, use_causal, layer_idx, head_choice):
         """完整分析：包括热力图、token分析、模式分析"""
-        result = load_and_analyze(model_choice, text, use_causal)
+        result = load_and_analyze(mode, preset_choice, custom_url, token, text, use_causal)
         if result[0] is None:
             return result[1], gr.update(choices=[], value=None), None, None, None, "", None, None
-        
+
         token_choices = result[2]
         first_token = token_choices[0] if token_choices else None
-        
+
         # 热力图
-        heatmap = analyze_heatmap(model_choice, layer_idx, head_choice)
-        
+        heatmap = analyze_heatmap(layer_idx, head_choice)
+
         # Token 分析（默认选第一个）
         flow_fig, layer_fig = None, None
         if first_token:
-            flow_fig, layer_fig = analyze_token(model_choice, first_token)
-        
+            flow_fig, layer_fig = analyze_token(first_token)
+
         # 模式分析
-        stats, pattern_fig, entropy_fig = analyze_patterns(model_choice)
-        
+        stats, pattern_fig, entropy_fig = analyze_patterns()
+
         return (
-            result[1], 
-            gr.update(choices=token_choices, value=first_token), 
-            heatmap, 
-            flow_fig, 
-            layer_fig, 
-            stats, 
-            pattern_fig, 
+            result[1],
+            gr.update(choices=token_choices, value=first_token),
+            heatmap,
+            flow_fig,
+            layer_fig,
+            stats,
+            pattern_fig,
             entropy_fig
         )
-    
+
     # 页面加载时自动计算默认值
     def on_load():
         """页面加载时的初始化"""
         default_model = list(INTERPRETABILITY_MODELS.keys())[0]
-        return on_analyze_full(default_model, default_text, True, 0, "All Heads")
+        return on_analyze_full("Preset Model", default_model, "", None, default_text, True, 0, "All Heads")
     
+    # Toggle 事件
+    model_mode.change(
+        fn=toggle_model_mode,
+        inputs=[model_mode],
+        outputs=[preset_model, custom_model, hf_token]
+    )
+
     # 事件绑定 - 输入变化自动触发分析
-    text.change(
-        fn=on_analyze_full,
-        inputs=[model_choice, text, use_causal, layer_select, head_select],
-        outputs=[token_info, token_select, heatmap_plot, flow_plot, layer_plot, stats_md, pattern_plot, entropy_plot]
-    )
-    
-    use_causal.change(
-        fn=on_analyze_full,
-        inputs=[model_choice, text, use_causal, layer_select, head_select],
-        outputs=[token_info, token_select, heatmap_plot, flow_plot, layer_plot, stats_md, pattern_plot, entropy_plot]
-    )
-    
-    model_choice.change(
-        fn=on_analyze_full,
-        inputs=[model_choice, text, use_causal, layer_select, head_select],
-        outputs=[token_info, token_select, heatmap_plot, flow_plot, layer_plot, stats_md, pattern_plot, entropy_plot]
-    )
-    
+    for component in [model_mode, preset_model, custom_model, hf_token, text, use_causal]:
+        component.change(
+            fn=on_analyze_full,
+            inputs=[model_mode, preset_model, custom_model, hf_token, text, use_causal, layer_select, head_select],
+            outputs=[token_info, token_select, heatmap_plot, flow_plot, layer_plot, stats_md, pattern_plot, entropy_plot]
+        )
+
     # Layer/Head 选择自动更新热力图
     layer_select.change(
         fn=analyze_heatmap,
-        inputs=[model_choice, layer_select, head_select],
+        inputs=[layer_select, head_select],
         outputs=[heatmap_plot]
     )
-    
+
     head_select.change(
         fn=analyze_heatmap,
-        inputs=[model_choice, layer_select, head_select],
+        inputs=[layer_select, head_select],
         outputs=[heatmap_plot]
     )
-    
+
     # Token 选择自动更新分析
     token_select.change(
         fn=analyze_token,
-        inputs=[model_choice, token_select],
+        inputs=[token_select],
         outputs=[flow_plot, layer_plot]
     )
-    
+
+    # Re-render plots when tabs become visible to fix width issues
+    token_analysis_tab.select(
+        fn=analyze_token,
+        inputs=[token_select],
+        outputs=[flow_plot, layer_plot]
+    )
+
+    pattern_analysis_tab.select(
+        fn=analyze_patterns,
+        inputs=[],
+        outputs=[stats_md, pattern_plot, entropy_plot]
+    )
+
     # 返回 load 事件需要的信息供主 app 调用
     return {
         'load_fn': on_load,

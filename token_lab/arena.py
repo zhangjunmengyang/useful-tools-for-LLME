@@ -1,6 +1,6 @@
 """
-模型对比 - Gradio 版本
-多模型分词效率对比
+Model Arena - Gradio Version
+Multi-model tokenizer efficiency comparison
 """
 
 import gradio as gr
@@ -42,36 +42,36 @@ def get_model_id(category, model_name):
 
 def render_tokens_html(tokens, model_name, color):
     """渲染分词结果"""
-    html = [f'<div style="line-height: 2.4; padding: 12px; background: #F3F4F6; '
-            f'border-radius: 8px; border-left: 4px solid {color};">']
-    html.append(f'<div style="margin-bottom: 8px; font-weight: 600; color: #374151;">{model_name} ({len(tokens)} tokens)</div>')
-    
+    html = [f'<div style="line-height: 2.4; padding: 16px; background: #FAFAFA; '
+            f'border-radius: 8px; border: 1px solid #E5E7EB;">']
+    html.append(f'<div style="margin-bottom: 12px; font-weight: 600; color: {color}; font-size: 14px;">{model_name} ({len(tokens)} tokens)</div>')
+
     for idx, info in enumerate(tokens):
         bg_color = TOKEN_COLORS[idx % len(TOKEN_COLORS)]
         display = info['token_str'].replace(' ', '␣').replace('\n', '↵')
         if not display.strip():
             display = repr(info['token_str'])[1:-1] or '[EMPTY]'
         display = display.replace('<', '&lt;').replace('>', '&gt;')
-        
+
         html.append(
             f'<span style="background:{bg_color}; color:#111827; padding:3px 6px; '
             f'margin:2px; border-radius:4px; display:inline-block; '
             f'font-family: \'JetBrains Mono\', monospace; font-size:13px;">'
             f'{display}</span>'
         )
-    
+
     html.append('</div>')
     return ''.join(html)
 
 
 def create_comparison_chart(stats_a, stats_b, model_a, model_b):
     """创建对比图表"""
-    metrics = ['Token 数', '字符/Token', '字节/Token']
+    metrics = ['Token Count', 'Chars/Token', 'Bytes/Token']
     values_a = [stats_a['token_count'], stats_a['chars_per_token'], stats_a['bytes_per_token']]
     values_b = [stats_b['token_count'], stats_b['chars_per_token'], stats_b['bytes_per_token']]
-    
+
     fig = go.Figure()
-    
+
     fig.add_trace(go.Bar(
         name=model_a,
         x=metrics,
@@ -81,7 +81,7 @@ def create_comparison_chart(stats_a, stats_b, model_a, model_b):
         textposition='outside',
         textfont=dict(color='#111827', size=13)
     ))
-    
+
     fig.add_trace(go.Bar(
         name=model_b,
         x=metrics,
@@ -91,7 +91,7 @@ def create_comparison_chart(stats_a, stats_b, model_a, model_b):
         textposition='outside',
         textfont=dict(color='#111827', size=13)
     ))
-    
+
     fig.update_layout(
         barmode='group',
         plot_bgcolor='#FFFFFF',
@@ -102,10 +102,10 @@ def create_comparison_chart(stats_a, stats_b, model_a, model_b):
         height=400,
         autosize=True
     )
-    
+
     fig.update_xaxes(gridcolor='#E5E7EB', linecolor='#E5E7EB')
     fig.update_yaxes(gridcolor='#E5E7EB', linecolor='#E5E7EB')
-    
+
     return fig
 
 
@@ -113,181 +113,223 @@ def compare_models(cat_a, model_a, cat_b, model_b, text):
     """对比两个模型"""
     if not all([cat_a, model_a, cat_b, model_b]):
         return (
-            "请选择两个模型",
-            "<div>请选择模型 A</div>",
-            "<div>请选择模型 B</div>",
+            "Please select two models",
+            "<div>Please select Model A</div>",
+            "<div>Please select Model B</div>",
             None,
             pd.DataFrame()
         )
-    
+
     if not text:
         return (
-            "请输入测试文本",
-            "<div>请输入文本</div>",
-            "<div>请输入文本</div>",
+            "Please enter test text",
+            "<div>Please enter text</div>",
+            "<div>Please enter text</div>",
             None,
             pd.DataFrame()
         )
-    
+
     model_id_a = get_model_id(cat_a, model_a)
     model_id_b = get_model_id(cat_b, model_b)
-    
+
     tokenizer_a = load_tokenizer(model_id_a)
     tokenizer_b = load_tokenizer(model_id_b)
-    
+
     if not tokenizer_a or not tokenizer_b:
         return (
-            "模型加载失败",
-            "<div>模型加载失败</div>",
-            "<div>模型加载失败</div>",
+            "Failed to load models",
+            "<div>Failed to load model</div>",
+            "<div>Failed to load model</div>",
             None,
             pd.DataFrame()
         )
-    
+
     tokens_a = get_token_info(tokenizer_a, text)
     tokens_b = get_token_info(tokenizer_b, text)
-    
+
     stats_a = calculate_compression_stats(text, len(tokens_a))
     stats_b = calculate_compression_stats(text, len(tokens_b))
-    
-    # 效率对比摘要
+
     diff = stats_b['token_count'] - stats_a['token_count']
     if stats_b['token_count'] > 0:
         eff = (stats_b['token_count'] - stats_a['token_count']) / stats_b['token_count'] * 100
     else:
         eff = 0
-    
-    summary = f"""
-### 效率指标
 
-| 指标 | {model_a} | {model_b} | 差异 |
-|------|----------|----------|------|
-| Token 数 | **{stats_a['token_count']}** | **{stats_b['token_count']}** | {abs(diff)} ({'A更少' if diff > 0 else 'B更少' if diff < 0 else '相同'}) |
-| 字符数 | {stats_a['char_count']} | {stats_b['char_count']} | - |
-| 字符/Token | {stats_a['chars_per_token']} | {stats_b['chars_per_token']} | - |
-| 字节/Token | {stats_a['bytes_per_token']} | {stats_b['bytes_per_token']} | - |
-| 效率差 | - | - | {abs(eff):.1f}% ({'A更优' if eff > 0 else 'B更优' if eff < 0 else '相同'}) |
+    winner = 'A is better' if diff > 0 else 'B is better' if diff < 0 else 'Same'
+    winner_color = '#2563EB' if diff > 0 else '#059669' if diff < 0 else '#6B7280'
+
+    summary = f"""
+<div style="background: #F9FAFB; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+<div style="font-weight: 600; font-size: 16px; margin-bottom: 12px; color: #111827;">Efficiency Metrics</div>
+<table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+<thead>
+<tr style="border-bottom: 2px solid #E5E7EB;">
+<th style="text-align: left; padding: 8px 12px; color: #6B7280; font-weight: 500;">Metric</th>
+<th style="text-align: center; padding: 8px 12px; color: #2563EB; font-weight: 600;">{model_a}</th>
+<th style="text-align: center; padding: 8px 12px; color: #059669; font-weight: 600;">{model_b}</th>
+<th style="text-align: center; padding: 8px 12px; color: #6B7280; font-weight: 500;">Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom: 1px solid #E5E7EB;">
+<td style="padding: 8px 12px;">Token Count</td>
+<td style="text-align: center; padding: 8px 12px; font-weight: 600;">{stats_a['token_count']}</td>
+<td style="text-align: center; padding: 8px 12px; font-weight: 600;">{stats_b['token_count']}</td>
+<td style="text-align: center; padding: 8px 12px; color: {winner_color};">{abs(diff)} ({winner})</td>
+</tr>
+<tr style="border-bottom: 1px solid #E5E7EB;">
+<td style="padding: 8px 12px;">Characters</td>
+<td style="text-align: center; padding: 8px 12px;">{stats_a['char_count']}</td>
+<td style="text-align: center; padding: 8px 12px;">{stats_b['char_count']}</td>
+<td style="text-align: center; padding: 8px 12px; color: #9CA3AF;">-</td>
+</tr>
+<tr style="border-bottom: 1px solid #E5E7EB;">
+<td style="padding: 8px 12px;">Chars/Token</td>
+<td style="text-align: center; padding: 8px 12px;">{stats_a['chars_per_token']}</td>
+<td style="text-align: center; padding: 8px 12px;">{stats_b['chars_per_token']}</td>
+<td style="text-align: center; padding: 8px 12px; color: #9CA3AF;">-</td>
+</tr>
+<tr style="border-bottom: 1px solid #E5E7EB;">
+<td style="padding: 8px 12px;">Bytes/Token</td>
+<td style="text-align: center; padding: 8px 12px;">{stats_a['bytes_per_token']}</td>
+<td style="text-align: center; padding: 8px 12px;">{stats_b['bytes_per_token']}</td>
+<td style="text-align: center; padding: 8px 12px; color: #9CA3AF;">-</td>
+</tr>
+<tr>
+<td style="padding: 8px 12px;">Efficiency Gap</td>
+<td style="text-align: center; padding: 8px 12px; color: #9CA3AF;">-</td>
+<td style="text-align: center; padding: 8px 12px; color: #9CA3AF;">-</td>
+<td style="text-align: center; padding: 8px 12px; color: {winner_color}; font-weight: 600;">{abs(eff):.1f}% ({winner})</td>
+</tr>
+</tbody>
+</table>
+</div>
 """
-    
-    # 分词结果
+
     html_a = render_tokens_html(tokens_a, model_a, '#2563EB')
     html_b = render_tokens_html(tokens_b, model_b, '#059669')
-    
-    # 图表
+
     fig = create_comparison_chart(stats_a, stats_b, model_a, model_b)
-    
-    # 详细数据
+
     df = pd.DataFrame({
-        "指标": ["Token 数", "字符数", "字节数", "字符/Token", "字节/Token"],
-        model_a: [stats_a['token_count'], stats_a['char_count'], stats_a['byte_count'], 
+        "Metric": ["Token Count", "Characters", "Bytes", "Chars/Token", "Bytes/Token"],
+        model_a: [stats_a['token_count'], stats_a['char_count'], stats_a['byte_count'],
                   stats_a['chars_per_token'], stats_a['bytes_per_token']],
         model_b: [stats_b['token_count'], stats_b['char_count'], stats_b['byte_count'],
                   stats_b['chars_per_token'], stats_b['bytes_per_token']]
     })
-    
+
     return summary, html_a, html_b, fig, df
 
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## 模型对比")
-    
-    # 模型选择
+
     categories = get_category_choices()
     cat_a_init = categories[0] if categories else None
     cat_b_init = categories[2] if len(categories) > 2 else categories[0] if categories else None
     models_a_init = get_model_choices(cat_a_init) if cat_a_init else []
     models_b_init = get_model_choices(cat_b_init) if cat_b_init else []
-    
+
     with gr.Row():
-        # 模型 A
         with gr.Column():
-            gr.Markdown("### 模型 A")
+            gr.Markdown("### Model A")
             with gr.Row():
                 cat_a = gr.Dropdown(
                     choices=categories,
-                    label="厂商",
+                    label="Vendor",
                     value=cat_a_init,
                     scale=1
                 )
                 model_a = gr.Dropdown(
                     choices=models_a_init,
-                    label="模型",
+                    label="Model",
                     value=models_a_init[0] if models_a_init else None,
                     scale=2
                 )
-        
-        # 模型 B
+
         with gr.Column():
-            gr.Markdown("### 模型 B")
+            gr.Markdown("### Model B")
             with gr.Row():
                 cat_b = gr.Dropdown(
                     choices=categories,
-                    label="厂商",
+                    label="Vendor",
                     value=cat_b_init,
                     scale=1
                 )
                 model_b = gr.Dropdown(
                     choices=models_b_init,
-                    label="模型",
+                    label="Model",
                     value=models_b_init[0] if models_b_init else None,
                     scale=2
                 )
-    
+
     gr.Markdown("---")
-    
-    # 测试文本
+
+    default_text = "Hello, world! 你好，世界！This is a test for tokenizer comparison."
+
     test_input = gr.Textbox(
-        label="测试文本",
-        placeholder="输入文本查看对比结果...",
-        lines=3,
-        value="Hello, world! 你好，世界！This is a test for tokenizer comparison."
+        label="Test Text",
+        placeholder="Enter text to compare tokenization results...",
+        value=default_text,
+        lines=3
     )
-    
-    # 结果区域
-    summary_md = gr.Markdown("")
-    
+
+    summary_md = gr.HTML("")
+
     with gr.Row():
         tokens_a_html = gr.HTML("")
         tokens_b_html = gr.HTML("")
-    
-    chart = gr.Plot(label="效率对比图")
-    
-    with gr.Accordion("详细数据", open=False):
+
+    chart = gr.Plot(label="Efficiency Comparison")
+
+    with gr.Accordion("Detailed Data", open=False):
         detail_df = gr.Dataframe(interactive=False)
-    
-    # ==================== 事件绑定 ====================
-    
-    def update_models_a(cat):
+
+    # 事件绑定
+    def update_models_and_compare_a(cat, cat_b_val, model_b_val, text):
+        """更新模型 A 列表并触发比较"""
         models = get_model_choices(cat)
-        return gr.update(choices=models, value=models[0] if models else None)
-    
-    def update_models_b(cat):
+        new_model = models[0] if models else None
+        if new_model and model_b_val and text:
+            result = compare_models(cat, new_model, cat_b_val, model_b_val, text)
+            return (gr.update(choices=models, value=new_model),) + result
+        return (gr.update(choices=models, value=new_model), "", "", "", None, pd.DataFrame())
+
+    def update_models_and_compare_b(cat, cat_a_val, model_a_val, text):
+        """更新模型 B 列表并触发比较"""
         models = get_model_choices(cat)
-        return gr.update(choices=models, value=models[0] if models else None)
-    
-    cat_a.change(fn=update_models_a, inputs=[cat_a], outputs=[model_a])
-    cat_b.change(fn=update_models_b, inputs=[cat_b], outputs=[model_b])
-    
-    # 所有参数变化都自动触发对比
+        new_model = models[0] if models else None
+        if new_model and model_a_val and text:
+            result = compare_models(cat_a_val, model_a_val, cat, new_model, text)
+            return (gr.update(choices=models, value=new_model),) + result
+        return (gr.update(choices=models, value=new_model), "", "", "", None, pd.DataFrame())
+
+    cat_a.change(
+        fn=update_models_and_compare_a,
+        inputs=[cat_a, cat_b, model_b, test_input],
+        outputs=[model_a, summary_md, tokens_a_html, tokens_b_html, chart, detail_df]
+    )
+    cat_b.change(
+        fn=update_models_and_compare_b,
+        inputs=[cat_b, cat_a, model_a, test_input],
+        outputs=[model_b, summary_md, tokens_a_html, tokens_b_html, chart, detail_df]
+    )
+
     for component in [model_a, model_b, test_input]:
         component.change(
             fn=compare_models,
             inputs=[cat_a, model_a, cat_b, model_b, test_input],
             outputs=[summary_md, tokens_a_html, tokens_b_html, chart, detail_df]
         )
-    
-    # 初始化加载函数
+
     def on_load():
         """页面加载时计算默认值"""
-        default_text = "Hello, world! 你好，世界！This is a test for tokenizer comparison."
-        return compare_models(cat_a_init, models_a_init[0] if models_a_init else None, 
+        return compare_models(cat_a_init, models_a_init[0] if models_a_init else None,
                              cat_b_init, models_b_init[0] if models_b_init else None, default_text)
-    
-    # 返回 load 事件信息
+
     return {
         'load_fn': on_load,
         'load_outputs': [summary_md, tokens_a_html, tokens_b_html, chart, detail_df]
     }
-

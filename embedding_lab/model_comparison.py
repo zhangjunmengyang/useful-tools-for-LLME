@@ -71,7 +71,7 @@ def create_comparison_chart(candidates, scores_dict, query):
             gridcolor='#E5E7EB'
         ),
         yaxis=dict(
-            title='相似度',
+            title='Similarity',
             range=[0, 1],
             gridcolor='#E5E7EB'
         )
@@ -84,15 +84,15 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
     """对比模型"""
     if not query:
         return (
-            "请输入查询文本",
+            "Please enter query text",
             None,
             pd.DataFrame()
         )
-    
+
     candidates = [c.strip() for c in candidates_text.strip().split('\n') if c.strip()]
     if not candidates:
         return (
-            "请输入候选文本",
+            "Please enter candidate texts",
             None,
             pd.DataFrame()
         )
@@ -105,11 +105,11 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
     if use_multilingual:
         selected_models.append(("Multilingual MiniLM", "paraphrase-multilingual-MiniLM-L12-v2"))
     if use_minilm:
-        selected_models.append(("MiniLM-L6 (英文)", "all-MiniLM-L6-v2"))
-    
+        selected_models.append(("MiniLM-L6 (English)", "all-MiniLM-L6-v2"))
+
     if not selected_models:
         return (
-            "请至少选择一个模型",
+            "Please select at least one model",
             None,
             pd.DataFrame()
         )
@@ -134,11 +134,11 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
             scores_dict[model_name] = scores
             
         except Exception as e:
-            print(f"模型 {model_name} 计算失败: {e}")
-    
+            print(f"Model {model_name} computation failed: {e}")
+
     if not scores_dict:
         return (
-            "所有模型计算失败",
+            "All model computations failed",
             None,
             pd.DataFrame()
         )
@@ -146,14 +146,14 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
     # 创建图表
     fig = create_comparison_chart(candidates, scores_dict, query)
     
-    # 详细分数表格
-    data = {'候选文本': candidates}
+    # Detailed score table
+    data = {'Candidate Text': candidates}
     for model_name, scores in scores_dict.items():
         data[model_name] = [f'{s:.4f}' for s in scores]
     df = pd.DataFrame(data)
     
-    # 排序分析
-    ranking_md = "### 排序对比\n\n"
+    # Ranking analysis
+    ranking_md = "### Ranking Comparison\n\n"
     for model_name, scores in scores_dict.items():
         sorted_indices = np.argsort(scores)[::-1]
         ranking_md += f"**{model_name}**:\n"
@@ -180,11 +180,11 @@ def compare_models(query, candidates_text, use_tfidf, use_bm25, use_multilingual
         if rank_diff[0][1] > 0:
             most_diff = rank_diff[0]
             insight = f"""
-### 洞察
+### Insight
 
-**最大排序差异**: 文本「{most_diff[0][:30]}...」在 **{model_names[0]}** 中排第 **{most_diff[2]}** 名，在 **{model_names[1]}** 中排第 **{most_diff[3]}** 名。
+**Largest Ranking Difference**: Text \"{most_diff[0][:30]}...\" ranks **{most_diff[2]}** in **{model_names[0]}** but ranks **{most_diff[3]}** in **{model_names[1]}**.
 
-_这说明不同模型对语义的理解存在显著差异。_
+_This indicates significant differences in how models understand semantics._
 """
     
     return ranking_md + insight, fig, df
@@ -192,43 +192,41 @@ _这说明不同模型对语义的理解存在显著差异。_
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## 模型对比")
-    
+
     # 模型选择
     with gr.Row():
         use_tfidf = gr.Checkbox(label="TF-IDF", value=True)
         use_bm25 = gr.Checkbox(label="BM25", value=True)
         use_multilingual = gr.Checkbox(label="Multilingual MiniLM", value=False)
-        use_minilm = gr.Checkbox(label="MiniLM-L6 (英文)", value=False)
+        use_minilm = gr.Checkbox(label="MiniLM-L6 (English)", value=False)
     
-    # 输入区域
+    # Input area
     with gr.Row():
         with gr.Column(scale=1):
             query = gr.Textbox(
-                label="查询文本",
-                value="苹果",
+                label="Query Text",
+                placeholder="Enter query text...",
                 lines=1
             )
-        
+
         with gr.Column(scale=2):
             candidates = gr.Textbox(
-                label="候选文本（每行一个）",
-                value="水果\n手机\n乔布斯\n红色的球\n苹果公司发布新产品\n我喜欢吃苹果",
+                label="Candidate Texts (one per line)",
+                placeholder="fruit\nphone\ncomputer",
                 lines=6
             )
     
-    # 预设案例
+    # Preset examples
     with gr.Row():
-        preset1 = gr.Button("苹果歧义", size="sm")
-        preset2 = gr.Button("银行歧义", size="sm")
-        preset3 = gr.Button("特斯拉", size="sm")
-        preset4 = gr.Button("语义搜索", size="sm")
-    
-    # 结果展示
-    chart = gr.Plot(label="相似度对比图")
-    
-    with gr.Accordion("详细分数", open=True):
+        preset1 = gr.Button("Apple Ambiguity", size="sm")
+        preset2 = gr.Button("Bank Ambiguity", size="sm")
+        preset3 = gr.Button("Tesla", size="sm")
+        preset4 = gr.Button("Semantic Search", size="sm")
+
+    # Results
+    chart = gr.Plot(label="Similarity Comparison")
+
+    with gr.Accordion("Detailed Scores", open=True):
         score_df = gr.Dataframe(interactive=False)
     
     analysis_md = gr.Markdown("")

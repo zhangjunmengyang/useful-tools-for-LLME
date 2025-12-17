@@ -41,22 +41,23 @@ def create_similarity_heatmap(tokens_a, tokens_b, similarity_matrix, text_a, tex
             [0, '#F3F4F6'], [0.3, '#DBEAFE'], [0.5, '#93C5FD'],
             [0.7, '#3B82F6'], [1, '#1D4ED8']
         ],
-        hovertemplate='<b>%{y}</b> - <b>%{x}</b><br>相似度: %{z:.4f}<extra></extra>',
+        hovertemplate='<b>%{y}</b> - <b>%{x}</b><br>Similarity: %{z:.4f}<extra></extra>',
         showscale=True,
-        colorbar=dict(title=dict(text="相似度"))
+        colorbar=dict(title=dict(text="Similarity"))
     ))
     
     fig.update_layout(
-        title="Token-to-Token 相似度矩阵",
+        title="Token-to-Token Similarity Matrix",
         xaxis=dict(
-            title=f"文本 B: \"{text_b[:30]}...\"" if len(text_b) > 30 else f"文本 B: \"{text_b}\"",
+            title=f"Text B: \"{text_b[:30]}...\"" if len(text_b) > 30 else f"Text B: \"{text_b}\"",
             tickangle=-45
         ),
         yaxis=dict(
-            title=f"文本 A: \"{text_a[:30]}...\"" if len(text_a) > 30 else f"文本 A: \"{text_a}\"",
+            title=f"Text A: \"{text_a[:30]}...\"" if len(text_a) > 30 else f"Text A: \"{text_a}\"",
             autorange='reversed'
         ),
         height=max(400, len(tokens_a) * 25 + 150),
+        autosize=True,
         margin=dict(l=100, r=40, t=60, b=100),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -73,11 +74,11 @@ def create_anisotropy_histogram(similarities, mean_sim, title):
         opacity=0.7
     ))
     fig.add_vline(x=mean_sim, line_dash="dash", line_color="#DC2626",
-                  annotation_text=f"平均: {mean_sim:.3f}")
+                  annotation_text=f"Mean: {mean_sim:.3f}")
     fig.add_vline(x=0, line_dash="dot", line_color="#059669",
-                  annotation_text="理想: 0")
+                  annotation_text="Ideal: 0")
     fig.update_layout(
-        title=title, xaxis_title="余弦相似度", yaxis_title="词对数量",
+        title=title, xaxis_title="Cosine Similarity", yaxis_title="Word Pair Count",
         height=380, autosize=True, xaxis=dict(range=[-0.3, 1.1]),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF'
@@ -92,7 +93,7 @@ def compute_heatmap(text_a, text_b, model_choice):
     
     model_map = {
         "Multilingual MiniLM": "paraphrase-multilingual-MiniLM-L12-v2",
-        "MiniLM-L6 (英文)": "all-MiniLM-L6-v2"
+        "MiniLM-L6 (English)": "all-MiniLM-L6-v2"
     }
     model_id = model_map.get(model_choice, "paraphrase-multilingual-MiniLM-L12-v2")
     
@@ -103,7 +104,7 @@ def compute_heatmap(text_a, text_b, model_choice):
     emb_b = get_batch_embeddings(tokens_b, model_id)
     
     if emb_a is None or emb_b is None:
-        return None, "计算失败", "", "", ""
+        return None, "Computation failed", "", "", ""
     
     # 计算相似度矩阵
     sim_matrix = np.zeros((len(tokens_a), len(tokens_b)))
@@ -127,7 +128,7 @@ def compute_heatmap(text_a, text_b, model_choice):
     max_pair = (tokens_a[max_idx[0]], tokens_b[max_idx[1]])
     max_sim = sim_matrix[max_idx]
     
-    insight = f"**最强语义对齐**: 「{max_pair[0]}」-「{max_pair[1]}」相似度: {max_sim:.4f}"
+    insight = f"**Strongest Alignment**: \"{max_pair[0]}\" - \"{max_pair[1]}\" Similarity: {max_sim:.4f}"
     
     return fig, f"{sentence_sim:.4f}", str(len(tokens_a)), str(len(tokens_b)), insight
 
@@ -137,17 +138,17 @@ def compute_anisotropy_analysis(words_text, model_choice):
     words = [w.strip() for w in words_text.strip().split('\n') if w.strip()]
     
     if len(words) < 5:
-        return None, None, "至少需要 5 个词汇", "", ""
+        return None, None, "At least 5 words required", "", ""
     
     model_map = {
         "Multilingual MiniLM": "paraphrase-multilingual-MiniLM-L12-v2",
-        "MiniLM-L6 (英文)": "all-MiniLM-L6-v2"
+        "MiniLM-L6 (English)": "all-MiniLM-L6-v2"
     }
     model_id = model_map.get(model_choice, "paraphrase-multilingual-MiniLM-L12-v2")
     
     embeddings = get_batch_embeddings(words, model_id)
     if embeddings is None:
-        return None, None, "Embedding 计算失败", "", ""
+        return None, None, "Embedding computation failed", "", ""
     
     mean_sim, std_sim = compute_anisotropy(embeddings, sample_size=min(100, len(embeddings)))
     
@@ -158,7 +159,7 @@ def compute_anisotropy_analysis(words_text, model_choice):
             sim = cosine_similarity(embeddings[i], embeddings[j])
             similarities.append(sim)
     
-    fig1 = create_anisotropy_histogram(similarities, mean_sim, "原始向量 - 词对相似度分布")
+    fig1 = create_anisotropy_histogram(similarities, mean_sim, "Original Vectors - Word Pair Similarity Distribution")
     
     # 白化处理
     whitened = whitening_transform(embeddings)
@@ -170,72 +171,70 @@ def compute_anisotropy_analysis(words_text, model_choice):
             sim = cosine_similarity(whitened[i], whitened[j])
             similarities_w.append(sim)
     
-    fig2 = create_anisotropy_histogram(similarities_w, mean_sim_w, "白化后 - 词对相似度分布")
+    fig2 = create_anisotropy_histogram(similarities_w, mean_sim_w, "After Whitening - Word Pair Similarity Distribution")
     
-    # 分析结果
-    original_info = f"**原始向量**: 平均相似度 {mean_sim:.4f}, 标准差 {std_sim:.4f}"
-    whitened_info = f"**白化后**: 平均相似度 {mean_sim_w:.4f}, 标准差 {std_sim_w:.4f}"
-    
+    # Analysis results
+    original_info = f"**Original Vectors**: Mean Similarity {mean_sim:.4f}, Std {std_sim:.4f}"
+    whitened_info = f"**After Whitening**: Mean Similarity {mean_sim_w:.4f}, Std {std_sim_w:.4f}"
+
     if mean_sim > 0.3:
-        diagnosis = "存在明显的各向异性问题"
+        diagnosis = "Significant anisotropy problem detected"
     elif mean_sim > 0.15:
-        diagnosis = "存在轻微的各向异性"
+        diagnosis = "Mild anisotropy detected"
     else:
-        diagnosis = "各向异性程度较低"
+        diagnosis = "Low anisotropy level"
     
     return fig1, fig2, diagnosis, original_info, whitened_info
 
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## 语义相似度")
-    
+
     with gr.Tabs():
-        # Tab 1: 热力图
-        with gr.Tab("相似度热力图"):
+        # Tab 1: Heatmap
+        with gr.Tab("Similarity Heatmap") as heatmap_tab:
             with gr.Row():
-                text_a = gr.Textbox(label="文本 A", value="我看过这部电影", lines=3)
-                text_b = gr.Textbox(label="文本 B", value="这片子我看过", lines=3)
+                text_a = gr.Textbox(label="Text A", lines=3, placeholder="Enter first text...")
+                text_b = gr.Textbox(label="Text B", lines=3, placeholder="Enter second text...")
             
             with gr.Row():
-                p1 = gr.Button("语序变化", size="sm")
-                p2 = gr.Button("同义替换", size="sm")
-                p3 = gr.Button("中英对照", size="sm")
-                p4 = gr.Button("无关文本", size="sm")
-            
+                p1 = gr.Button("Word Order", size="sm")
+                p2 = gr.Button("Synonym", size="sm")
+                p3 = gr.Button("Cross-lingual", size="sm")
+                p4 = gr.Button("Unrelated", size="sm")
+
             model_hm = gr.Dropdown(
-                choices=["Multilingual MiniLM", "MiniLM-L6 (英文)"],
-                label="Embedding 模型", value="Multilingual MiniLM"
+                choices=["Multilingual MiniLM", "MiniLM-L6 (English)"],
+                label="Embedding Model", value="Multilingual MiniLM"
             )
-            
+
             heatmap = gr.Plot()
-            
+
             with gr.Row():
-                sent_sim = gr.Textbox(label="句子级相似度", interactive=False)
-                tokens_a_count = gr.Textbox(label="文本 A Token 数", interactive=False)
-                tokens_b_count = gr.Textbox(label="文本 B Token 数", interactive=False)
+                sent_sim = gr.Textbox(label="Sentence Similarity", interactive=False)
+                tokens_a_count = gr.Textbox(label="Text A Token Count", interactive=False)
+                tokens_b_count = gr.Textbox(label="Text B Token Count", interactive=False)
             
             insight_md = gr.Markdown("")
         
-        # Tab 2: 各向异性
-        with gr.Tab("各向异性分析"):
+        # Tab 2: Anisotropy
+        with gr.Tab("Anisotropy Analysis") as anisotropy_tab:
             words_input = gr.Textbox(
-                label="输入词汇（每行一个）",
-                value="苹果\n汽车\n音乐\n电脑\n咖啡\n书籍\n天空\n海洋\n山峰\n河流",
+                label="Input Words (one per line)",
+                placeholder="apple\ncar\nmusic\ncomputer\ncoffee",
                 lines=8
             )
             
             model_an = gr.Dropdown(
-                choices=["Multilingual MiniLM", "MiniLM-L6 (英文)"],
-                label="Embedding 模型", value="Multilingual MiniLM"
+                choices=["Multilingual MiniLM", "MiniLM-L6 (English)"],
+                label="Embedding Model", value="Multilingual MiniLM"
             )
-            
+
             diagnosis_md = gr.Markdown("")
-            
+
             with gr.Row():
-                fig_original = gr.Plot(label="原始向量")
-                fig_whitened = gr.Plot(label="白化处理后")
+                fig_original = gr.Plot(label="Original Vectors")
+                fig_whitened = gr.Plot(label="After Whitening")
             
             with gr.Row():
                 original_info = gr.Markdown("")
@@ -282,7 +281,20 @@ def render():
             inputs=[words_input, model_an],
             outputs=[fig_original, fig_whitened, diagnosis_md, original_info, whitened_info]
         )
-    
+
+    # Re-render plots when tab becomes visible to fix width issues
+    heatmap_tab.select(
+        fn=compute_heatmap,
+        inputs=[text_a, text_b, model_hm],
+        outputs=[heatmap, sent_sim, tokens_a_count, tokens_b_count, insight_md]
+    )
+
+    anisotropy_tab.select(
+        fn=compute_anisotropy_analysis,
+        inputs=[words_input, model_an],
+        outputs=[fig_original, fig_whitened, diagnosis_md, original_info, whitened_info]
+    )
+
     # 初始化加载函数
     def on_load():
         """页面加载时计算默认值"""

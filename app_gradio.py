@@ -5,23 +5,48 @@ LLM Tools Workbench - Gradio 版本
 
 import gradio as gr
 
-# 自定义 CSS 样式
+# 自定义 CSS 样式 - HuggingFace Style
 CUSTOM_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 :root {
-    --color-accent: #2563EB;
-    --color-accent-light: #DBEAFE;
-    --color-success: #059669;
-    --color-warning: #D97706;
-    --color-error: #DC2626;
-    --font-mono: 'JetBrains Mono', monospace;
+    --color-accent: #FF9D00;
+    --color-accent-light: #FFF7ED;
+    --color-accent-dark: #EA580C;
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+    --color-info: #3B82F6;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --hf-yellow: #FFD21E;
+    --hf-orange: #FF9D00;
 }
 
-/* 全局样式 */
+/* 全局样式 - HuggingFace Style */
 .gradio-container {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     max-width: 1400px !important;
+}
+
+/* HuggingFace 风格头部 */
+.main-header {
+    background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid #FED7AA;
+}
+
+/* 主要按钮 - HF 橙色 */
+button.primary {
+    background: linear-gradient(135deg, #FF9D00 0%, #EA580C 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+button.primary:hover {
+    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
 }
 
 /* 标题样式 */
@@ -79,8 +104,8 @@ CUSTOM_CSS = """
 
 .stat-value {
     font-size: 2rem;
-    font-weight: 600;
-    color: var(--color-accent);
+    font-weight: 700;
+    color: #FF9D00;
     font-family: var(--font-mono);
 }
 
@@ -93,13 +118,23 @@ CUSTOM_CSS = """
     letter-spacing: 0.05em;
 }
 
-/* Tab 样式增强 */
+/* Tab 样式增强 - HuggingFace Style */
 .tab-nav button {
-    font-weight: 500 !important;
+    font-weight: 600 !important;
+    color: #6B7280 !important;
+    border-radius: 8px 8px 0 0 !important;
+    transition: all 0.2s ease !important;
+}
+
+.tab-nav button:hover {
+    color: #FF9D00 !important;
+    background: #FFF7ED !important;
 }
 
 .tab-nav button.selected {
-    border-bottom: 2px solid var(--color-accent) !important;
+    border-bottom: 3px solid #FF9D00 !important;
+    color: #FF9D00 !important;
+    background: #FFF7ED !important;
 }
 
 /* 信息面板 */
@@ -110,11 +145,18 @@ CUSTOM_CSS = """
     padding: 16px;
 }
 
-/* 按钮样式 */
+/* 按钮样式 - HuggingFace Orange */
 .primary-btn {
-    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    background: linear-gradient(135deg, #FF9D00 0%, #EA580C 100%) !important;
     border: none !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
+    color: white !important;
+}
+
+.primary-btn:hover {
+    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 157, 0, 0.3);
 }
 
 /* 预设按钮组 */
@@ -137,10 +179,10 @@ CUSTOM_CSS = """
     font-family: var(--font-mono);
 }
 
-/* 提示框 */
+/* 提示框 - HuggingFace Style */
 .tip-box {
-    background: #DBEAFE;
-    border-left: 4px solid #2563EB;
+    background: #FFF7ED;
+    border-left: 4px solid #FF9D00;
     padding: 12px 16px;
     border-radius: 0 8px 8px 0;
     margin: 16px 0;
@@ -178,6 +220,81 @@ CUSTOM_CSS = """
 .token-color-9 { background-color: #A7F3D0; }
 .token-color-10 { background-color: #FFEDD5; }
 .token-color-11 { background-color: #E2E8F0; }
+
+/* 隐藏 Gradio 默认页脚 */
+footer {
+    display: none !important;
+}
+
+/* 修复按钮在 Row 中的背景问题 */
+.row > .block {
+    background: transparent !important;
+}
+
+/* 确保主要按钮样式正确 */
+button.primary, button[variant="primary"] {
+    background: linear-gradient(135deg, #FF9D00 0%, #EA580C 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+button.primary:hover, button[variant="primary"]:hover {
+    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(255, 157, 0, 0.3) !important;
+}
+
+/* Group 容器样式优化 */
+.group {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* 表格样式优化 - 移除橙色边框 */
+table {
+    border-collapse: collapse !important;
+}
+
+table th, table td {
+    border-color: #E5E7EB !important;
+}
+
+/* Markdown 表格样式 */
+.prose table {
+    border: 1px solid #E5E7EB !important;
+}
+
+.prose th, .prose td {
+    border: 1px solid #E5E7EB !important;
+    padding: 8px 12px !important;
+}
+
+/* Dataframe 样式优化 */
+.dataframe {
+    border: 1px solid #E5E7EB !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+/* HTML 组件内的表格 */
+.html-container table {
+    border: none !important;
+}
+
+/* 输入框边框颜色 - 非聚焦状态 */
+input, textarea, select {
+    border-color: #D1D5DB !important;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: #FF9D00 !important;
+    box-shadow: 0 0 0 3px rgba(255, 157, 0, 0.1) !important;
+}
 """
 
 # Token 颜色列表
@@ -186,28 +303,82 @@ TOKEN_COLORS = [
     "#CFFAFE", "#FECDD3", "#DDD6FE", "#A7F3D0", "#FFEDD5", "#E2E8F0"
 ]
 
-# 自定义主题
+# 自定义主题 - HuggingFace Style
 CUSTOM_THEME = gr.themes.Soft(
-    primary_hue="blue",
-    secondary_hue="slate",
-    neutral_hue="slate",
-    font=[gr.themes.GoogleFont("Inter"), "system-ui", "sans-serif"],
-    font_mono=[gr.themes.GoogleFont("JetBrains Mono"), "monospace"],
+    primary_hue="orange",
+    secondary_hue="gray",
+    neutral_hue="gray",
+    font=[gr.themes.GoogleFont("Source Sans Pro"), "system-ui", "sans-serif"],
+    font_mono=[gr.themes.GoogleFont("IBM Plex Mono"), "monospace"],
+    radius_size="md",
+    spacing_size="md",
+).set(
+    # 主要颜色
+    button_primary_background_fill="linear-gradient(135deg, #FF9D00 0%, #EA580C 100%)",
+    button_primary_background_fill_hover="linear-gradient(135deg, #EA580C 0%, #C2410C 100%)",
+    button_primary_text_color="white",
+    button_primary_border_color="transparent",
+
+    # 输入框聚焦颜色
+    input_border_color_focus="#FF9D00",
+
+    # 滑块颜色
+    slider_color="#FF9D00",
+
+    # 复选框颜色
+    checkbox_background_color_selected="#FF9D00",
+    checkbox_border_color_selected="#FF9D00",
+
+    # 区块样式
+    block_title_text_weight="600",
+    block_label_text_weight="500",
 )
 
 
 def create_app():
     """创建 Gradio 应用"""
-    
+
     # 收集所有需要初始化的 load 事件
     load_events = []
-    
-    with gr.Blocks(title="LLM Tools Workbench") as app:
-        
-        # 标题
-        gr.Markdown("""
-        # LLM Tools Workbench
-        <p style="color: #6B7280; margin-top: -8px;">everything for LLMs</p>
+
+    with gr.Blocks(
+        title="LLM Tools Workbench",
+        analytics_enabled=False
+    ) as app:
+
+        # 标题 - HuggingFace Style Header
+        gr.HTML("""
+        <div style="
+            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+            border-radius: 12px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            border: 1px solid #FED7AA;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        ">
+            <div style="
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(135deg, #FF9D00 0%, #EA580C 100%);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+            ">
+                <span style="filter: brightness(0) invert(1);">&#x1F9E0;</span>
+            </div>
+            <div>
+                <h1 style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1F2937;">
+                    LLM Tools Workbench
+                </h1>
+                <p style="margin: 4px 0 0 0; color: #6B7280; font-size: 1rem;">
+                    Interactive tools for exploring Large Language Models
+                </p>
+            </div>
+        </div>
         """)
         
         # 主 Tab 导航
@@ -218,16 +389,16 @@ def create_app():
                 from token_lab import playground, arena, chat_builder
                 
                 with gr.Tabs() as token_tabs:
-                    with gr.Tab("分词编码", id="playground"):
+                    with gr.Tab("Playground", id="playground"):
                         result = playground.render()
                         if result:
                             load_events.append(result)
-                    
-                    with gr.Tab("模型对比", id="arena"):
+
+                    with gr.Tab("Arena", id="arena"):
                         result = arena.render()
                         if result:
                             load_events.append(result)
-                    
+
                     with gr.Tab("Chat Template", id="chat"):
                         chat_builder.render()
             
@@ -241,22 +412,22 @@ def create_app():
                 )
                 
                 with gr.Tabs() as embed_tabs:
-                    with gr.Tab("向量运算", id="vector_arithmetic"):
+                    with gr.Tab("Vector Arithmetic", id="vector_arithmetic"):
                         result = vector_arithmetic.render()
                         if result:
                             load_events.append(result)
-                    
-                    with gr.Tab("模型对比", id="model_comparison"):
+
+                    with gr.Tab("Model Comparison", id="model_comparison"):
                         result = model_comparison.render()
                         if result:
                             load_events.append(result)
-                    
-                    with gr.Tab("向量可视化", id="vector_viz"):
+
+                    with gr.Tab("Visualization", id="vector_viz"):
                         result = vector_visualization.render()
                         if result:
                             load_events.append(result)
-                    
-                    with gr.Tab("语义相似度", id="semantic_sim"):
+
+                    with gr.Tab("Semantic Similarity", id="semantic_sim"):
                         result = semantic_similarity.render()
                         if result:
                             load_events.append(result)
@@ -298,11 +469,11 @@ def create_app():
                         result = attention_map.render()
                         if result:
                             load_events.append(result)
-                    
-                    with gr.Tab("RoPE 探索", id="rope"):
+
+                    with gr.Tab("RoPE Explorer", id="rope"):
                         rope_explorer.render()
-                    
-                    with gr.Tab("FFN 激活", id="ffn"):
+
+                    with gr.Tab("FFN Activation", id="ffn"):
                         result = ffn_activation.render()
                         if result:
                             load_events.append(result)
@@ -318,11 +489,11 @@ def create_app():
                 with gr.Tabs() as data_tabs:
                     with gr.Tab("Dataset Viewer", id="dataset"):
                         hf_dataset_viewer.render()
-                    
-                    with gr.Tab("数据清洗", id="cleaner"):
+
+                    with gr.Tab("Data Cleaner", id="cleaner"):
                         cleaner_playground.render()
-                    
-                    with gr.Tab("格式转换", id="formatter"):
+
+                    with gr.Tab("Format Converter", id="formatter"):
                         instruct_formatter.render()
             
             # ==================== ModelLab ====================
@@ -334,28 +505,21 @@ def create_app():
                 )
                 
                 with gr.Tabs() as model_tabs:
-                    with gr.Tab("显存估算", id="memory"):
+                    with gr.Tab("Memory Estimator", id="memory"):
                         result = memory_estimator.render()
                         if result:
                             load_events.append(result)
-                    
-                    with gr.Tab("PEFT 计算器", id="peft"):
+
+                    with gr.Tab("PEFT Calculator", id="peft"):
                         result = peft_calculator.render()
                         if result:
                             load_events.append(result)
-                    
-                    with gr.Tab("Config 对比", id="config"):
+
+                    with gr.Tab("Config Diff", id="config"):
                         result = config_diff.render()
                         if result:
                             load_events.append(result)
         
-        # 页脚
-        gr.Markdown("""
-        ---
-        <div style="text-align: center; color: #9CA3AF; font-size: 0.875rem;">
-            LLM Tools Workbench | Built with Gradio
-        </div>
-        """)
         
         # 页面加载时执行所有初始化函数
         if load_events:
@@ -392,6 +556,6 @@ if __name__ == "__main__":
         server_port=7860,
         share=False,
         show_error=True,
-        css=CUSTOM_CSS,
-        theme=CUSTOM_THEME
+        theme=CUSTOM_THEME,
+        css=CUSTOM_CSS
     )

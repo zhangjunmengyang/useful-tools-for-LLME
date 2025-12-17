@@ -12,14 +12,6 @@ from model_lab.model_utils import extract_from_url
 
 # 按厂商/系列分类的预设模型
 MODEL_CATEGORIES = {
-    "Meta (Llama)": {
-        "models": [
-            ("Llama-2-7B", "meta-llama/Llama-2-7b-hf"),
-            ("Llama-3.1-8B", "meta-llama/Llama-3.1-8B"),
-            ("Llama-3.2-3B", "meta-llama/Llama-3.2-3B"),
-            ("Llama-4-Scout-17B", "meta-llama/Llama-4-Scout-17B-16E-Instruct"),
-        ],
-    },
     "Alibaba (Qwen)": {
         "models": [
             ("Qwen2.5-7B", "Qwen/Qwen2.5-7B"),
@@ -55,25 +47,25 @@ MODEL_CATEGORIES = {
 
 # 关键配置项说明
 KEY_DESCRIPTIONS = {
-    "hidden_size": "隐藏层维度",
-    "num_hidden_layers": "Transformer 层数",
-    "num_attention_heads": "注意力头数 (Q)",
-    "num_key_value_heads": "KV 头数 (GQA)",
-    "intermediate_size": "FFN 中间维度",
-    "max_position_embeddings": "最大位置编码",
+    "hidden_size": "Hidden Dimension",
+    "num_hidden_layers": "Transformer Layers",
+    "num_attention_heads": "Attention Heads (Q)",
+    "num_key_value_heads": "KV Heads (GQA)",
+    "intermediate_size": "FFN Intermediate Size",
+    "max_position_embeddings": "Max Position Embeddings",
     "rope_theta": "RoPE Base",
-    "vocab_size": "词表大小",
-    "sliding_window": "滑动窗口大小",
-    "head_dim": "注意力头维度",
+    "vocab_size": "Vocabulary Size",
+    "sliding_window": "Sliding Window Size",
+    "head_dim": "Head Dimension",
     "rms_norm_eps": "RMSNorm epsilon",
-    "tie_word_embeddings": "共享词嵌入",
-    "torch_dtype": "默认精度",
-    "architectures": "模型架构",
-    "model_type": "模型类型",
-    "hidden_act": "激活函数",
-    "attention_dropout": "注意力 Dropout",
-    "attention_bias": "注意力偏置",
-    "mlp_bias": "MLP 偏置",
+    "tie_word_embeddings": "Tie Word Embeddings",
+    "torch_dtype": "Default Dtype",
+    "architectures": "Architecture",
+    "model_type": "Model Type",
+    "hidden_act": "Activation Function",
+    "attention_dropout": "Attention Dropout",
+    "attention_bias": "Attention Bias",
+    "mlp_bias": "MLP Bias",
 }
 
 # 重点展示的配置项
@@ -184,48 +176,48 @@ def load_configs(
     global _config_cache
     
     # 获取模型 A
-    if mode_a == "预设模型":
+    if mode_a == "Preset Model":
         model_a_id = get_model_id(cat_a, preset_a)
         display_a = preset_a
     else:
         model_a_id = custom_a
         display_a = custom_a.split("/")[-1] if custom_a else None
-    
+
     # 获取模型 B
-    if mode_b == "预设模型":
+    if mode_b == "Preset Model":
         model_b_id = get_model_id(cat_b, preset_b)
         display_b = preset_b
     else:
         model_b_id = custom_b
         display_b = custom_b.split("/")[-1] if custom_b else None
-    
+
     if not model_a_id or not model_b_id:
-        return "请选择两个模型进行对比", None, "", "", ""
-    
+        return "Please select two models to compare", None, "", "", ""
+
     try:
-        progress(0.3, desc=f"加载 {display_a} 配置...")
+        progress(0.3, desc=f"Loading {display_a} config...")
         config_a = load_config_from_hub(model_a_id, token_a)
-        
-        progress(0.6, desc=f"加载 {display_b} 配置...")
+
+        progress(0.6, desc=f"Loading {display_b} config...")
         config_b = load_config_from_hub(model_b_id, token_b)
-        
+
         _config_cache['config_a'] = config_a
         _config_cache['config_b'] = config_b
         _config_cache['display_a'] = display_a
         _config_cache['display_b'] = display_b
-        
-        return "配置加载成功", None, "", "", ""
-        
+
+        return "Configuration loaded successfully", None, "", "", ""
+
     except Exception as e:
-        return f"加载失败: {str(e)}", None, "", "", ""
+        return f"Load failed: {str(e)}", None, "", "", ""
 
 
 def generate_comparison(show_all: bool):
     """生成配置对比"""
     config_a = _config_cache.get('config_a')
     config_b = _config_cache.get('config_b')
-    display_a = _config_cache.get('display_a', '模型 A')
-    display_b = _config_cache.get('display_b', '模型 B')
+    display_a = _config_cache.get('display_a', 'Model A')
+    display_b = _config_cache.get('display_b', 'Model B')
     
     if not config_a or not config_b:
         return None, "", "", ""
@@ -250,11 +242,11 @@ def generate_comparison(show_all: bool):
         is_diff = val_a != val_b
         
         diff_data.append({
-            "配置项": key,
-            "说明": KEY_DESCRIPTIONS.get(key, ""),
+            "Config Key": key,
+            "Description": KEY_DESCRIPTIONS.get(key, ""),
             display_a: val_a_str,
             display_b: val_b_str,
-            "差异": "Yes" if is_diff else ""
+            "Diff": "Yes" if is_diff else ""
         })
     
     df = pd.DataFrame(diff_data)
@@ -275,154 +267,152 @@ def generate_comparison(show_all: bool):
 def generate_analysis(config_a: dict, config_b: dict, name_a: str, name_b: str) -> str:
     """生成关键差异分析"""
     analysis_parts = []
-    
+
     # GQA 分析
     gqa_a = config_a.get("num_key_value_heads", config_a.get("num_attention_heads"))
     gqa_b = config_b.get("num_key_value_heads", config_b.get("num_attention_heads"))
     heads_a = config_a.get("num_attention_heads", 32)
     heads_b = config_b.get("num_attention_heads", 32)
-    
+
     def get_attention_type(gqa, heads):
         if not gqa or not heads:
-            return "未知"
+            return "Unknown"
         if gqa == heads:
             return "MHA (Multi-Head Attention)"
         elif gqa == 1:
             return "MQA (Multi-Query Attention)"
         else:
             ratio = heads // gqa if gqa else 1
-            return f"GQA (KV 头数压缩 {ratio}x)"
-    
+            return f"GQA (KV heads compressed {ratio}x)"
+
     analysis_parts.append(f"""
-**注意力机制:**
+**Attention Mechanism:**
 - {name_a}: {get_attention_type(gqa_a, heads_a)}
 - {name_b}: {get_attention_type(gqa_b, heads_b)}
     """)
-    
+
     # RoPE 分析
     rope_a = config_a.get("rope_theta")
     rope_b = config_b.get("rope_theta")
-    
+
     if rope_a and rope_b and rope_a != rope_b:
         analysis_parts.append(f"""
-**RoPE Base 差异:**
+**RoPE Base Difference:**
 - {name_a}: `{rope_a:,}`
 - {name_b}: `{rope_b:,}`
-- 更大的 base 支持更长的上下文外推
+- Larger base supports longer context extrapolation
         """)
-    
+
     return "\n".join(analysis_parts)
 
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## Config 差异对比")
-    
+
     # 默认值
-    default_cat_a = "Meta (Llama)"
-    default_model_a = "Llama-2-7B"
-    default_cat_b = "Meta (Llama)"
-    default_model_b = "Llama-3.1-8B"
+    default_cat_a = "Alibaba (Qwen)"
+    default_model_a = "Qwen2.5-7B"
+    default_cat_b = "Alibaba (Qwen)"
+    default_model_b = "Qwen3-8B"
     
     with gr.Row():
         # 模型 A 选择
         with gr.Column():
-            gr.Markdown("### 模型 A")
-            
+            gr.Markdown("### Model A")
+
             mode_a = gr.Radio(
-                label="输入方式",
-                choices=["预设模型", "自定义模型"],
-                value="预设模型"
+                label="Input Method",
+                choices=["Preset Model", "Custom Model"],
+                value="Preset Model"
             )
-            
+
             cat_a = gr.Dropdown(
-                label="选择厂商",
+                label="Select Vendor",
                 choices=list(MODEL_CATEGORIES.keys()),
                 value=default_cat_a
             )
-            
+
             preset_a = gr.Dropdown(
-                label="选择模型",
+                label="Select Model",
                 choices=get_model_list(default_cat_a),
                 value=default_model_a
             )
-            
+
             custom_a = gr.Textbox(
-                label="模型名称或 URL",
-                placeholder="例如: meta-llama/Llama-2-7b-hf",
+                label="Model Name or URL",
+                placeholder="e.g., meta-llama/Llama-2-7b-hf",
                 visible=False
             )
-            
+
             token_a = gr.Textbox(
-                label="HF Token (可选)",
+                label="HF Token (Optional)",
                 type="password"
             )
         
         # 模型 B 选择
         with gr.Column():
-            gr.Markdown("### 模型 B")
-            
+            gr.Markdown("### Model B")
+
             mode_b = gr.Radio(
-                label="输入方式",
-                choices=["预设模型", "自定义模型"],
-                value="预设模型"
+                label="Input Method",
+                choices=["Preset Model", "Custom Model"],
+                value="Preset Model"
             )
-            
+
             cat_b = gr.Dropdown(
-                label="选择厂商",
+                label="Select Vendor",
                 choices=list(MODEL_CATEGORIES.keys()),
                 value=default_cat_b
             )
-            
+
             preset_b = gr.Dropdown(
-                label="选择模型",
+                label="Select Model",
                 choices=get_model_list(default_cat_b),
                 value=default_model_b
             )
-            
+
             custom_b = gr.Textbox(
-                label="模型名称或 URL",
-                placeholder="例如: meta-llama/Llama-2-7b-hf",
+                label="Model Name or URL",
+                placeholder="e.g., meta-llama/Llama-2-7b-hf",
                 visible=False
             )
-            
+
             token_b = gr.Textbox(
-                label="HF Token (可选)",
+                label="HF Token (Optional)",
                 type="password"
             )
     
     gr.Markdown("---")
-    
-    show_all = gr.Checkbox(label="显示全部配置项", value=False)
-    
+
+    show_all = gr.Checkbox(label="Show All Config Items", value=False)
+
     load_status = gr.Markdown("")
-    
+
     # 结果区域
-    gr.Markdown("### 配置对比")
-    diff_table = gr.Dataframe(label="对比表格")
-    
-    gr.Markdown("### 关键差异分析")
+    gr.Markdown("### Configuration Comparison")
+    diff_table = gr.Dataframe(label="Comparison Table")
+
+    gr.Markdown("### Key Difference Analysis")
     analysis_text = gr.Markdown("")
-    
-    gr.Markdown("### 参数量估算")
+
+    gr.Markdown("### Parameter Estimation")
     with gr.Row():
-        params_a_display = gr.Textbox(label="模型 A 估算参数", interactive=False)
-        params_b_display = gr.Textbox(label="模型 B 估算参数", interactive=False)
+        params_a_display = gr.Textbox(label="Model A Est. Parameters", interactive=False)
+        params_b_display = gr.Textbox(label="Model B Est. Parameters", interactive=False)
     
     # 事件绑定
     def toggle_mode_a(mode):
         return (
-            gr.update(visible=(mode == "预设模型")),
-            gr.update(visible=(mode == "预设模型")),
-            gr.update(visible=(mode != "预设模型"))
+            gr.update(visible=(mode == "Preset Model")),
+            gr.update(visible=(mode == "Preset Model")),
+            gr.update(visible=(mode != "Preset Model"))
         )
-    
+
     def toggle_mode_b(mode):
         return (
-            gr.update(visible=(mode == "预设模型")),
-            gr.update(visible=(mode == "预设模型")),
-            gr.update(visible=(mode != "预设模型"))
+            gr.update(visible=(mode == "Preset Model")),
+            gr.update(visible=(mode == "Preset Model")),
+            gr.update(visible=(mode != "Preset Model"))
         )
     
     def update_models_a(cat):
@@ -445,7 +435,7 @@ def render():
             mode_a, cat_a, preset_a, custom_a, token_a,
             mode_b, cat_b, preset_b, custom_b, token_b
         )
-        if "成功" in status:
+        if "successfully" in status:
             df, analysis, params_a, params_b = generate_comparison(show_all)
             return status, df, analysis, params_a, params_b
         return status, None, "", "", ""
@@ -469,8 +459,8 @@ def render():
     # 初始化加载函数
     def on_load():
         """页面加载时计算默认值"""
-        return on_load_and_compare("预设模型", default_cat_a, default_model_a, "", "", 
-                                   "预设模型", default_cat_b, default_model_b, "", "", False)
+        return on_load_and_compare("Preset Model", default_cat_a, default_model_a, "", "",
+                                   "Preset Model", default_cat_b, default_model_b, "", "", False)
     
     # 返回 load 事件需要的信息供主 app 调用
     return {

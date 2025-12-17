@@ -68,27 +68,27 @@ def render_length_distribution(df: pd.DataFrame, field: str) -> go.Figure:
         nbinsx=30,
         marker_color='#2563EB',
         opacity=0.8,
-        name='分布'
+        name='Distribution'
     ))
-    
+
     fig.add_vline(x=mean_val, line_dash="dash", line_color="#DC2626", line_width=2)
     fig.add_vline(x=median_val, line_dash="dot", line_color="#059669", line_width=2)
-    
+
     fig.add_trace(go.Scatter(
         x=[None], y=[None], mode='lines',
         line=dict(dash='dash', color='#DC2626', width=2),
-        name=f'平均: {mean_val:.0f}'
+        name=f'Mean: {mean_val:.0f}'
     ))
     fig.add_trace(go.Scatter(
         x=[None], y=[None], mode='lines',
         line=dict(dash='dot', color='#059669', width=2),
-        name=f'中位数: {median_val:.0f}'
+        name=f'Median: {median_val:.0f}'
     ))
-    
+
     fig.update_layout(
-        title=f"'{field}' 长度分布",
-        xaxis_title="字符长度",
-        yaxis_title="样本数",
+        title=f"'{field}' Length Distribution",
+        xaxis_title="Character Length",
+        yaxis_title="Sample Count",
         height=400,
         autosize=True,
         margin=dict(l=50, r=50, t=80, b=50),
@@ -110,27 +110,27 @@ def render_word_count_distribution(df: pd.DataFrame, field: str) -> go.Figure:
         nbinsx=30,
         marker_color='#7C3AED',
         opacity=0.8,
-        name='分布'
+        name='Distribution'
     ))
-    
+
     fig.add_vline(x=mean_val, line_dash="dash", line_color="#DC2626", line_width=2)
     fig.add_vline(x=median_val, line_dash="dot", line_color="#059669", line_width=2)
-    
+
     fig.add_trace(go.Scatter(
         x=[None], y=[None], mode='lines',
         line=dict(dash='dash', color='#DC2626', width=2),
-        name=f'平均: {mean_val:.0f}'
+        name=f'Mean: {mean_val:.0f}'
     ))
     fig.add_trace(go.Scatter(
         x=[None], y=[None], mode='lines',
         line=dict(dash='dot', color='#059669', width=2),
-        name=f'中位数: {median_val:.0f}'
+        name=f'Median: {median_val:.0f}'
     ))
-    
+
     fig.update_layout(
-        title=f"'{field}' 词数分布 (空格分词)",
-        xaxis_title="词数",
-        yaxis_title="样本数",
+        title=f"'{field}' Word Count Distribution (space-separated)",
+        xaxis_title="Word Count",
+        yaxis_title="Sample Count",
         height=400,
         autosize=True,
         margin=dict(l=50, r=50, t=80, b=50),
@@ -155,28 +155,28 @@ def render_field_stats_chart(field_stats: List[Dict]) -> Optional[go.Figure]:
     fig = go.Figure()
     
     fig.add_trace(go.Bar(
-        name='平均长度',
+        name='Average Length',
         x=names,
         y=avg_lengths,
         marker_color='#2563EB',
         yaxis='y',
         offsetgroup=0
     ))
-    
+
     fig.add_trace(go.Bar(
-        name='空值率 (%)',
+        name='Null Rate (%)',
         x=names,
         y=null_rates,
         marker_color='#DC2626',
         yaxis='y2',
         offsetgroup=1
     ))
-    
+
     fig.update_layout(
-        title="字段统计汇总",
-        xaxis_title="字段",
-        yaxis=dict(title="平均长度 (字符)", side='left'),
-        yaxis2=dict(title="空值率 (%)", side='right', overlaying='y', range=[0, 100]),
+        title="Field Statistics Summary",
+        xaxis_title="Field",
+        yaxis=dict(title="Average Length (chars)", side='left'),
+        yaxis2=dict(title="Null Rate (%)", side='right', overlaying='y', range=[0, 100]),
         barmode='group',
         height=450,
         autosize=True,
@@ -234,7 +234,7 @@ def load_dataset_samples(dataset_id: str, config_name: str, split: str, num_samp
         if config_name and config_name.strip():
             load_kwargs["name"] = config_name.strip()
         
-        progress(0.1, desc="正在连接数据集...")
+        progress(0.1, desc="Connecting to dataset...")
         
         try:
             ds = load_dataset(**load_kwargs)
@@ -249,10 +249,10 @@ def load_dataset_samples(dataset_id: str, config_name: str, split: str, num_samp
                 break
             samples.append(item)
             if i % 10 == 0:
-                progress((i + 1) / num_samples, desc=f"已加载 {i + 1}/{num_samples} 样本...")
-        
+                progress((i + 1) / num_samples, desc=f"Loaded {i + 1}/{num_samples} samples...")
+
         if not samples:
-            return None, "未能加载任何样本"
+            return None, "Failed to load any samples"
         
         # 计算字段统计
         fields = list(samples[0].keys())
@@ -267,19 +267,19 @@ def load_dataset_samples(dataset_id: str, config_name: str, split: str, num_samp
         _dataset_cache['field_stats'] = field_stats
         _dataset_cache['dataset_id'] = dataset_id
         
-        return samples, f"成功加载 {len(samples)} 条样本"
-        
+        return samples, f"Successfully loaded {len(samples)} samples"
+
     except ImportError:
-        return None, "请确保已安装 datasets 库: pip install datasets"
+        return None, "Please ensure datasets library is installed: pip install datasets"
     except Exception as e:
-        return None, f"加载失败: {str(e)}"
+        return None, f"Loading failed: {str(e)}"
 
 
 def get_sample_display(sample_idx: int):
     """获取单个样本的显示内容"""
     samples = _dataset_cache.get('samples')
     if not samples:
-        return "<div style='height: 500px; display: flex; align-items: center; justify-content: center; color: #6b7280;'>请先加载数据集</div>", "{}"
+        return "<div style='height: 500px; display: flex; align-items: center; justify-content: center; color: #6b7280;'>Please load a dataset first</div>", "{}"
     
     sample_idx = max(0, min(sample_idx, len(samples) - 1))
     sample = samples[sample_idx]
@@ -356,21 +356,21 @@ def get_statistics_data():
             preview = str(sample_val)
         
         field_info.append({
-            '字段名': field,
-            '类型': val_type,
-            '示例值': preview
+            'Field Name': field,
+            'Type': val_type,
+            'Sample Value': preview
         })
     
     # 统计表
     stats_data = []
     for s in field_stats:
         stats_data.append({
-            '字段': s['name'],
-            '类型': s['type'],
-            '空值数': s['null_count'],
-            '平均长度/值': f"{s['avg_length']:.0f}" if s['avg_length'] > 0 else '-',
-            '最小': f"{s['min_length']:.0f}" if s['min_length'] > 0 else '-',
-            '最大': f"{s['max_length']:.0f}" if s['max_length'] > 0 else '-'
+            'Field': s['name'],
+            'Type': s['type'],
+            'Null Count': s['null_count'],
+            'Avg Length/Value': f"{s['avg_length']:.0f}" if s['avg_length'] > 0 else '-',
+            'Min': f"{s['min_length']:.0f}" if s['min_length'] > 0 else '-',
+            'Max': f"{s['max_length']:.0f}" if s['max_length'] > 0 else '-'
         })
     
     return pd.DataFrame(field_info), pd.DataFrame(stats_data), render_field_stats_chart(field_stats)
@@ -391,15 +391,15 @@ def get_distribution_data(field: str):
     word_counts = df[field].astype(str).str.split().str.len()
     
     stats_text = f"""
-    **详细统计**
-    - 平均字符数: {lengths.mean():.0f}
-    - 中位数字符数: {lengths.median():.0f}
-    - 平均词数: {word_counts.mean():.0f}
-    - 最长样本: {lengths.max():.0f} 字符
-    
-    **Token 数估算** (粗略估算)
-    - 英文模型: ~{lengths.mean() / 4:.0f} tokens
-    - 中文模型: ~{lengths.mean() / 1.5:.0f} tokens
+    **Detailed Statistics**
+    - Average character count: {lengths.mean():.0f}
+    - Median character count: {lengths.median():.0f}
+    - Average word count: {word_counts.mean():.0f}
+    - Longest sample: {lengths.max():.0f} characters
+
+    **Token Count Estimate** (rough estimate)
+    - English model: ~{lengths.mean() / 4:.0f} tokens
+    - Chinese model: ~{lengths.mean() / 1.5:.0f} tokens
     """
     
     return render_length_distribution(df, field), render_word_count_distribution(df, field), stats_text
@@ -423,25 +423,25 @@ def get_quality_data():
     dup_rate = quality['duplicate_count'] / quality['total_samples'] * 100
     
     summary = f"""
-    **数据概览**
-    - 总样本数: {quality['total_samples']}
-    - 重复样本: {quality['duplicate_count']} ({dup_rate:.1f}%)
-    - 健康度评分: {health_score:.0f}/100
+    **Data Overview**
+    - Total samples: {quality['total_samples']}
+    - Duplicate samples: {quality['duplicate_count']} ({dup_rate:.1f}%)
+    - Health score: {health_score:.0f}/100
     """
     
     # 字段质量表
     quality_data = []
     for field, field_quality in quality['fields'].items():
         row = {
-            '字段': field,
-            '空值数': field_quality['null_count'],
-            '空值率': f"{field_quality['null_rate']:.1f}%",
-            '空字符串': field_quality['empty_string_count']
+            'Field': field,
+            'Null Count': field_quality['null_count'],
+            'Null Rate': f"{field_quality['null_rate']:.1f}%",
+            'Empty Strings': field_quality['empty_string_count']
         }
         if 'very_short' in field_quality:
-            row['过短(<10字符)'] = field_quality['very_short']
+            row['Too Short (<10 chars)'] = field_quality['very_short']
         if 'very_long' in field_quality:
-            row['过长(>10k字符)'] = field_quality['very_long']
+            row['Too Long (>10k chars)'] = field_quality['very_long']
         quality_data.append(row)
     
     # 问题样本
@@ -456,7 +456,7 @@ def get_quality_data():
                 problem_samples.append({
                     'index': idx,
                     'field': field,
-                    'issue': '内容过短或为空',
+                    'issue': 'Content too short or empty',
                     'value': str(df.loc[idx, field])[:100]
                 })
     
@@ -475,19 +475,17 @@ def get_string_fields():
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## Dataset Viewer")
-    
+
     # 数据集配置区
     with gr.Group():
         with gr.Row():
             dataset_id = gr.Textbox(
                 label="Dataset ID",
                 value="tatsu-lab/alpaca",
-                placeholder="例如: tatsu-lab/alpaca, databricks/dolly-15k"
+                placeholder="e.g., tatsu-lab/alpaca, databricks/dolly-15k"
             )
             config_name = gr.Textbox(
-                label="Config (可选)",
+                label="Config (Optional)",
                 value="",
                 placeholder="default"
             )
@@ -499,66 +497,67 @@ def render():
         
         with gr.Row():
             num_samples = gr.Slider(
-                label="预览样本数",
+                label="Sample Count",
                 minimum=10,
                 maximum=500,
                 value=100,
-                step=10
+                step=10,
+                scale=3
             )
-            load_btn = gr.Button("加载数据集", variant="primary")
+            load_btn = gr.Button("Load Dataset", variant="primary", scale=1, min_width=150)
         
         load_status = gr.Markdown("")
     
     # Tab 页面
     with gr.Tabs():
         # Tab 1: 样本预览
-        with gr.Tab("样本预览"):
+        with gr.Tab("Sample Preview"):
             with gr.Row():
                 sample_idx = gr.Slider(
-                    label="样本索引",
+                    label="Sample Index",
                     minimum=0,
                     maximum=99,
                     value=0,
                     step=1,
                     interactive=True
                 )
-            
+
             # 固定高度容器防止滑动时跳动
             sample_display = gr.HTML(
-                label="样本内容",
+                label="Sample Content",
                 elem_id="sample-display-container"
             )
-            
-            with gr.Accordion("原始 JSON", open=False):
+
+            with gr.Accordion("Raw JSON", open=False):
                 json_display = gr.Code(language="json", label="JSON")
         
         # Tab 2: 数据统计
-        with gr.Tab("数据统计"):
-            gr.Markdown("### 字段结构")
-            field_info_table = gr.Dataframe(label="字段信息")
-            
-            gr.Markdown("### 字段统计")
-            stats_table = gr.Dataframe(label="统计数据")
-            stats_chart = gr.Plot(label="统计图表")
-            
-            gr.Markdown("### 分布分析")
-            field_select = gr.Dropdown(label="选择分析字段", choices=[], interactive=True)
-            
+        with gr.Tab("Statistics"):
+            gr.Markdown("### Field Structure")
+            field_info_table = gr.Dataframe(label="Field Info")
+
+            gr.Markdown("### Field Statistics")
+            stats_table = gr.Dataframe(label="Stats Data")
+            stats_chart = gr.Plot(label="Stats Chart")
+
+            gr.Markdown("### Distribution Analysis")
+            field_select = gr.Dropdown(label="Select Field", choices=[], interactive=True)
+
             with gr.Row():
-                length_chart = gr.Plot(label="长度分布")
-                word_chart = gr.Plot(label="词数分布")
-            
+                length_chart = gr.Plot(label="Length Distribution")
+                word_chart = gr.Plot(label="Word Count Distribution")
+
             dist_stats = gr.Markdown("")
         
         # Tab 3: 质量检查
-        with gr.Tab("质量检查"):
+        with gr.Tab("Quality Check"):
             quality_summary = gr.Markdown("")
-            
-            gr.Markdown("### 字段质量详情")
-            quality_table = gr.Dataframe(label="质量数据")
-            
-            gr.Markdown("### 潜在问题样本")
-            problem_table = gr.Dataframe(label="问题样本")
+
+            gr.Markdown("### Field Quality Details")
+            quality_table = gr.Dataframe(label="Quality Data")
+
+            gr.Markdown("### Potential Problem Samples")
+            problem_table = gr.Dataframe(label="Problem Samples")
     
     # 事件绑定
     def on_load_dataset(dataset_id, config_name, split, num_samples):

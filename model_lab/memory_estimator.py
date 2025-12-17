@@ -20,32 +20,32 @@ from model_lab.model_utils import (
 def estimate_memory(model_name: str, library: str, selected_dtypes: list, access_token: str, progress=gr.Progress()):
     """估算模型显存"""
     if not model_name:
-        return "请输入模型名称", None, None
-    
+        return "Please enter model name", None, None
+
     if not selected_dtypes:
-        return "请至少选择一种精度类型", None, None
-    
+        return "Please select at least one precision type", None, None
+
     try:
-        progress(0.3, desc=f"正在加载模型 {model_name}...")
+        progress(0.3, desc=f"Loading model {model_name}...")
         token = access_token if access_token else None
         model = get_model(model_name, library, token)
-        
-        progress(0.7, desc="计算显存...")
+
+        progress(0.7, desc="Calculating memory...")
         data, stages = calculate_memory_detailed(model, selected_dtypes)
-        
+
         # 主表格
         df_main = pd.DataFrame(data)
-        df_main.columns = ["精度", "最大层/残差组", "模型总大小", "训练峰值显存 (Adam)"]
-        
+        df_main.columns = ["Precision", "Max Layer/Residual Group", "Model Total Size", "Training Peak Memory (Adam)"]
+
         # 训练阶段表格
         training_stages_data = format_training_stages(stages, selected_dtypes)
         df_stages = None
         if training_stages_data:
             df_stages = pd.DataFrame(training_stages_data)
-            df_stages.columns = ["精度", "模型加载", "梯度计算", "反向传播", "优化器更新"]
-        
-        result_msg = f"模型 `{model_name}` 的显存需求计算完成"
-        
+            df_stages.columns = ["Precision", "Model Loading", "Gradient Calculation", "Backward Pass", "Optimizer Update"]
+
+        result_msg = f"Memory requirements for `{model_name}` calculated"
+
         return result_msg, df_main, df_stages
         
     except Exception as e:
@@ -55,9 +55,7 @@ def estimate_memory(model_name: str, library: str, selected_dtypes: list, access
 
 def render():
     """渲染显存估算页面"""
-    
-    gr.Markdown("## 显存估算")
-    
+
     # 默认值
     default_model = "bert-base-cased"
     default_library = "auto"
@@ -67,35 +65,35 @@ def render():
     with gr.Group():
         with gr.Row():
             model_name = gr.Textbox(
-                label="模型名称或 URL",
+                label="Model Name or URL",
                 value=default_model,
-                placeholder="例如: bert-base-cased, meta-llama/Llama-2-7b-hf"
+                placeholder="e.g., bert-base-cased, meta-llama/Llama-2-7b-hf"
             )
             library = gr.Dropdown(
-                label="模型库",
+                label="Model Library",
                 choices=LIBRARY_OPTIONS,
                 value=default_library
             )
-        
+
         with gr.Row():
             selected_dtypes = gr.CheckboxGroup(
-                label="选择精度类型",
+                label="Select Precision Types",
                 choices=DTYPE_OPTIONS,
                 value=default_dtypes
             )
             access_token = gr.Textbox(
-                label="API Token (可选)",
+                label="API Token (Optional)",
                 type="password",
-                placeholder="用于访问私有模型"
+                placeholder="For accessing private models"
             )
-    
+
     # 结果区域
     result_status = gr.Markdown("")
-    
-    main_table = gr.Dataframe(label="显存需求")
-    
-    with gr.Accordion("训练各阶段详情", open=False):
-        stages_table = gr.Dataframe(label="训练阶段详情")
+
+    main_table = gr.Dataframe(label="Memory Requirements")
+
+    with gr.Accordion("Training Stage Details", open=False):
+        stages_table = gr.Dataframe(label="Training Stage Details")
     
     # 参数变化自动触发计算
     inputs = [model_name, library, selected_dtypes, access_token]

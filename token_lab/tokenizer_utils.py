@@ -17,20 +17,6 @@ from transformers import AutoTokenizer, PreTrainedTokenizer
 
 # 按厂商/系列分类的模型列表
 MODEL_CATEGORIES = {
-    "OpenAI": {
-        "models": [
-            ("GPT-2", "openai-community/gpt2"),
-            ("GPT-OSS-20B", "openai/gpt-oss-20b"),
-            ("gpt-3.5-turbo", "Xenova/gpt-3.5-turbo"),
-        ],
-    },
-    "Meta": {
-        "models": [
-            ("Llama-2-7b", "meta-llama/Llama-2-7b"),
-            ("Llama-3.2-1B", "meta-llama/Llama-3.2-1B"),
-            ("Llama-4-Scout-17B-16E-Instruct", "meta-llama/Llama-4-Scout-17B-16E-Instruct"),
-        ],
-    },
     "Alibaba": {
         "models": [
             ("Qwen 2.5 7B", "Qwen/Qwen2.5-7B"),

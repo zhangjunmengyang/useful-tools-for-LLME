@@ -53,27 +53,27 @@ CHAT_TEMPLATES = {
 # 常用清洗规则
 CLEANING_RULES = {
     "remove_html": {
-        "name": "移除 HTML 标签",
+        "name": "Remove HTML Tags",
         "pattern": r"<[^>]+>",
         "replacement": ""
     },
     "remove_urls": {
-        "name": "移除 URL",
+        "name": "Remove URLs",
         "pattern": r"https?://\S+|www\.\S+",
         "replacement": ""
     },
     "remove_emails": {
-        "name": "移除邮箱",
+        "name": "Remove Email Addresses",
         "pattern": r"\S+@\S+\.\S+",
         "replacement": ""
     },
     "normalize_whitespace": {
-        "name": "规范化空白符",
+        "name": "Normalize Whitespace",
         "pattern": r"\s+",
         "replacement": " "
     },
     "remove_special_chars": {
-        "name": "移除特殊字符",
+        "name": "Remove Special Characters",
         "pattern": r"[^\w\s\u4e00-\u9fff.,!?;:\"'()-]",
         "replacement": ""
     }

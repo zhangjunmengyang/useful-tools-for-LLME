@@ -12,6 +12,7 @@ from generation_lab.generation_utils import (
     DEMO_MODELS,
     load_model_and_tokenizer
 )
+from model_lab.model_utils import extract_from_url
 
 
 def beam_search_with_history(
@@ -240,7 +241,7 @@ def render_beam_tree(history: Dict) -> go.Figure:
     ))
     
     fig.update_layout(
-        title="Beam Search 搜索树",
+        title="Beam Search Tree",
         showlegend=False,
         xaxis=dict(
             title="Step",
@@ -269,19 +270,26 @@ def render_beam_tree(history: Dict) -> go.Figure:
 _loaded_model = {"name": None, "model": None, "tokenizer": None}
 
 
-def run_beam_search(model_choice, prompt, beam_size, max_steps):
+def run_beam_search(mode, preset_choice, custom_url, token, prompt, beam_size, max_steps):
     """执行 Beam Search"""
     if not prompt:
-        return "", None, ""
-    
-    model_info = DEMO_MODELS[model_choice]
-    
+        return None, "", ""
+
+    # 解析模型 ID
+    if mode == "Preset Model":
+        model_id = DEMO_MODELS[preset_choice]['id']
+    else:
+        model_id = extract_from_url(custom_url) if custom_url else None
+
+    if not model_id:
+        return None, "", ""
+
     # 加载模型
-    if _loaded_model["name"] != model_info['id']:
-        model, tokenizer = load_model_and_tokenizer(model_info['id'])
+    if _loaded_model["name"] != model_id:
+        model, tokenizer = load_model_and_tokenizer(model_id)
         if model is None:
-            return "模型加载失败", None, ""
-        _loaded_model["name"] = model_info['id']
+            return None, "Failed to load model", ""
+        _loaded_model["name"] = model_id
         _loaded_model["model"] = model
         _loaded_model["tokenizer"] = tokenizer
     else:
@@ -296,49 +304,68 @@ def run_beam_search(model_choice, prompt, beam_size, max_steps):
     )
     
     # 最终序列展示
-    results_md = "### 最终候选序列\n\n"
+    results_md = "### Final Candidate Sequences\n\n"
     for beam in history['final_beams']:
         results_md += f"""
 **Rank {beam['rank']}**
 
 `{prompt}`**{beam['sequence']}**
 
-- 累积 Log-Prob: {beam['score']:.4f}
-- 概率: {beam['probability']:.2e}
+- Cumulative Log-Prob: {beam['score']:.4f}
+- Probability: {beam['probability']:.2e}
 
 ---
 """
     
     # 搜索树
     fig = render_beam_tree(history)
-    
+
     # 逐步详情
-    steps_md = "### 逐步详情\n\n"
+    steps_md = "### Step-by-Step Details\n\n"
     for step in history['steps']:
         steps_md += f"#### Step {step['step'] + 1}\n\n"
-        steps_md += "**保留的 Beam:**\n\n"
+        steps_md += "**Retained Beams:**\n\n"
         for i, beam in enumerate(step['active_beams']):
-            steps_md += f"- Beam {i+1}: `{beam['text']}` (序列: {beam['full_sequence'][:50]}..., 分数: {beam['cumulative_score']:.4f})\n"
-        
+            steps_md += f"- Beam {i+1}: `{beam['text']}` (sequence: {beam['full_sequence'][:50]}..., score: {beam['cumulative_score']:.4f})\n"
+
         if step['pruned']:
-            steps_md += "\n**被剪枝:**\n\n"
+            steps_md += "\n**Pruned:**\n\n"
             for pruned in step['pruned'][:3]:
-                steps_md += f"- `{pruned['text']}` (分数: {pruned['cumulative_score']:.4f})\n"
+                steps_md += f"- `{pruned['text']}` (score: {pruned['cumulative_score']:.4f})\n"
         steps_md += "\n"
-    
-    return results_md, fig, steps_md
+
+    return fig, results_md, steps_md
 
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## Beam Search 可视化")
-    
+
     # 模型选择
-    model_choice = gr.Dropdown(
-        choices=list(DEMO_MODELS.keys()),
-        value=list(DEMO_MODELS.keys())[0],
-        label="选择模型"
+    with gr.Row():
+        model_mode = gr.Radio(
+            label="Input Method",
+            choices=["Preset Model", "Custom Model"],
+            value="Preset Model"
+        )
+
+    with gr.Row():
+        preset_model = gr.Dropdown(
+            choices=list(DEMO_MODELS.keys()),
+            value=list(DEMO_MODELS.keys())[0],
+            label="Select Model"
+        )
+
+        custom_model = gr.Textbox(
+            label="Model Name or URL",
+            placeholder="e.g., openai-community/gpt2",
+            visible=False
+        )
+
+    hf_token = gr.Textbox(
+        label="HF Token (Optional)",
+        type="password",
+        placeholder="For private models",
+        visible=False
     )
     
     # 参数设置
@@ -351,14 +378,14 @@ def render():
             step=1
         )
         max_steps = gr.Slider(
-            label="最大步数",
+            label="Max Steps",
             minimum=3,
             maximum=10,
             value=5,
             step=1
         )
         search_space = gr.Textbox(
-            label="搜索空间",
+            label="Search Space",
             interactive=False,
             value="3^5 = 243"
         )
@@ -373,31 +400,47 @@ def render():
     prompt = gr.Textbox(
         label="Prompt",
         value="Once upon a time",
-        placeholder="输入起始文本..."
+        placeholder="Enter starting text..."
     )
-    
+
     # 结果展示
-    results_md = gr.Markdown("")
-    tree_plot = gr.Plot(label="搜索树")
-    
-    with gr.Accordion("逐步详情", open=False):
+    tree_plot = gr.Plot(label="Search Tree")
+
+    with gr.Accordion("Final Candidate Sequences", open=False):
+        results_md = gr.Markdown("")
+
+    with gr.Accordion("Step Details", open=False):
         steps_detail = gr.Markdown("")
-    
+
+    # Toggle函数：切换预设/自定义模型模式
+    def toggle_model_mode(mode):
+        return (
+            gr.update(visible=(mode == "Preset Model")),
+            gr.update(visible=(mode == "Custom Model")),
+            gr.update(visible=(mode == "Custom Model"))
+        )
+
+    model_mode.change(
+        fn=toggle_model_mode,
+        inputs=[model_mode],
+        outputs=[preset_model, custom_model, hf_token]
+    )
+
     # 参数变化自动触发搜索
-    for component in [model_choice, prompt, beam_size, max_steps]:
+    for component in [model_mode, preset_model, custom_model, hf_token, prompt, beam_size, max_steps]:
         component.change(
             fn=run_beam_search,
-            inputs=[model_choice, prompt, beam_size, max_steps],
-            outputs=[results_md, tree_plot, steps_detail]
+            inputs=[model_mode, preset_model, custom_model, hf_token, prompt, beam_size, max_steps],
+            outputs=[tree_plot, results_md, steps_detail]
         )
     
     # 初始化加载函数
     def on_load():
         """页面加载时计算默认值"""
-        return run_beam_search(list(DEMO_MODELS.keys())[0], "Once upon a time", 3, 5)
+        return run_beam_search("Preset Model", list(DEMO_MODELS.keys())[0], "", None, "Once upon a time", 3, 5)
     
     # 返回 load 事件信息
     return {
         'load_fn': on_load,
-        'load_outputs': [results_md, tree_plot, steps_detail]
+        'load_outputs': [tree_plot, results_md, steps_detail]
     }

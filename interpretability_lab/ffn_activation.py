@@ -15,6 +15,7 @@ from interpretability_lab.interpretability_utils import (
     compare_activation_functions,
     MODEL_ARCHITECTURES
 )
+from model_lab.model_utils import extract_from_url
 
 
 def render_activation_curves() -> go.Figure:
@@ -39,9 +40,9 @@ def render_activation_curves() -> go.Figure:
     fig.add_vline(x=0, line_dash="dash", line_color="gray")
     
     fig.update_layout(
-        title="激活函数对比",
-        xaxis_title="输入 x",
-        yaxis_title="输出 f(x)",
+        title="Activation Function Comparison",
+        xaxis_title="Input x",
+        yaxis_title="Output f(x)",
         height=450,
         autosize=True,
         legend=dict(
@@ -98,12 +99,12 @@ def render_activation_histogram(activations: np.ndarray, title: str) -> go.Figur
         opacity=0.7
     ))
     
-    fig.add_vline(x=0, line_dash="dash", line_color="red", annotation_text="零点")
-    
+    fig.add_vline(x=0, line_dash="dash", line_color="red", annotation_text="Zero")
+
     fig.update_layout(
         title=title,
-        xaxis_title="激活值",
-        yaxis_title="频次",
+        xaxis_title="Activation Value",
+        yaxis_title="Frequency",
         height=400,
         autosize=True,
         plot_bgcolor='#FFFFFF',
@@ -115,7 +116,7 @@ def render_activation_histogram(activations: np.ndarray, title: str) -> go.Figur
 
 def render_sparsity_comparison(code_values, text_values, thresholds) -> go.Figure:
     """渲染稀疏性对比"""
-    fig = make_subplots(rows=1, cols=2, subplot_titles=['代码', '自然语言'])
+    fig = make_subplots(rows=1, cols=2, subplot_titles=['Code', 'Natural Language'])
     
     if code_values is not None:
         code_sparse = [(np.abs(code_values) < t).mean() * 100 for t in thresholds]
@@ -140,26 +141,36 @@ def render_sparsity_comparison(code_values, text_values, thresholds) -> go.Figur
 _loaded_model = {"name": None, "model": None, "tokenizer": None}
 
 
-def analyze_activations(model_choice, code_input, text_input, layer_idx):
+def get_model_id_from_ui(mode, preset_choice, custom_url):
+    """从 UI 输入解析模型 ID"""
+    if mode == "Preset Model":
+        return INTERPRETABILITY_MODELS[preset_choice]['id']
+    else:
+        return extract_from_url(custom_url) if custom_url else None
+
+
+def analyze_activations(mode, preset_choice, custom_url, token, code_input, text_input, layer_idx):
     """分析激活"""
-    model_info = INTERPRETABILITY_MODELS[model_choice]
-    
+    model_id = get_model_id_from_ui(mode, preset_choice, custom_url)
+    if not model_id:
+        return None, None, None, "", "", "", "", "", ""
+
     # 加载模型
-    if _loaded_model["name"] != model_info['id']:
-        model, tokenizer = load_model_with_attention(model_info['id'])
+    if _loaded_model["name"] != model_id:
+        model, tokenizer = load_model_with_attention(model_id, token=token if token else None)
         if model is None:
             return None, None, None, "", "", "", "", "", ""
-        _loaded_model["name"] = model_info['id']
+        _loaded_model["name"] = model_id
         _loaded_model["model"] = model
         _loaded_model["tokenizer"] = tokenizer
     else:
         model = _loaded_model["model"]
         tokenizer = _loaded_model["tokenizer"]
-    
+
     # 分析代码输入
     code_results = analyze_ffn_activations(model, tokenizer, code_input, layer_idx)
     text_results = analyze_ffn_activations(model, tokenizer, text_input, layer_idx)
-    
+
     # 代码结果
     code_mean = code_std = code_sparse = ""
     code_hist = None
@@ -169,9 +180,9 @@ def analyze_activations(model_choice, code_input, text_input, layer_idx):
         code_mean = f"{fc1_data['mean']:.4f}"
         code_std = f"{fc1_data['std']:.4f}"
         code_sparse = f"{fc1_data['sparsity']:.1%}"
-        code_hist = render_activation_histogram(fc1_data['values'], "代码激活分布")
+        code_hist = render_activation_histogram(fc1_data['values'], "Code Activation Distribution")
         code_values = fc1_data['values']
-    
+
     # 文本结果
     text_mean = text_std = text_sparse = ""
     text_hist = None
@@ -181,13 +192,13 @@ def analyze_activations(model_choice, code_input, text_input, layer_idx):
         text_mean = f"{fc1_data['mean']:.4f}"
         text_std = f"{fc1_data['std']:.4f}"
         text_sparse = f"{fc1_data['sparsity']:.1%}"
-        text_hist = render_activation_histogram(fc1_data['values'], "自然语言激活分布")
+        text_hist = render_activation_histogram(fc1_data['values'], "Natural Language Activation Distribution")
         text_values = fc1_data['values']
-    
+
     # 稀疏性对比
     thresholds = [0.01, 0.1, 0.5, 1.0]
     sparse_fig = render_sparsity_comparison(code_values, text_values, thresholds)
-    
+
     return code_hist, text_hist, sparse_fig, code_mean, code_std, code_sparse, text_mean, text_std, text_sparse
 
 
@@ -196,11 +207,11 @@ def render_architecture_comparison():
     arch_data = []
     for model_name, arch in MODEL_ARCHITECTURES.items():
         arch_data.append({
-            "模型": model_name,
+            "Model": model_name,
             "Attention": arch['attention'],
-            "FFN 激活": arch['ffn'],
-            "归一化": arch['norm'],
-            "位置编码": arch['position']
+            "FFN Activation": arch['ffn'],
+            "Normalization": arch['norm'],
+            "Position Encoding": arch['position']
         })
     return pd.DataFrame(arch_data)
 
@@ -215,7 +226,7 @@ def render_params_pie():
     )])
     
     fig.update_layout(
-        title="Transformer 参数分布 (典型 Decoder-only 模型)",
+        title="Transformer Parameter Distribution (Typical Decoder-only Model)",
         height=450,
         autosize=True,
         plot_bgcolor='#FFFFFF',
@@ -227,9 +238,7 @@ def render_params_pie():
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## FFN 激活探测")
-    
+
     # 默认值
     default_model = list(INTERPRETABILITY_MODELS.keys())[0]
     default_code = "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)"
@@ -237,27 +246,48 @@ def render():
     default_layer = 0
     
     with gr.Tabs():
-        # Tab 1: 激活函数
-        with gr.Tab("激活函数"):
+        # Tab 1: Activation Functions
+        with gr.Tab("Activation Functions") as activation_func_tab:
             activation_plot = gr.Plot(value=render_activation_curves())
             swiglu_plot = gr.Plot(value=render_swiglu_visualization())
-        
-        # Tab 2: 激活分析
-        with gr.Tab("激活分析"):
-            model_choice = gr.Dropdown(
-                choices=list(INTERPRETABILITY_MODELS.keys()),
-                value=default_model,
-                label="模型"
+
+        # Tab 2: Activation Analysis
+        with gr.Tab("Activation Analysis") as activation_analysis_tab:
+            with gr.Row():
+                model_mode = gr.Radio(
+                    label="Input Method",
+                    choices=["Preset Model", "Custom Model"],
+                    value="Preset Model"
+                )
+
+            with gr.Row():
+                preset_model = gr.Dropdown(
+                    choices=list(INTERPRETABILITY_MODELS.keys()),
+                    value=default_model,
+                    label="Select Model"
+                )
+
+                custom_model = gr.Textbox(
+                    label="Model Name or URL",
+                    placeholder="e.g., openai-community/gpt2",
+                    visible=False
+                )
+
+            hf_token = gr.Textbox(
+                label="HF Token (Optional)",
+                type="password",
+                placeholder="For private models",
+                visible=False
             )
-            
+
             with gr.Row():
                 code_input = gr.Textbox(
-                    label="代码输入",
+                    label="Code Input",
                     value=default_code,
                     lines=5
                 )
                 text_input = gr.Textbox(
-                    label="文本输入",
+                    label="Text Input",
                     value=default_text,
                     lines=5
                 )
@@ -288,26 +318,59 @@ def render():
                     text_hist = gr.Plot()
             
             sparse_plot = gr.Plot(label="Sparsity Comparison")
-            
+
+            # Toggle函数：切换预设/自定义模型模式
+            def toggle_model_mode(mode):
+                return (
+                    gr.update(visible=(mode == "Preset Model")),
+                    gr.update(visible=(mode == "Custom Model")),
+                    gr.update(visible=(mode == "Custom Model"))
+                )
+
+            model_mode.change(
+                fn=toggle_model_mode,
+                inputs=[model_mode],
+                outputs=[preset_model, custom_model, hf_token]
+            )
+
             # 参数变化自动触发分析
-            for component in [model_choice, code_input, text_input, layer_idx]:
+            for component in [model_mode, preset_model, custom_model, hf_token, code_input, text_input, layer_idx]:
                 component.change(
                     fn=analyze_activations,
-                    inputs=[model_choice, code_input, text_input, layer_idx],
-                    outputs=[code_hist, text_hist, sparse_plot, 
+                    inputs=[model_mode, preset_model, custom_model, hf_token, code_input, text_input, layer_idx],
+                    outputs=[code_hist, text_hist, sparse_plot,
                             code_mean, code_std, code_sparse,
                             text_mean, text_std, text_sparse]
                 )
         
-        # Tab 3: 架构对比
-        with gr.Tab("架构对比"):
+        # Tab 3: Architecture Comparison
+        with gr.Tab("Architecture Comparison") as arch_tab:
             arch_df = gr.Dataframe(value=render_architecture_comparison(), interactive=False)
             params_plot = gr.Plot(value=render_params_pie())
-    
+
+    # Re-render plots when tabs become visible to fix width issues
+    activation_func_tab.select(
+        fn=lambda: (render_activation_curves(), render_swiglu_visualization()),
+        outputs=[activation_plot, swiglu_plot]
+    )
+
+    activation_analysis_tab.select(
+        fn=analyze_activations,
+        inputs=[model_mode, preset_model, custom_model, hf_token, code_input, text_input, layer_idx],
+        outputs=[code_hist, text_hist, sparse_plot,
+                 code_mean, code_std, code_sparse,
+                 text_mean, text_std, text_sparse]
+    )
+
+    arch_tab.select(
+        fn=lambda: render_params_pie(),
+        outputs=[params_plot]
+    )
+
     # 初始化加载函数
     def on_load():
         """页面加载时计算默认值"""
-        return analyze_activations(default_model, default_code, default_text, default_layer)
+        return analyze_activations("Preset Model", default_model, "", None, default_code, default_text, default_layer)
     
     # 返回 load 事件需要的信息供主 app 调用
     return {

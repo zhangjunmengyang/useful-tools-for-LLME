@@ -15,13 +15,37 @@ from generation_lab.generation_utils import (
     simulate_paged_attention,
     format_bytes
 )
+from model_lab.model_utils import extract_from_url
+
+
+def get_model_config_from_ui(mode, preset_choice, custom_url, token=None):
+    """从 UI 输入获取模型配置"""
+    if mode == "Preset Model":
+        return MODEL_CONFIGS.get(preset_choice)
+    else:
+        # 从 HuggingFace 获取自定义模型配置
+        model_id = extract_from_url(custom_url) if custom_url else None
+        if not model_id:
+            return None
+        try:
+            from transformers import AutoConfig
+            config = AutoConfig.from_pretrained(model_id, token=token if token else None)
+            # 转换为我们需要的格式
+            return {
+                'num_hidden_layers': getattr(config, 'num_hidden_layers', getattr(config, 'n_layer', 32)),
+                'hidden_size': getattr(config, 'hidden_size', getattr(config, 'n_embd', 4096)),
+                'num_attention_heads': getattr(config, 'num_attention_heads', getattr(config, 'n_head', 32))
+            }
+        except Exception as e:
+            print(f"Error loading config: {e}")
+            return None
 
 
 def render_kv_cache_growth_chart(growth_data: list) -> go.Figure:
     """渲染 KV Cache 增长曲线"""
     fig = make_subplots(
         rows=2, cols=1,
-        subplot_titles=("KV Cache 累积显存", "每步增量"),
+        subplot_titles=("KV Cache Cumulative Memory", "Per-Step Increment"),
         vertical_spacing=0.15,
         row_heights=[0.6, 0.4]
     )
@@ -40,7 +64,7 @@ def render_kv_cache_growth_chart(growth_data: list) -> go.Figure:
             x=steps,
             y=cache_gb,
             mode='lines+markers',
-            name='累积显存',
+            name='Cumulative Memory',
             line=dict(color='#2563EB', width=3),
             marker=dict(size=8, color=colors),
             fill='tozeroy',
@@ -68,7 +92,7 @@ def render_kv_cache_growth_chart(growth_data: list) -> go.Figure:
         go.Bar(
             x=steps,
             y=delta_gb,
-            name='每步增量',
+            name='Per-Step Increment',
             marker_color=colors,
             text=[f'{d:.2f}' for d in delta_gb],
             textposition='outside'
@@ -85,9 +109,9 @@ def render_kv_cache_growth_chart(growth_data: list) -> go.Figure:
         paper_bgcolor='#FFFFFF'
     )
     
-    fig.update_yaxes(title_text="显存 (GB)", row=1, col=1)
-    fig.update_yaxes(title_text="增量 (MB)", row=2, col=1)
-    fig.update_xaxes(title_text="生成步骤", row=2, col=1)
+    fig.update_yaxes(title_text="Memory (GB)", row=1, col=1)
+    fig.update_yaxes(title_text="Increment (MB)", row=2, col=1)
+    fig.update_xaxes(title_text="Generation Step", row=2, col=1)
     
     return fig
 
@@ -136,7 +160,7 @@ def render_paged_attention_viz(paged_data: dict) -> go.Figure:
     ))
     
     fig.update_layout(
-        title=f"PagedAttention Block 分配 (Block Size = {block_size})",
+        title=f"PagedAttention Block Allocation (Block Size = {block_size})",
         xaxis=dict(title="Column", showgrid=False),
         yaxis=dict(title="Row", showgrid=False, autorange='reversed'),
         height=350,
@@ -168,12 +192,12 @@ def render_utilization_chart(paged_data: dict) -> go.Figure:
     ))
     
     fig.add_hline(y=100, line_dash="dash", line_color="#059669",
-                  annotation_text="理想利用率")
-    
+                  annotation_text="Ideal Utilization")
+
     fig.update_layout(
-        title="各序列 Block 利用率",
-        xaxis_title="序列",
-        yaxis_title="利用率 (%)",
+        title="Per-Sequence Block Utilization",
+        xaxis_title="Sequence",
+        yaxis_title="Utilization (%)",
         yaxis_range=[0, 110],
         height=350,
         autosize=True,
@@ -190,11 +214,11 @@ def calculate_kv_cache(model_choice, custom_layers, custom_hidden, custom_heads,
     dtype_map = {"float16/bfloat16": 2, "float32": 4, "int8": 1}
     dtype_bytes = dtype_map[dtype_choice]
     
-    if model_choice == "自定义":
+    if model_choice == "Custom":
         num_layers = custom_layers
         hidden_size = custom_hidden
         num_heads = custom_heads
-        config_info = f"自定义配置: Layers={num_layers}, Hidden={hidden_size}, Heads={num_heads}"
+        config_info = f"Custom Config: Layers={num_layers}, Hidden={hidden_size}, Heads={num_heads}"
     else:
         config = MODEL_CONFIGS[model_choice]
         num_layers = config['num_hidden_layers']
@@ -209,14 +233,14 @@ def calculate_kv_cache(model_choice, custom_layers, custom_hidden, custom_heads,
     
     # 详细分解表格
     breakdown_data = pd.DataFrame({
-        "组件": ["K Cache", "V Cache", "单层 KV", "总计"],
-        "公式": [
+        "Component": ["K Cache", "V Cache", "Per-Layer KV", "Total"],
+        "Formula": [
             f"{num_layers} x {batch_size} x {seq_length} x {hidden_size} x {dtype_bytes}",
             f"{num_layers} x {batch_size} x {seq_length} x {hidden_size} x {dtype_bytes}",
             f"2 x {batch_size} x {seq_length} x {hidden_size} x {dtype_bytes}",
             f"2 x {num_layers} x {batch_size} x {seq_length} x {hidden_size} x {dtype_bytes}"
         ],
-        "大小": [
+        "Size": [
             format_bytes(result['k_cache_bytes']),
             format_bytes(result['v_cache_bytes']),
             format_bytes(result['per_layer_bytes']),
@@ -234,9 +258,11 @@ def calculate_kv_cache(model_choice, custom_layers, custom_hidden, custom_heads,
     )
 
 
-def simulate_growth(sim_model, prompt_len, gen_len):
+def simulate_growth(mode, preset_choice, custom_url, token, prompt_len, gen_len):
     """模拟 KV Cache 增长"""
-    config = MODEL_CONFIGS[sim_model]
+    config = get_model_config_from_ui(mode, preset_choice, custom_url, token)
+    if not config:
+        return "", "", "", None, None
     
     growth_data = simulate_kv_cache_growth(
         config, prompt_len, gen_len,
@@ -250,12 +276,12 @@ def simulate_growth(sim_model, prompt_len, gen_len):
     fig = render_kv_cache_growth_chart(growth_data)
     
     df = pd.DataFrame([{
-        "步骤": d['step'],
-        "阶段": d['phase'],
-        "序列长度": d['seq_length'],
-        "累积显存 (GB)": f"{d['cache_gb']:.4f}",
-        "增量 (MB)": f"{d['delta_gb'] * 1000:.2f}",
-        "说明": d['description']
+        "Step": d['step'],
+        "Phase": d['phase'],
+        "Sequence Length": d['seq_length'],
+        "Cumulative Memory (GB)": f"{d['cache_gb']:.4f}",
+        "Increment (MB)": f"{d['delta_gb'] * 1000:.2f}",
+        "Description": d['description']
     } for d in growth_data])
     
     return (
@@ -275,19 +301,19 @@ def simulate_paged(block_size, num_seqs, avg_tokens):
     fig_util = render_utilization_chart(paged_data)
     
     seq_df = pd.DataFrame([{
-        "序列 ID": s['seq_id'],
-        "Token 数": s['length'],
-        "Block 数": s['blocks'],
-        "浪费 (tokens)": s['waste'],
-        "利用率": f"{s['utilization']:.1f}%"
+        "Sequence ID": s['seq_id'],
+        "Token Count": s['length'],
+        "Block Count": s['blocks'],
+        "Waste (tokens)": s['waste'],
+        "Utilization": f"{s['utilization']:.1f}%"
     } for s in paged_data['sequences']])
-    
+
     analysis = f"""
-### 内部碎片分析
+### Internal Fragmentation Analysis
 
 - **Block Size**: {block_size} tokens
-- **总浪费**: {paged_data['total_waste']} tokens ({100 - paged_data['overall_utilization']:.1f}%)
-- **建议**: Block Size 越小，碎片越少，但管理开销越大
+- **Total Waste**: {paged_data['total_waste']} tokens ({100 - paged_data['overall_utilization']:.1f}%)
+- **Recommendation**: Smaller block sizes reduce fragmentation but increase management overhead
 """
     
     return (
@@ -304,60 +330,58 @@ def simulate_paged(block_size, num_seqs, avg_tokens):
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## KV Cache 模拟器")
-    
+
     with gr.Tabs():
-        # Tab 1: 显存计算
-        with gr.Tab("显存计算"):
-            gr.Markdown("### KV Cache 显存计算器")
-            
+        # Tab 1: Memory Calculation
+        with gr.Tab("Memory Calculator"):
+            gr.Markdown("### KV Cache Memory Calculator")
+
             with gr.Row():
                 with gr.Column(scale=1):
                     model_choice = gr.Dropdown(
-                        choices=["自定义"] + list(MODEL_CONFIGS.keys()),
+                        choices=["Custom"] + list(MODEL_CONFIGS.keys()),
                         value="Llama-2-7B",
-                        label="选择预设模型"
+                        label="Select Preset Model"
                     )
-                    
-                    custom_layers = gr.Number(label="层数", value=32, visible=False)
+
+                    custom_layers = gr.Number(label="Layers", value=32, visible=False)
                     custom_hidden = gr.Number(label="Hidden Size", value=4096, visible=False)
-                    custom_heads = gr.Number(label="注意力头数", value=32, visible=False)
-                    
+                    custom_heads = gr.Number(label="Attention Heads", value=32, visible=False)
+
                     gr.Markdown("---")
-                    
-                    seq_length = gr.Number(label="序列长度", value=2048, minimum=1, maximum=131072)
+
+                    seq_length = gr.Number(label="Sequence Length", value=2048, minimum=1, maximum=131072)
                     batch_size = gr.Number(label="Batch Size", value=1, minimum=1, maximum=256)
                     dtype_choice = gr.Dropdown(
                         choices=["float16/bfloat16", "float32", "int8"],
                         value="float16/bfloat16",
-                        label="数据类型"
+                        label="Data Type"
                     )
-                    
+
                 with gr.Column(scale=2):
-                    gr.Markdown("### 计算结果")
-                    
-                    config_info = gr.Textbox(label="模型配置", interactive=False)
-                    
+                    gr.Markdown("### Calculation Results")
+
+                    config_info = gr.Textbox(label="Model Config", interactive=False)
+
                     with gr.Row():
-                        total_kv = gr.Textbox(label="总 KV Cache", interactive=False)
-                        per_layer = gr.Textbox(label="每层占用", interactive=False)
+                        total_kv = gr.Textbox(label="Total KV Cache", interactive=False)
+                        per_layer = gr.Textbox(label="Per-Layer", interactive=False)
                         k_cache = gr.Textbox(label="K Cache", interactive=False)
                         v_cache = gr.Textbox(label="V Cache", interactive=False)
-                    
-                    gr.Markdown("#### 详细分解")
+
+                    gr.Markdown("#### Detailed Breakdown")
                     breakdown_df = gr.Dataframe(interactive=False)
-            
+
             def toggle_custom(choice):
-                is_custom = choice == "自定义"
+                is_custom = choice == "Custom"
                 return (
                     gr.update(visible=is_custom),
                     gr.update(visible=is_custom),
                     gr.update(visible=is_custom)
                 )
-            
+
             def toggle_and_calc(choice, layers, hidden, heads, seq_len, batch, dtype):
-                is_custom = choice == "自定义"
+                is_custom = choice == "Custom"
                 result = calculate_kv_cache(choice, layers, hidden, heads, seq_len, batch, dtype)
                 return (
                     gr.update(visible=is_custom),
@@ -377,37 +401,73 @@ def render():
                             total_kv, per_layer, k_cache, v_cache, config_info, breakdown_df]
             )
         
-        # Tab 2: 增长模拟
-        with gr.Tab("增长模拟"):
+        # Tab 2: Growth Simulation
+        with gr.Tab("Growth Simulation") as growth_tab:
             with gr.Row():
-                sim_model = gr.Dropdown(
+                sim_model_mode = gr.Radio(
+                    label="Input Method",
+                    choices=["Preset Model", "Custom Model"],
+                    value="Preset Model"
+                )
+
+            with gr.Row():
+                sim_preset = gr.Dropdown(
                     choices=list(MODEL_CONFIGS.keys()),
                     value="Llama-2-7B",
-                    label="选择模型"
+                    label="Select Model"
                 )
-                prompt_len = gr.Slider(label="Prompt 长度", value=512, minimum=1, maximum=8192, step=1)
-                gen_len = gr.Slider(label="生成长度", value=128, minimum=1, maximum=2048, step=1)
-            
+
+                sim_custom = gr.Textbox(
+                    label="Model Name or URL",
+                    placeholder="e.g., meta-llama/Llama-2-7b-hf",
+                    visible=False
+                )
+
+            sim_token = gr.Textbox(
+                label="HF Token (Optional)",
+                type="password",
+                placeholder="For private models",
+                visible=False
+            )
+
             with gr.Row():
-                prefill_metric = gr.Textbox(label="Prefill 后", interactive=False)
-                final_metric = gr.Textbox(label="最终显存", interactive=False)
-                decode_metric = gr.Textbox(label="Decode 增量", interactive=False)
-            
-            growth_chart = gr.Plot(label="KV Cache 增长曲线")
-            
-            with gr.Accordion("详细数据", open=False):
+                prompt_len = gr.Slider(label="Prompt Length", value=512, minimum=1, maximum=8192, step=1)
+                gen_len = gr.Slider(label="Generation Length", value=128, minimum=1, maximum=2048, step=1)
+
+            with gr.Row():
+                prefill_metric = gr.Textbox(label="After Prefill", interactive=False)
+                final_metric = gr.Textbox(label="Final Memory", interactive=False)
+                decode_metric = gr.Textbox(label="Decode Increment", interactive=False)
+
+            growth_chart = gr.Plot(label="KV Cache Growth Curve")
+
+            with gr.Accordion("Detailed Data", open=False):
                 growth_df = gr.Dataframe(interactive=False)
-            
+
+            # Toggle函数：切换预设/自定义模型模式
+            def toggle_sim_model_mode(mode):
+                return (
+                    gr.update(visible=(mode == "Preset Model")),
+                    gr.update(visible=(mode == "Custom Model")),
+                    gr.update(visible=(mode == "Custom Model"))
+                )
+
+            sim_model_mode.change(
+                fn=toggle_sim_model_mode,
+                inputs=[sim_model_mode],
+                outputs=[sim_preset, sim_custom, sim_token]
+            )
+
             # 参数变化自动触发模拟
-            for component in [sim_model, prompt_len, gen_len]:
+            for component in [sim_model_mode, sim_preset, sim_custom, sim_token, prompt_len, gen_len]:
                 component.change(
                 fn=simulate_growth,
-                inputs=[sim_model, prompt_len, gen_len],
+                inputs=[sim_model_mode, sim_preset, sim_custom, sim_token, prompt_len, gen_len],
                 outputs=[prefill_metric, final_metric, decode_metric, growth_chart, growth_df]
             )
         
         # Tab 3: PagedAttention
-        with gr.Tab("PagedAttention"):
+        with gr.Tab("PagedAttention") as paged_tab:
             with gr.Row():
                 block_size = gr.Dropdown(
                     choices=[8, 16, 32, 64],
@@ -415,30 +475,30 @@ def render():
                     label="Block Size"
                 )
                 num_seqs = gr.Slider(
-                    label="并发序列数",
+                    label="Concurrent Sequences",
                     minimum=2,
                     maximum=8,
                     value=4,
                     step=1
                 )
                 avg_tokens = gr.Slider(
-                    label="平均 Token 数",
+                    label="Average Token Count",
                     value=256,
                     minimum=32,
                     maximum=1024,
                     step=16
                 )
-            
+
             with gr.Row():
-                total_blocks = gr.Textbox(label="总 Block 数", interactive=False)
-                total_capacity = gr.Textbox(label="总容量", interactive=False)
-                total_used = gr.Textbox(label="实际使用", interactive=False)
-                overall_util = gr.Textbox(label="整体利用率", interactive=False)
-            
-            blocks_chart = gr.Plot(label="Block 分配")
-            util_chart = gr.Plot(label="利用率")
-            
-            with gr.Accordion("各序列详情", open=False):
+                total_blocks = gr.Textbox(label="Total Blocks", interactive=False)
+                total_capacity = gr.Textbox(label="Total Capacity", interactive=False)
+                total_used = gr.Textbox(label="Actual Usage", interactive=False)
+                overall_util = gr.Textbox(label="Overall Utilization", interactive=False)
+
+            blocks_chart = gr.Plot(label="Block Allocation")
+            util_chart = gr.Plot(label="Utilization")
+
+            with gr.Accordion("Sequence Details", open=False):
                 seq_df = gr.Dataframe(interactive=False)
             
             analysis_md = gr.Markdown("")
@@ -451,14 +511,28 @@ def render():
                     outputs=[total_blocks, total_capacity, total_used, overall_util,
                             blocks_chart, util_chart, seq_df, analysis_md]
                 )
-    
+
+    # Re-render plots when tabs become visible to fix width issues
+    growth_tab.select(
+        fn=simulate_growth,
+        inputs=[sim_model_mode, sim_preset, sim_custom, sim_token, prompt_len, gen_len],
+        outputs=[prefill_metric, final_metric, decode_metric, growth_chart, growth_df]
+    )
+
+    paged_tab.select(
+        fn=simulate_paged,
+        inputs=[block_size, num_seqs, avg_tokens],
+        outputs=[total_blocks, total_capacity, total_used, overall_util,
+                blocks_chart, util_chart, seq_df, analysis_md]
+    )
+
     # 初始化加载函数
     def on_load():
         """页面加载时计算默认值"""
         # 显存计算默认值
         kv_result = calculate_kv_cache("Llama-2-7B", 32, 4096, 32, 2048, 1, "float16/bfloat16")
         # 增长模拟默认值
-        growth_result = simulate_growth("Llama-2-7B", 512, 128)
+        growth_result = simulate_growth("Preset Model", "Llama-2-7B", "", None, 512, 128)
         # PagedAttention 默认值
         paged_result = simulate_paged(16, 4, 256)
         

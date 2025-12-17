@@ -15,56 +15,54 @@ def format_and_validate(input_json: str, target_format: str, system_prompt: str)
     try:
         data = json.loads(input_json)
     except json.JSONDecodeError as e:
-        return "", f"JSON 解析错误: {e}"
-    
+        return "", f"JSON parse error: {e}"
+
     converted = convert_to_format(data, target_format, system_prompt)
-    
+
     validation = validate_chat_format(converted, target_format)
-    
+
     if validation['valid']:
-        validation_msg = "格式验证通过"
+        validation_msg = "Format validation passed"
     else:
         issues = "\n".join([f"- {issue}" for issue in validation['issues']])
-        validation_msg = f"格式问题:\n{issues}"
+        validation_msg = f"Format issues:\n{issues}"
     
     return converted, validation_msg
 
 
 def render():
     """渲染页面"""
-    
-    gr.Markdown("## 格式化转换器")
-    
+
     with gr.Row():
         with gr.Column():
             input_json = gr.Code(
-                label="原始 JSON",
+                label="Source JSON",
                 value='''{
-    "instruction": "将以下句子翻译成英文",
-    "input": "今天天气真好",
+    "instruction": "Translate the following sentence into English",
+    "input": "The weather is nice today",
     "output": "The weather is really nice today."
 }''',
                 language="json",
                 lines=10
             )
-        
+
         with gr.Column():
             format_choices = [(info['name'], fmt_id) for fmt_id, info in CHAT_TEMPLATES.items()]
             target_format = gr.Dropdown(
-                label="目标格式",
+                label="Target Format",
                 choices=format_choices,
                 value="alpaca"
             )
-            
+
             system_prompt = gr.Textbox(
-                label="System Prompt (可选)",
-                placeholder="自定义 system 提示词"
+                label="System Prompt (Optional)",
+                placeholder="Custom system prompt"
             )
-            
-            convert_btn = gr.Button("转换", variant="primary")
-            
+
+            convert_btn = gr.Button("Convert", variant="primary")
+
             output_text = gr.Code(
-                label="转换结果",
+                label="Converted Result",
                 language=None,
                 lines=10
             )

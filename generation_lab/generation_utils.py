@@ -10,19 +10,9 @@ from functools import lru_cache
 
 # 轻量级模型配置 (用于演示)
 DEMO_MODELS = {
-    "GPT-2 Small": {
+    "GPT-2": {
         "id": "openai-community/gpt2",
-        "description": "117M 参数，适合本地演示",
-        "context_length": 1024
-    },
-    "GPT-2 Medium": {
-        "id": "openai-community/gpt2-medium",
-        "description": "345M 参数，平衡性能与资源",
-        "context_length": 1024
-    },
-    "DistilGPT-2": {
-        "id": "distilgpt2",
-        "description": "82M 参数，轻量蒸馏版本",
+        "description": "117M parameters, 12 layers",
         "context_length": 1024
     }
 }
