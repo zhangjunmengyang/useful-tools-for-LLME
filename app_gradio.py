@@ -118,6 +118,13 @@ button.primary:hover {
     letter-spacing: 0.05em;
 }
 
+.stat-unit {
+    color: #64748B;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
 /* Tab 样式增强 - HuggingFace Style */
 .tab-nav button {
     font-weight: 600 !important;
@@ -553,6 +560,42 @@ def create_app():
 
                     with gr.Tab("Training Cost", id="training_cost"):
                         result = training_cost_estimator.render()
+                        if result:
+                            load_events.append(result)
+
+            # ==================== InferenceLab ====================
+            with gr.Tab("InferenceLab", id="inferencelab"):
+                from inference_lab import (
+                    throughput_calculator,
+                    quantization_analyzer
+                )
+
+                with gr.Tabs() as inference_tabs:
+                    with gr.Tab("Throughput", id="throughput"):
+                        result = throughput_calculator.render()
+                        if result:
+                            load_events.append(result)
+
+                    with gr.Tab("Quantization", id="quantization"):
+                        result = quantization_analyzer.render()
+                        if result:
+                            load_events.append(result)
+
+            # ==================== Agent Trace Lab ====================
+            with gr.Tab("Agent Trace Lab", id="agenttracelab"):
+                from agent_trace_lab import (
+                    trace_viewer,
+                    trace_analyzer
+                )
+
+                with gr.Tabs() as agent_trace_tabs:
+                    with gr.Tab("Trace Viewer", id="trace_viewer"):
+                        result = trace_viewer.render()
+                        if result:
+                            load_events.append(result)
+
+                    with gr.Tab("Trace Analyzer", id="trace_analyzer"):
+                        result = trace_analyzer.render()
                         if result:
                             load_events.append(result)
 
