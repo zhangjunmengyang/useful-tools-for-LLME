@@ -519,8 +519,26 @@ def create_app():
                         result = config_diff.render()
                         if result:
                             load_events.append(result)
-        
-        
+
+            # ==================== RAGLab ====================
+            with gr.Tab("RAGLab", id="raglab"):
+                from rag_lab import (
+                    chunking_playground,
+                    retrieval_sim
+                )
+
+                with gr.Tabs() as rag_tabs:
+                    with gr.Tab("Chunking", id="chunking"):
+                        result = chunking_playground.render()
+                        if result:
+                            load_events.append(result)
+
+                    with gr.Tab("Retrieval", id="retrieval"):
+                        result = retrieval_sim.render()
+                        if result:
+                            load_events.append(result)
+
+
         # 页面加载时执行所有初始化函数
         if load_events:
             def combined_load():
