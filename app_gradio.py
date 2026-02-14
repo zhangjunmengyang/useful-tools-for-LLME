@@ -538,6 +538,24 @@ def create_app():
                         if result:
                             load_events.append(result)
 
+            # ==================== FineTuneLab ====================
+            with gr.Tab("FineTuneLab", id="finetunelab"):
+                from finetune_lab import (
+                    lora_explorer,
+                    training_cost_estimator
+                )
+
+                with gr.Tabs() as finetune_tabs:
+                    with gr.Tab("LoRA Explorer", id="lora_explorer"):
+                        result = lora_explorer.render()
+                        if result:
+                            load_events.append(result)
+
+                    with gr.Tab("Training Cost", id="training_cost"):
+                        result = training_cost_estimator.render()
+                        if result:
+                            load_events.append(result)
+
 
         # 页面加载时执行所有初始化函数
         if load_events:

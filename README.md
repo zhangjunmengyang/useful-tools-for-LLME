@@ -2,7 +2,7 @@
 
 一站式 LLM 可视化工具集，面向 LLM 工程师的底层机制探索与调试平台。
 
-包含 **TokenLab** (分词实验室)、**EmbeddingLab** (向量分析工作台)、**GenerationLab** (生成机制探索)、**InterpretabilityLab** (可解释性分析)、**DataLab** (数据工程实验室) 和 **ModelLab** (模型工具箱)。
+包含 **TokenLab** (分词实验室)、**EmbeddingLab** (向量分析工作台)、**GenerationLab** (生成机制探索)、**InterpretabilityLab** (可解释性分析)、**DataLab** (数据工程实验室)、**ModelLab** (模型工具箱)、**RAGLab** (RAG 调试器) 和 **FineTuneLab** (微调工具箱)。
 
 ## 快速开始
 
@@ -53,6 +53,14 @@ python app_gradio.py
 │   ├── memory_estimator.py    # 显存估算
 │   ├── peft_calculator.py     # PEFT 参数计算器
 │   └── config_diff.py         # Config 差异对比
+├── rag_lab/                   # RAGLab 模块
+│   ├── rag_utils.py           # RAG 工具函数
+│   ├── chunking_playground.py # Chunking 策略对比
+│   └── retrieval_sim.py       # 检索模拟器
+├── finetune_lab/              # FineTuneLab 模块
+│   ├── finetune_utils.py      # 微调工具函数
+│   ├── lora_explorer.py       # LoRA 配置探索器
+│   └── training_cost_estimator.py # 训练成本估算器
 └── requirements.txt           # 依赖清单
 ```
 
@@ -135,6 +143,34 @@ SFT 数据处理与质量分析。
 
 ---
 
+## RAGLab - RAG 调试器
+
+检索增强生成 (RAG) 系统的分块与检索策略探索工具。
+
+| 模块 | 功能 |
+|------|------|
+| **Chunking Playground** | 多种分块策略对比（固定长度/句子/段落/语义）、重叠率调整、长度分布可视化 |
+| **Retrieval Simulator** | BM25/Dense Embedding 检索对比、Top-K 召回分析、相似度阈值调优、Reranking 效果演示 |
+
+**支持的策略**: Fixed-size Chunking、Sentence Splitting、Paragraph Splitting、Semantic Chunking、Sliding Window
+
+---
+
+## FineTuneLab - 微调工具箱
+
+大语言模型微调配置与成本估算工具。
+
+| 模块 | 功能 |
+|------|------|
+| **LoRA Explorer** | LoRA 配置探索、参数量计算、显存估算、不同 Rank 对比图表、推荐配置（按显存预算） |
+| **Training Cost Estimator** | 训练时间估算、FLOPs 计算、全参微调 vs LoRA 对比、GPU 型号对比、成本曲线可视化 |
+
+**支持的模型**: LLaMA (7B/13B/70B)、Qwen (7B/14B/72B)、Mistral (7B)
+
+**支持的 GPU**: NVIDIA A100 (40GB/80GB)、H100、RTX 4090
+
+---
+
 ## 技术栈
 
 | 分类 | 依赖 | 用途 |
@@ -183,12 +219,6 @@ SFT 数据处理与质量分析。
    - 梯度分布可视化
    - Learning Rate Schedule 可视化
    - 混合精度训练显存估算
-
-6. **RAG 调试器 (RAGLab)**
-   - 检索召回率分析
-   - Chunk 策略对比
-   - Reranker 效果可视化
-   - Embedding 相似度调试
 
 ### 长期目标 (v2.0)
 
