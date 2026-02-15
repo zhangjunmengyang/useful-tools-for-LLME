@@ -599,6 +599,30 @@ def create_app():
                         if result:
                             load_events.append(result)
 
+            # ==================== Eval Lab ====================
+            with gr.Tab("Eval Lab", id="evallab"):
+                from eval_lab import (
+                    benchmark_explorer,
+                    llm_judge,
+                    eval_pipeline
+                )
+
+                with gr.Tabs() as eval_tabs:
+                    with gr.Tab("Benchmark Explorer", id="benchmark_explorer"):
+                        result = benchmark_explorer.render()
+                        if result:
+                            load_events.append(result)
+
+                    with gr.Tab("LLM Judge", id="llm_judge"):
+                        result = llm_judge.render()
+                        if result:
+                            load_events.append(result)
+
+                    with gr.Tab("Eval Pipeline", id="eval_pipeline"):
+                        result = eval_pipeline.render()
+                        if result:
+                            load_events.append(result)
+
 
         # 页面加载时执行所有初始化函数
         if load_events:
