@@ -169,6 +169,62 @@ describe("App", () => {
     fetchMock.mockRestore();
   });
 
+  it("shows invalid JSON errors without calling fetch", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    render(<App initialPayload={payload} />);
+    fireEvent.change(screen.getByLabelText("JSON Input"), {
+      target: { value: "{\"text\":" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Run Tool" }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/Unexpected end of JSON input/)).toBeInTheDocument()
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Run Tool" })).toBeInTheDocument();
+  });
+
+  it("does not render a pending run result after switching tools", async () => {
+    let resolveRun: (response: Response) => void = () => {};
+    let responseConsumed = false;
+    const pendingRun = new Promise<Response>((resolve) => {
+      resolveRun = resolve;
+    });
+    vi.spyOn(globalThis, "fetch").mockReturnValueOnce(pendingRun);
+
+    render(<App initialPayload={payload} />);
+    fireEvent.click(screen.getByRole("button", { name: "Run Tool" }));
+    fireEvent.click(screen.getByRole("button", { name: /Token Count/ }));
+
+    resolveRun({
+      ok: true,
+      json: () => {
+        responseConsumed = true;
+        return Promise.resolve({
+          tool_id: "unicode_analyze",
+          status: "success",
+          inputs: { text: "Ａ café" },
+          result: { char_count: 6 },
+          duration_ms: 1,
+          error: null,
+          started_at: "2026-05-29T00:00:00+00:00"
+        });
+      }
+    } as Response);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("POST /api/tools/token_count/run")
+      ).toBeInTheDocument()
+    );
+    await waitFor(() => expect(responseConsumed).toBe(true));
+    expect(screen.queryByText(/"char_count": 6/)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Token Count" })
+    ).toBeInTheDocument();
+  });
+
   it("syncs selected category and tool when initialPayload changes", () => {
     const nextPayload: ToolsPayload = {
       categories: [payload.categories[1]],

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchTools, runTool } from "./api";
 import { firstCategoryWithTools, formatJson, toolsForCategory } from "./mechanics";
@@ -24,6 +24,8 @@ export default function App({ initialPayload }: AppProps) {
   const [runResult, setRunResult] = useState<ToolRun | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
+  const runSequenceRef = useRef(0);
+  const selectedToolIdRef = useRef(selectedToolId);
 
   useEffect(() => {
     if (initialPayload) {
@@ -87,10 +89,12 @@ export default function App({ initialPayload }: AppProps) {
   useEffect(() => {
     if (categoryTools.length === 0) {
       setSelectedToolId("");
+      invalidateActiveRun("");
       return;
     }
     if (!categoryTools.some((tool) => tool.id === selectedToolId)) {
       setSelectedToolId(categoryTools[0].id);
+      invalidateActiveRun(categoryTools[0].id);
     }
   }, [categoryTools, selectedToolId]);
 
@@ -99,14 +103,33 @@ export default function App({ initialPayload }: AppProps) {
     categoryTools[0];
 
   useEffect(() => {
-    setRunResult(null);
-    setRunError(null);
+    invalidateActiveRun(selectedTool?.id ?? "");
   }, [selectedTool?.id]);
 
   function selectCategory(categoryId: string) {
     setSelectedCategoryId(categoryId);
     const nextTool = toolsForCategory(tools, categoryId)[0];
-    setSelectedToolId(nextTool?.id ?? "");
+    const nextToolId = nextTool?.id ?? "";
+    setSelectedToolId(nextToolId);
+    if (nextToolId !== selectedToolIdRef.current) {
+      invalidateActiveRun(nextToolId);
+    }
+  }
+
+  function selectTool(toolId: string) {
+    if (toolId === selectedToolIdRef.current) {
+      return;
+    }
+    setSelectedToolId(toolId);
+    invalidateActiveRun(toolId);
+  }
+
+  function invalidateActiveRun(toolId: string) {
+    runSequenceRef.current += 1;
+    selectedToolIdRef.current = toolId;
+    setRunResult(null);
+    setRunError(null);
+    setRunning(false);
   }
 
   async function handleRunTool() {
@@ -114,19 +137,33 @@ export default function App({ initialPayload }: AppProps) {
       return;
     }
 
+    const toolId = selectedTool.id;
+    const runSequence = runSequenceRef.current + 1;
+    runSequenceRef.current = runSequence;
+    selectedToolIdRef.current = toolId;
+    const isActiveRun = () =>
+      runSequenceRef.current === runSequence &&
+      selectedToolIdRef.current === toolId;
+
     setRunning(true);
     setRunError(null);
     setRunResult(null);
     try {
       const inputs = JSON.parse(jsonInput) as Record<string, unknown>;
-      const nextResult = await runTool(selectedTool.id, inputs);
-      setRunResult(nextResult);
+      const nextResult = await runTool(toolId, inputs);
+      if (isActiveRun()) {
+        setRunResult(nextResult);
+      }
     } catch (toolError: unknown) {
-      setRunError(
-        toolError instanceof Error ? toolError.message : "Failed to run tool"
-      );
+      if (isActiveRun()) {
+        setRunError(
+          toolError instanceof Error ? toolError.message : "Failed to run tool"
+        );
+      }
     } finally {
-      setRunning(false);
+      if (isActiveRun()) {
+        setRunning(false);
+      }
     }
   }
 
@@ -180,7 +217,7 @@ export default function App({ initialPayload }: AppProps) {
                 key={tool.id}
                 selected={tool.id === selectedTool?.id}
                 tool={tool}
-                onSelect={() => setSelectedToolId(tool.id)}
+                onSelect={() => selectTool(tool.id)}
               />
             ))}
           </div>
