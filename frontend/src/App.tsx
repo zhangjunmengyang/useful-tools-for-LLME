@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchTools } from "./api";
+import { fetchTools, runTool } from "./api";
 import { firstCategoryWithTools, formatJson, toolsForCategory } from "./mechanics";
-import type { ToolSpec, ToolsPayload } from "./types";
+import type { ToolRun, ToolSpec, ToolsPayload } from "./types";
 
 type AppProps = {
   initialPayload?: ToolsPayload;
@@ -20,6 +20,10 @@ export default function App({ initialPayload }: AppProps) {
       : ""
   );
   const [selectedToolId, setSelectedToolId] = useState<string>("");
+  const [jsonInput, setJsonInput] = useState("{\n  \"text\": \"Ａ café\"\n}");
+  const [runResult, setRunResult] = useState<ToolRun | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
 
   useEffect(() => {
     if (initialPayload) {
@@ -94,10 +98,36 @@ export default function App({ initialPayload }: AppProps) {
     categoryTools.find((tool) => tool.id === selectedToolId) ??
     categoryTools[0];
 
+  useEffect(() => {
+    setRunResult(null);
+    setRunError(null);
+  }, [selectedTool?.id]);
+
   function selectCategory(categoryId: string) {
     setSelectedCategoryId(categoryId);
     const nextTool = toolsForCategory(tools, categoryId)[0];
     setSelectedToolId(nextTool?.id ?? "");
+  }
+
+  async function handleRunTool() {
+    if (!selectedTool) {
+      return;
+    }
+
+    setRunning(true);
+    setRunError(null);
+    setRunResult(null);
+    try {
+      const inputs = JSON.parse(jsonInput) as Record<string, unknown>;
+      const nextResult = await runTool(selectedTool.id, inputs);
+      setRunResult(nextResult);
+    } catch (toolError: unknown) {
+      setRunError(
+        toolError instanceof Error ? toolError.message : "Failed to run tool"
+      );
+    } finally {
+      setRunning(false);
+    }
   }
 
   return (
@@ -156,8 +186,17 @@ export default function App({ initialPayload }: AppProps) {
           </div>
 
           <div className="canvas-empty">
-            Selected mechanism visualization will render after run controls are
-            connected.
+            {runResult ? (
+              <pre>{formatJson(runResult.result)}</pre>
+            ) : (
+              <>
+                <strong>{selectedTool?.label ?? "Select a tool"}</strong>
+                <span>
+                  Run the selected tool to render its mechanism output. Results
+                  are kept in client state only.
+                </span>
+              </>
+            )}
           </div>
         </section>
 
@@ -167,6 +206,25 @@ export default function App({ initialPayload }: AppProps) {
             <>
               <h2>{selectedTool.label}</h2>
               <p className="panel-description">{selectedTool.description}</p>
+              <label className="input-label" htmlFor="json-input">
+                JSON Input
+              </label>
+              <textarea
+                id="json-input"
+                aria-label="JSON Input"
+                value={jsonInput}
+                onChange={(event) => setJsonInput(event.target.value)}
+                rows={8}
+              />
+              <button
+                className="run-button"
+                disabled={!selectedTool || running}
+                onClick={handleRunTool}
+                type="button"
+              >
+                {running ? "Running" : "Run Tool"}
+              </button>
+              {runError ? <div className="notice error">{runError}</div> : null}
               <div className="api-drawer">
                 <p className="endpoint">
                   POST /api/tools/{selectedTool.id}/run

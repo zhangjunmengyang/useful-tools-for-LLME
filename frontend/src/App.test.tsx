@@ -82,6 +82,7 @@ const payload: ToolsPayload = {
 
 describe("App", () => {
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -138,6 +139,34 @@ describe("App", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/model_name/)).toBeInTheDocument();
     expect(screen.getAllByText(/token_count/)).toHaveLength(2);
+  });
+
+  it("runs the selected stateless tool and shows result JSON", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          tool_id: "unicode_analyze",
+          status: "success",
+          inputs: { text: "Ａ café" },
+          result: { char_count: 6 },
+          duration_ms: 1,
+          error: null,
+          started_at: "2026-05-29T00:00:00+00:00"
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+
+    render(<App initialPayload={payload} />);
+    fireEvent.change(screen.getByLabelText("JSON Input"), {
+      target: { value: "{\"text\":\"Ａ café\"}" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Run Tool" }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/"char_count": 6/)).toBeInTheDocument()
+    );
+    fetchMock.mockRestore();
   });
 
   it("syncs selected category and tool when initialPayload changes", () => {
