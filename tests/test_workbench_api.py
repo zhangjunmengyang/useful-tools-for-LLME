@@ -35,6 +35,21 @@ class WorkbenchApiTest(unittest.TestCase):
         self.assertEqual(dataset_tool["mechanics_category"], "data_context")
         self.assertEqual(dataset_tool["mechanics_category_label"], "Data & Context")
 
+    def test_inspect_tool_endpoint_returns_single_tool_metadata(self):
+        response = self.client.get("/api/tools/dataset_quality_check")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["id"], "dataset_quality_check")
+        self.assertEqual(payload["mechanics_category"], "data_context")
+        self.assertEqual(payload["mechanics_category_label"], "Data & Context")
+
+    def test_inspect_unknown_tool_returns_404(self):
+        response = self.client.get("/api/tools/not_real")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "Unknown tool: not_real")
+
     def test_run_endpoint_is_stateless_and_returns_result_immediately(self):
         response = self.client.post(
             "/api/tools/unicode_analyze/run",
@@ -59,6 +74,45 @@ class WorkbenchApiTest(unittest.TestCase):
         payload = response.json()
         self.assertEqual(payload["status"], "error")
         self.assertIn("references", payload["error"])
+
+    def test_run_endpoint_returns_structured_error_for_missing_body(self):
+        response = self.client.post("/api/tools/unicode_analyze/run")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["tool_id"], "unicode_analyze")
+        self.assertEqual(payload["status"], "error")
+        self.assertEqual(payload["inputs"], {})
+        self.assertEqual(payload["result"], {})
+        self.assertEqual(payload["error"], "Request body must be a JSON object")
+        self.assertNotIn("artifact", payload)
+        self.assertNotIn("run_id", payload)
+
+    def test_run_endpoint_returns_structured_error_for_non_object_body(self):
+        response = self.client.post("/api/tools/unicode_analyze/run", json=[])
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["tool_id"], "unicode_analyze")
+        self.assertEqual(payload["status"], "error")
+        self.assertEqual(payload["inputs"], {})
+        self.assertEqual(payload["result"], {})
+        self.assertEqual(payload["error"], "Request body must be a JSON object")
+        self.assertNotIn("artifact", payload)
+        self.assertNotIn("run_id", payload)
+
+    def test_export_endpoint_returns_structured_error_for_non_object_body(self):
+        response = self.client.post("/api/tools/eval_metrics/export", json=[])
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["tool_id"], "eval_metrics")
+        self.assertEqual(payload["status"], "error")
+        self.assertEqual(payload["inputs"], {})
+        self.assertEqual(payload["result"], {})
+        self.assertEqual(payload["error"], "Request body must be a JSON object")
+        self.assertNotIn("artifact", payload)
+        self.assertNotIn("run_id", payload)
 
     def test_export_endpoint_writes_artifact_only_when_requested(self):
         with tempfile.TemporaryDirectory() as tmp:
