@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from .schemas import ToolSpec
+from .default_configs import DEFAULT_CONFIGS
+from .schemas import ToolSpec, make_json_safe
 
 
 MECHANICS_CATEGORIES: list[dict[str, Any]] = [
@@ -66,6 +67,7 @@ VALID_MECHANICS_CATEGORY_IDS = set(CATEGORY_BY_ID)
 def enrich_tool_spec(spec: ToolSpec) -> dict[str, Any]:
     """返回带 Mechanics Explorer 分类信息的工具定义。"""
     payload = spec.to_dict()
+    payload["sample_input"] = make_json_safe(DEFAULT_CONFIGS.get(spec.id, {}))
     category = CATEGORY_BY_ID.get(spec.mechanics_category or "")
     if category:
         payload["mechanics_category_label"] = category["label"]

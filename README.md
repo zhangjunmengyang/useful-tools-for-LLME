@@ -6,24 +6,40 @@
 
 ## Quick Start
 
+开发模式一键启动 API 和 React 工作台：
+
 ```bash
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Start the stateless API
-python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8001
+# Install frontend dependencies
+cd frontend && npm install && cd ..
 
-# Start the React workbench
-cd frontend
-npm install
-npm run dev -- --host 127.0.0.1 --port 5173
+# Start API and Vite dev server
+python scripts/dev_workbench.py
 ```
 
 Open `http://127.0.0.1:5173`.
 
+生产式本地预览只暴露 FastAPI 一个端口：
+
+```bash
+cd frontend && npm run build && cd ..
+python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8001
+```
+
+Open `http://127.0.0.1:8001`.
+
 ## Mechanics Explorer
 
 Mechanics Explorer is the primary workbench. It uses React + FastAPI, keeps the existing Lab tool functions, and exposes plain HTTP APIs for direct tool calls. The current version is stateless: each run returns only the current request result, with no session, project, or run-history persistence.
+
+Artifact export writes under `research/` by default. Override it for agent toolkits with:
+
+```bash
+WORKBENCH_ARTIFACT_ROOT=/tmp/llm-workbench-artifacts \
+  python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8001
+```
 
 Core API:
 

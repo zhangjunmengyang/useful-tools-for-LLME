@@ -37,7 +37,8 @@ const payload: ToolsPayload = {
       mechanics_category: "input_tokens",
       mechanics_stage: 2,
       mechanics_category_label: "Input & Tokens",
-      mechanics_category_subtitle: "Text to model-ready token IDs."
+      mechanics_category_subtitle: "Text to model-ready token IDs.",
+      sample_input: { text: "API supplied sample" }
     },
     {
       id: "token_count",
@@ -75,7 +76,11 @@ const payload: ToolsPayload = {
       mechanics_category: "data_context",
       mechanics_stage: 1,
       mechanics_category_label: "Data & Context",
-      mechanics_category_subtitle: "Datasets and context before the model."
+      mechanics_category_subtitle: "Datasets and context before the model.",
+      sample_input: {
+        samples: [{ instruction: "From API", output: "Sample" }],
+        text_fields: ["instruction", "output"]
+      }
     }
   ]
 };
@@ -149,7 +154,7 @@ describe("App", () => {
     await waitFor(() =>
       expect(
         (screen.getByLabelText("JSON Input") as HTMLTextAreaElement).value
-      ).toContain("\"text\": \"Ａ café\"")
+      ).toContain("\"text\": \"API supplied sample\"")
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Token Count/ }));
@@ -158,6 +163,18 @@ describe("App", () => {
       expect(
         (screen.getByLabelText("JSON Input") as HTMLTextAreaElement).value
       ).toContain("\"model_name\": \"gpt2\"")
+    );
+  });
+
+  it("uses tool sample input from the API when switching categories", async () => {
+    render(<App initialPayload={payload} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Data & Context/ }));
+
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText("JSON Input") as HTMLTextAreaElement).value
+      ).toContain("\"instruction\": \"From API\"")
     );
   });
 
@@ -175,7 +192,7 @@ describe("App", () => {
     const command = writeText.mock.calls[0][0] as string;
     expect(command).toContain(`${window.location.origin}/api/tools/unicode_analyze/run`);
     expect(command).toContain("-H 'Content-Type: application/json'");
-    expect(command).toContain("\"text\": \"Ａ café\"");
+    expect(command).toContain("\"text\": \"API supplied sample\"");
   });
 
   it("runs the selected stateless tool and shows result JSON", async () => {

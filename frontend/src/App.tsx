@@ -8,133 +8,6 @@ type AppProps = {
   initialPayload?: ToolsPayload;
 };
 
-const TOOL_INPUT_EXAMPLES: Record<string, Record<string, unknown>> = {
-  data_clean: {
-    text: "<p>LLM tools   normalize text.</p> https://example.com",
-    rules: ["html", "url", "whitespace"],
-    unicode_form: "NFC"
-  },
-  dataset_quality_check: {
-    samples: [
-      { instruction: "Summarize the passage", output: "A concise summary." },
-      { instruction: "Summarize the passage", output: "A concise summary." },
-      { instruction: "", output: "Missing instruction example." }
-    ],
-    text_fields: ["instruction", "output"]
-  },
-  eval_metrics: {
-    predictions: ["The model explains tokenization."],
-    references: ["The answer explains tokenization."]
-  },
-  ffn_activation_compare: {
-    x_values: [-2, -1, 0, 1, 2]
-  },
-  instruct_format: {
-    data: {
-      instruction: "Explain KV cache in one paragraph.",
-      input: "",
-      output: "KV cache stores attention keys and values for reuse."
-    },
-    target_format: "chatml",
-    system_prompt: "You are a precise LLM systems tutor."
-  },
-  kv_cache_estimate: {
-    num_layers: 32,
-    hidden_size: 4096,
-    num_heads: 32,
-    seq_length: 2048,
-    batch_size: 1,
-    dtype_bytes: 2
-  },
-  kv_cache_growth: {
-    prompt_length: 1024,
-    generation_length: 128,
-    num_layers: 32,
-    hidden_size: 4096,
-    num_heads: 32,
-    batch_size: 1,
-    dtype_bytes: 2
-  },
-  lora_params_estimate: {
-    hidden_size: 4096,
-    num_layers: 32,
-    num_heads: 32,
-    intermediate_size: 11008,
-    rank: 8,
-    target_modules: ["q_proj", "v_proj"],
-    base_params: 7000000000,
-    use_quantization: true,
-    quantization_bits: 4
-  },
-  rag_chunk: {
-    text: "Retrieval augmented generation works best when source text is chunked into coherent passages.",
-    method: "recursive",
-    chunk_size: 80,
-    overlap: 16
-  },
-  rag_lexical_retrieval: {
-    query: "tokenization unicode normalization",
-    documents: [
-      "Tokenizer diagnostics reveal byte fallback and Unicode behavior.",
-      "KV cache memory grows during decode.",
-      "Dataset cleaning removes markup and URLs."
-    ],
-    top_k: 2
-  },
-  rope_frequencies: {
-    dim: 64,
-    max_position: 128,
-    max_distance: 32,
-    base: 10000
-  },
-  sampling_distribution: {
-    logits: [4.2, 2.1, 1.3, 0.4],
-    tokens: [" token", " word", " byte", " id"],
-    temperature: 0.8,
-    top_k: 3,
-    top_p: 0.95
-  },
-  tokenizer_encode: {
-    model_name: "gpt2",
-    text: "Ａ café"
-  },
-  trace_analyze: {
-    trace_json: JSON.stringify(
-      [
-        {
-          event_type: "tool_call",
-          agent_name: "researcher",
-          action: "retrieve",
-          start_time: "2026-05-29T00:00:00Z",
-          end_time: "2026-05-29T00:00:01Z"
-        }
-      ],
-      null,
-      2
-    )
-  },
-  training_cost_estimate: {
-    model_params: 7000000000,
-    tokens: 100000000,
-    gpu_tflops: 312,
-    cost_per_hour: 2.5,
-    num_gpus: 8,
-    mfu: 0.45,
-    is_full_finetune: false
-  },
-  unicode_analyze: {
-    text: "Ａ café"
-  },
-  vector_similarity: {
-    vectors: [
-      [1, 0, 0],
-      [0.9, 0.1, 0],
-      [0, 1, 0]
-    ],
-    labels: ["query", "near", "far"]
-  }
-};
-
 export default function App({ initialPayload }: AppProps) {
   const [payload, setPayload] = useState<ToolsPayload | null>(
     initialPayload ?? null
@@ -430,7 +303,11 @@ function buildExampleInput(tool?: ToolSpec): string {
   if (!tool) {
     return "{}";
   }
-  return formatJson(TOOL_INPUT_EXAMPLES[tool.id] ?? buildSchemaExample(tool));
+  const sampleInput = asRecord(tool.sample_input);
+  if (Object.keys(sampleInput).length > 0) {
+    return formatJson(sampleInput);
+  }
+  return formatJson(buildSchemaExample(tool));
 }
 
 function copyCurlCommand(toolId: string, jsonInput: string) {

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from json import JSONDecodeError
+import os
 from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse
 
 from workbench_tools.mechanics import MECHANICS_CATEGORIES, enrich_tool_spec
 from workbench_tools.registry import get_registry
@@ -19,6 +21,7 @@ app = FastAPI(
 )
 
 DEFAULT_ARTIFACT_ROOT = Path("research")
+DEFAULT_FRONTEND_DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 
 
 def _registry():
@@ -48,8 +51,22 @@ def _request_body_error(tool_id: str) -> dict[str, Any]:
 
 def _artifact_root() -> Path:
     """返回 HTTP API 允许写入的 artifact 根目录。"""
-    configured_root = getattr(app.state, "artifact_root", DEFAULT_ARTIFACT_ROOT)
+    configured_root = getattr(
+        app.state,
+        "artifact_root",
+        os.environ.get("WORKBENCH_ARTIFACT_ROOT", DEFAULT_ARTIFACT_ROOT),
+    )
     return Path(configured_root).expanduser().resolve()
+
+
+def _frontend_dist() -> Path:
+    """返回可托管的 React 构建目录。"""
+    configured_dist = getattr(
+        app.state,
+        "frontend_dist",
+        os.environ.get("WORKBENCH_FRONTEND_DIST", DEFAULT_FRONTEND_DIST),
+    )
+    return Path(configured_dist).expanduser().resolve()
 
 
 async def _read_json_object(request: Request) -> dict[str, Any] | None:
@@ -121,3 +138,26 @@ async def export_tool(tool_id: str, request: Request) -> dict[str, Any]:
         return _request_body_error(tool_id)
     run = _registry().run(tool_id, inputs, export=True, output_dir=_artifact_root())
     return _run_payload(run, include_artifact=True)
+
+
+@app.get("/")
+@app.get("/{full_path:path}")
+def serve_frontend(full_path: str = ""):
+    """托管构建后的 React 工作台，并支持前端深链。"""
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    dist_root = _frontend_dist()
+    index_path = dist_root / "index.html"
+    if not index_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="Frontend build not found. Run `cd frontend && npm run build`.",
+        )
+
+    if full_path:
+        candidate = (dist_root / full_path).resolve()
+        if candidate.is_file() and candidate.is_relative_to(dist_root):
+            return FileResponse(candidate)
+
+    return FileResponse(index_path)

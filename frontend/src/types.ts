@@ -21,6 +21,7 @@ export type ToolSpec = {
   mechanics_stage: number;
   mechanics_category_label: string;
   mechanics_category_subtitle: string;
+  sample_input?: Record<string, unknown>;
 };
 
 export type ToolsPayload = {
