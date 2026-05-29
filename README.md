@@ -16,6 +16,32 @@ python app_gradio.py
 
 访问 `http://localhost:7860` 开始使用。
 
+## Mechanics Explorer Preview
+
+新工作台预览版使用 React + FastAPI，保留现有 Lab 工具函数，但提供新的 Pipeline Rail 工作台和普通 HTTP API。当前版本是无持久化设计：每次运行只返回本次请求结果，不保存会话、项目或历史记录。
+
+```bash
+# 启动无状态 API，默认暴露在 8001
+python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8001
+
+# 启动 React 工作台
+cd frontend
+npm install
+npm run dev -- --host 127.0.0.1 --port 5173
+```
+
+常用接口：
+
+| Endpoint | 用途 |
+|---|---|
+| `GET /api/health` | 健康检查 |
+| `GET /api/tools` | 获取 Mechanics 分类和工具清单 |
+| `GET /api/tools/{tool_id}` | 获取单个工具定义 |
+| `POST /api/tools/{tool_id}/run` | 执行工具并返回无状态结果 |
+| `POST /api/tools/{tool_id}/export` | 执行工具并显式导出研究产物 |
+
+Mechanics Explorer 目前按七条工作路径组织：Input & Tokens、Representation Space、Probability & Decoding、Transformer Anatomy、Data & Context、Adaptation & Cost、Evaluation & Traces。
+
 ---
 
 ## 项目结构
