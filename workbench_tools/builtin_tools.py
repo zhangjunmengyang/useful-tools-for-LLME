@@ -517,6 +517,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="eval_pipeline",
             concepts=["evaluation", "metrics", "benchmarking"],
             requires_model_download=False,
+            mechanics_category="evaluation_traces",
+            mechanics_stage=1,
             input_schema={
                 "type": "object",
                 "required": ["predictions", "references"],
@@ -539,6 +541,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             concepts=["tokenization", "unicode", "byte-fallback"],
             requires_model_download=True,
             dependencies=["transformers"],
+            mechanics_category="input_tokens",
+            mechanics_stage=1,
             input_schema={
                 "type": "object",
                 "required": ["model_name", "text"],
@@ -560,6 +564,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="token_playground",
             concepts=["tokenization", "unicode", "normalization"],
             requires_model_download=False,
+            mechanics_category="input_tokens",
+            mechanics_stage=2,
             input_schema={
                 "type": "object",
                 "required": ["text"],
@@ -581,6 +587,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             concepts=["generation", "sampling", "logits"],
             requires_model_download=False,
             dependencies=["torch"],
+            mechanics_category="probability_decoding",
+            mechanics_stage=1,
             input_schema={
                 "type": "object",
                 "required": ["logits"],
@@ -605,6 +613,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="generation_kv_cache",
             concepts=["generation", "kv-cache", "inference-memory"],
             requires_model_download=False,
+            mechanics_category="transformer_anatomy",
+            mechanics_stage=4,
             input_schema={
                 "type": "object",
                 "required": ["prompt_length", "generation_length"],
@@ -632,6 +642,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             concepts=["interpretability", "rope", "position-encoding"],
             requires_model_download=False,
             dependencies=["numpy"],
+            mechanics_category="transformer_anatomy",
+            mechanics_stage=2,
             input_schema={
                 "type": "object",
                 "properties": {
@@ -655,6 +667,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             concepts=["interpretability", "ffn", "activation"],
             requires_model_download=False,
             dependencies=["numpy"],
+            mechanics_category="transformer_anatomy",
+            mechanics_stage=3,
             input_schema={
                 "type": "object",
                 "properties": {
@@ -674,6 +688,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="data_cleaner",
             concepts=["data", "cleaning", "sft"],
             requires_model_download=False,
+            mechanics_category="data_context",
+            mechanics_stage=3,
             input_schema={
                 "type": "object",
                 "required": ["text"],
@@ -696,6 +712,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="data_dataset_viewer",
             concepts=["data", "quality", "diagnostics"],
             requires_model_download=False,
+            mechanics_category="data_context",
+            mechanics_stage=1,
             input_schema={
                 "type": "object",
                 "required": ["samples"],
@@ -717,6 +735,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="data_formatter",
             concepts=["data", "sft", "format-conversion"],
             requires_model_download=False,
+            mechanics_category="data_context",
+            mechanics_stage=4,
             input_schema={
                 "type": "object",
                 "required": ["data", "target_format"],
@@ -742,6 +762,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="generation_kv_cache",
             concepts=["generation", "kv-cache", "inference-memory"],
             requires_model_download=False,
+            mechanics_category="transformer_anatomy",
+            mechanics_stage=5,
             input_schema={"type": "object"},
             output_schema={"type": "object"},
         ),
@@ -756,6 +778,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="model_peft",
             concepts=["lora", "peft", "fine-tuning"],
             requires_model_download=False,
+            mechanics_category="adaptation_cost",
+            mechanics_stage=1,
             input_schema={
                 "type": "object",
                 "required": [
@@ -792,6 +816,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="finetune_training_cost",
             concepts=["fine-tuning", "cost", "flops"],
             requires_model_download=False,
+            mechanics_category="adaptation_cost",
+            mechanics_stage=2,
             input_schema={
                 "type": "object",
                 "required": ["model_params", "tokens", "gpu_tflops", "cost_per_hour"],
@@ -818,6 +844,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="rag_chunking",
             concepts=["rag", "chunking", "retrieval"],
             requires_model_download=False,
+            mechanics_category="data_context",
+            mechanics_stage=5,
             input_schema={"type": "object"},
             output_schema={"type": "object"},
         ),
@@ -832,6 +860,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="rag_retrieval",
             concepts=["rag", "retrieval", "diagnostics"],
             requires_model_download=False,
+            mechanics_category="data_context",
+            mechanics_stage=6,
             input_schema={
                 "type": "object",
                 "required": ["query", "documents"],
@@ -854,6 +884,8 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             page_id="agent_trace_analyzer",
             concepts=["trace", "tool-calling", "latency"],
             requires_model_download=False,
+            mechanics_category="evaluation_traces",
+            mechanics_stage=2,
             input_schema={"type": "object"},
             output_schema={"type": "object"},
         ),

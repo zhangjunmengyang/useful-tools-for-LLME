@@ -53,6 +53,8 @@ class ToolSpec:
     dependencies: list[str] = field(default_factory=list)
     requires_model_download: bool = False
     page_id: str | None = None
+    mechanics_category: str | None = None
+    mechanics_stage: int = 999
 
     def to_dict(self) -> dict[str, Any]:
         """返回 JSON 兼容字典。"""
