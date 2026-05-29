@@ -137,8 +137,26 @@ describe("App", () => {
     expect(
       screen.getByText("POST /api/tools/token_count/run")
     ).toBeInTheDocument();
-    expect(screen.getByText(/model_name/)).toBeInTheDocument();
+    expect(screen.getAllByText(/model_name/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/token_count/)).toHaveLength(2);
+  });
+
+  it("loads runnable example JSON for the selected tool", async () => {
+    render(<App initialPayload={payload} />);
+
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText("JSON Input") as HTMLTextAreaElement).value
+      ).toContain("\"text\": \"Ａ café\"")
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Token Count/ }));
+
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText("JSON Input") as HTMLTextAreaElement).value
+      ).toContain("\"model_name\": \"gpt2\"")
+    );
   });
 
   it("runs the selected stateless tool and shows result JSON", async () => {
