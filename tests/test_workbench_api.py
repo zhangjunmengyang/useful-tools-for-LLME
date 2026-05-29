@@ -62,6 +62,21 @@ class WorkbenchApiTest(unittest.TestCase):
 
     def test_export_endpoint_writes_artifact_only_when_requested(self):
         with tempfile.TemporaryDirectory() as tmp:
+            run_response = self.client.post(
+                "/api/tools/eval_metrics/run",
+                json={
+                    "predictions": ["Paris"],
+                    "references": ["Paris"],
+                    "output_dir": tmp,
+                },
+            )
+
+            self.assertEqual(run_response.status_code, 200)
+            run_payload = run_response.json()
+            self.assertEqual(run_payload["status"], "success")
+            self.assertNotIn("artifact", run_payload)
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+
             response = self.client.post(
                 "/api/tools/eval_metrics/export",
                 json={

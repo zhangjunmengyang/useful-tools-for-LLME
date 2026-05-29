@@ -67,7 +67,9 @@ def run_tool(tool_id: str, inputs: dict[str, Any]) -> dict[str, Any]:
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Unknown tool: {tool_id}") from exc
     run = _registry().run(tool_id, inputs, export=False)
-    return run.to_dict()
+    payload = run.to_dict()
+    payload.pop("artifact", None)
+    return payload
 
 
 @app.post("/api/tools/{tool_id}/export")
