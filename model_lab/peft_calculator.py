@@ -47,10 +47,10 @@ MODEL_CATEGORIES = {
 
 # 可训练模块
 TARGET_MODULES = {
-    "q_proj": "Query 投影",
-    "k_proj": "Key 投影",
-    "v_proj": "Value 投影",
-    "o_proj": "Output 投影",
+    "q_proj": "Query Projection",
+    "k_proj": "Key Projection",
+    "v_proj": "Value Projection",
+    "o_proj": "Output Projection",
     "gate_proj": "FFN Gate",
     "up_proj": "FFN Up",
     "down_proj": "FFN Down",
@@ -110,25 +110,25 @@ def calculate_lora_params(config: dict, rank: int, modules: list) -> dict:
             out_dim = num_heads * head_dim
             module_params = hidden_size * rank + rank * out_dim
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{hidden_size}->{out_dim}", "每层参数": module_params})
+            details.append({"Module": module, "Dimension": f"{hidden_size}->{out_dim}", "Params per Layer": module_params})
         elif module in ["k_proj", "v_proj"]:
             out_dim = num_kv_heads * head_dim
             module_params = hidden_size * rank + rank * out_dim
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{hidden_size}->{out_dim}", "每层参数": module_params})
+            details.append({"Module": module, "Dimension": f"{hidden_size}->{out_dim}", "Params per Layer": module_params})
         elif module == "o_proj":
             in_dim = num_heads * head_dim
             module_params = in_dim * rank + rank * hidden_size
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{in_dim}->{hidden_size}", "每层参数": module_params})
+            details.append({"Module": module, "Dimension": f"{in_dim}->{hidden_size}", "Params per Layer": module_params})
         elif module in ["gate_proj", "up_proj"]:
             module_params = hidden_size * rank + rank * intermediate_size
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{hidden_size}->{intermediate_size}", "每层参数": module_params})
+            details.append({"Module": module, "Dimension": f"{hidden_size}->{intermediate_size}", "Params per Layer": module_params})
         elif module == "down_proj":
             module_params = intermediate_size * rank + rank * hidden_size
             params_per_layer += module_params
-            details.append({"模块": module, "维度": f"{intermediate_size}->{hidden_size}", "每层参数": module_params})
+            details.append({"Module": module, "Dimension": f"{intermediate_size}->{hidden_size}", "Params per Layer": module_params})
     
     total_params = params_per_layer * num_layers
     
@@ -179,7 +179,7 @@ def load_model_config(input_mode: str, category: str, preset_model: str, custom_
     """加载模型配置"""
     global _config_cache
     
-    if input_mode == "预设模型":
+    if input_mode == "Preset Model":
         model_id = get_model_id(category, preset_model)
         display_name = preset_model
     else:
@@ -187,10 +187,10 @@ def load_model_config(input_mode: str, category: str, preset_model: str, custom_
         display_name = custom_model.split("/")[-1] if custom_model else None
     
     if not model_id:
-        return "Please select或输入模型", ""
+        return "Please select or enter a model", ""
     
     try:
-        progress(0.5, desc=f"加载 {display_name} 配置...")
+        progress(0.5, desc=f"Loading {display_name} config...")
         raw_config = load_config_from_hub(model_id, token)
         config = extract_model_config(raw_config)
         
@@ -205,10 +205,10 @@ def load_model_config(input_mode: str, category: str, preset_model: str, custom_
 - FFN: {config['intermediate_size']:,}
         """
         
-        return "配置加载成功", info_text
+        return "Configuration loaded", info_text
         
     except Exception as e:
-        return f"加载失败: {str(e)}", ""
+        return f"Load failed: {str(e)}", ""
 
 
 def calculate_results(rank: int, alpha: int, selected_modules: list):
@@ -218,7 +218,7 @@ def calculate_results(rank: int, alpha: int, selected_modules: list):
         return "", None, "", "", "", "", "", ""
     
     if not selected_modules:
-        return "Please select至少一个目标模块", None, "", "", "", "", "", ""
+        return "Please select at least one target module", None, "", "", "", "", "", ""
     
     result = calculate_lora_params(config, rank, selected_modules)
     base_params = estimate_base_params(config)
@@ -226,9 +226,9 @@ def calculate_results(rank: int, alpha: int, selected_modules: list):
     
     # 详细表格
     df = pd.DataFrame(result['details'])
-    df['总参数'] = df['每层参数'] * config['num_layers']
-    df['总参数'] = df['总参数'].apply(lambda x: f"{x:,}")
-    df['每层参数'] = df['每层参数'].apply(lambda x: f"{x:,}")
+    df['Total Params'] = df['Params per Layer'] * config['num_layers']
+    df['Total Params'] = df['Total Params'].apply(lambda x: f"{x:,}")
+    df['Params per Layer'] = df['Params per Layer'].apply(lambda x: f"{x:,}")
     
     # 显存估算
     lora_mem_fp16 = result['total_params'] * 2 / 1024 / 1024
@@ -259,9 +259,16 @@ def render():
     default_alpha = 32
     default_modules = ["q_proj", "v_proj"]
     
-    with gr.Row():
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>PEFT Calculator</h1>
+      <p>Estimate LoRA trainable parameters and memory overhead from model configuration.</p>
+    </div>
+    """)
+
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
         # 左列：模型选择
-        with gr.Column(scale=1):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
             gr.Markdown("### Model Selection")
 
             input_mode = gr.Radio(
@@ -298,8 +305,6 @@ def render():
             load_status = gr.Markdown("")
             model_info = gr.Markdown("")
         
-        # 右列：LoRA 配置 & 结果
-        with gr.Column(scale=2):
             gr.Markdown("### LoRA Parameters")
 
             with gr.Row():
@@ -327,6 +332,9 @@ def render():
                 value=default_modules
             )
 
+        # 右列：结果
+        with gr.Column(scale=2, elem_classes=["workbench-output-panel"]):
+            gr.Markdown("### LoRA Parameters")
             calc_status = gr.Markdown("")
 
             gr.Markdown("### Calculation Results")
@@ -364,7 +372,7 @@ def render():
     def load_and_calculate(input_mode, category, preset_model, custom_model, token, rank, alpha, selected_modules):
         """加载模型配置并自动计算参数"""
         status, info = load_model_config(input_mode, category, preset_model, custom_model, token)
-        if "Success" in status:
+        if status == "Configuration loaded":
             calc_result = calculate_results(rank, alpha, selected_modules)
             return (status, info) + calc_result
         return status, info, "", None, "", "", "", "", "", ""
@@ -397,7 +405,7 @@ def render():
     # 初始化加载函数
     def on_load():
         """页面加载时计算默认值"""
-        return load_and_calculate("预设模型", default_category, default_model, "", "", default_rank, default_alpha, default_modules)
+        return load_and_calculate("Preset Model", default_category, default_model, "", "", default_rank, default_alpha, default_modules)
     
     # 返回 load 事件需要的信息供主 app 调用
     return {

@@ -60,40 +60,50 @@ def render():
     default_model = "bert-base-cased"
     default_library = "auto"
     default_dtypes = ["float32"]
-    
-    # 输入区域
-    with gr.Group():
-        with gr.Row():
+
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>Memory Estimator</h1>
+      <p>Estimate model memory requirements across precision modes and training stages.</p>
+    </div>
+    """)
+
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
+            gr.Markdown("### Model Source")
             model_name = gr.Textbox(
                 label="Model Name or URL",
                 value=default_model,
                 placeholder="e.g., bert-base-cased, meta-llama/Llama-2-7b-hf"
             )
+
             library = gr.Dropdown(
                 label="Model Library",
                 choices=LIBRARY_OPTIONS,
                 value=default_library
             )
 
-        with gr.Row():
+            gr.Markdown("### Precision")
             selected_dtypes = gr.CheckboxGroup(
                 label="Select Precision Types",
                 choices=DTYPE_OPTIONS,
                 value=default_dtypes
             )
+
             access_token = gr.Textbox(
                 label="API Token (Optional)",
                 type="password",
                 placeholder="For accessing private models"
             )
 
-    # 结果区域
-    result_status = gr.Markdown("")
+        with gr.Column(scale=3, elem_classes=["workbench-output-panel"]):
+            result_status = gr.Markdown("")
 
-    main_table = gr.Dataframe(label="Memory Requirements")
+            with gr.Column(elem_classes=["workbench-detail-panel"]):
+                main_table = gr.Dataframe(label="Memory Requirements")
 
-    with gr.Accordion("Training Stage Details", open=False):
-        stages_table = gr.Dataframe(label="Training Stage Details")
+            with gr.Accordion("Training Stage Details", open=False):
+                stages_table = gr.Dataframe(label="Training Stage Details")
     
     # 参数变化自动触发计算
     inputs = [model_name, library, selected_dtypes, access_token]

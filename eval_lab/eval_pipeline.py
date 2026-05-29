@@ -21,62 +21,63 @@ from eval_lab.eval_utils import (
     format_metrics_table,
     generate_eval_report
 )
+from workbench_theme import OPEN_DESIGN_COLORS, PLOTLY_COLORWAY
 
 
 # 内置示例数据集
 SAMPLE_DATASETS = {
-    'QA数据集示例': {
-        'description': '问答任务示例数据，包含问题、参考答案和模型预测',
+    'QA Sample Dataset': {
+        'description': 'Question answering sample data with questions, references, and predictions',
         'data': [
             {
-                'question': 'Python中如何读取CSV文件？',
-                'reference': '使用pandas库的read_csv()函数可以方便地读取CSV文件。',
-                'prediction': 'import pandas as pd\ndf = pd.read_csv("file.csv")\n可以使用pandas的read_csv函数读取CSV文件。'
+                'question': 'How do you read a CSV file in Python?',
+                'reference': 'Use pandas read_csv() to read a CSV file into a DataFrame.',
+                'prediction': 'import pandas as pd\ndf = pd.read_csv("file.csv")\nThe pandas read_csv function loads CSV files.'
             },
             {
-                'question': '什么是机器学习？',
-                'reference': '机器学习是人工智能的一个分支，让计算机通过数据学习模式和做出预测。',
-                'prediction': '机器学习是AI的子领域，通过算法让计算机从数据中学习规律，无需显式编程。'
+                'question': 'What is machine learning?',
+                'reference': 'Machine learning is a branch of AI where computers learn patterns from data and make predictions.',
+                'prediction': 'Machine learning is an AI subfield where algorithms learn patterns from data without explicit programming.'
             },
             {
-                'question': '如何提高代码质量？',
-                'reference': '通过代码审查、单元测试、遵循编码规范、重构等方式可以提高代码质量。',
-                'prediction': '写注释、做测试、code review、用linter检查格式。'
+                'question': 'How can code quality be improved?',
+                'reference': 'Code quality can be improved through review, tests, style conventions, and refactoring.',
+                'prediction': 'Add comments, write tests, run code review, and use a linter.'
             },
             {
-                'question': 'SQL中的JOIN有哪些类型？',
-                'reference': '主要有INNER JOIN、LEFT JOIN、RIGHT JOIN、FULL OUTER JOIN等类型。',
-                'prediction': 'SQL的JOIN包括内连接(INNER JOIN)、左连接(LEFT JOIN)、右连接(RIGHT JOIN)和全外连接(FULL OUTER JOIN)。'
+                'question': 'What SQL JOIN types are common?',
+                'reference': 'Common SQL JOIN types include INNER JOIN, LEFT JOIN, RIGHT JOIN, and FULL OUTER JOIN.',
+                'prediction': 'SQL JOIN includes INNER JOIN, LEFT JOIN, RIGHT JOIN, and FULL OUTER JOIN.'
             },
             {
-                'question': '什么是REST API？',
-                'reference': 'REST是一种软件架构风格，用于设计网络应用的API，基于HTTP协议。',
-                'prediction': 'REST API是基于HTTP的Web服务接口，使用GET/POST/PUT/DELETE等方法进行资源操作。'
+                'question': 'What is a REST API?',
+                'reference': 'REST is a software architecture style for designing web APIs over HTTP.',
+                'prediction': 'A REST API is an HTTP-based web service interface that uses methods such as GET, POST, PUT, and DELETE.'
             }
         ]
     },
-    '代码生成示例': {
-        'description': '代码生成任务示例，评测代码的正确性和质量',
+    'Code Generation Sample': {
+        'description': 'Code generation examples for evaluating correctness and quality',
         'data': [
             {
-                'question': '写一个Python函数计算斐波那契数列的第n项',
+                'question': 'Write a Python function that returns the nth Fibonacci number',
                 'reference': 'def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)',
                 'prediction': 'def fib(n):\n    if n < 2:\n        return n\n    a, b = 0, 1\n    for i in range(2, n+1):\n        a, b = b, a + b\n    return b'
             },
             {
-                'question': '实现一个函数判断字符串是否为回文',
+                'question': 'Implement a function that checks whether a string is a palindrome',
                 'reference': 'def is_palindrome(s):\n    s = s.lower().replace(" ", "")\n    return s == s[::-1]',
                 'prediction': 'def palindrome_check(text):\n    clean = "".join(text.split()).lower()\n    return clean == clean[::-1]'
             },
             {
-                'question': '写一个快速排序算法',
+                'question': 'Write a quicksort implementation',
                 'reference': 'def quicksort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quicksort(left) + middle + quicksort(right)',
                 'prediction': 'def quick_sort(array):\n    if len(array) < 2:\n        return array\n    pivot = array[0]\n    less = [i for i in array[1:] if i <= pivot]\n    greater = [i for i in array[1:] if i > pivot]\n    return quick_sort(less) + [pivot] + quick_sort(greater)'
             }
         ]
     },
-    '翻译质量评测': {
-        'description': '机器翻译质量评测示例',
+    'Translation Quality Sample': {
+        'description': 'Machine translation quality evaluation sample',
         'data': [
             {
                 'question': 'Hello, how are you today?',
@@ -126,7 +127,7 @@ def parse_uploaded_file(file_content: str, file_type: str) -> List[Dict[str, str
         else:
             raise ValueError(f"不支持的文件类型: {file_type}")
     except Exception as e:
-        raise ValueError(f"文件解析失败: {str(e)}")
+        raise ValueError(f"File parse failed: {str(e)}")
 
 
 def validate_dataset(data: List[Dict[str, str]]) -> Tuple[bool, str]:
@@ -140,13 +141,13 @@ def validate_dataset(data: List[Dict[str, str]]) -> Tuple[bool, str]:
         (是否有效, 错误信息)
     """
     if not data:
-        return False, "数据集为空"
+        return False, "Dataset is empty"
     
     required_fields = {'question', 'reference', 'prediction'}
     
     for i, item in enumerate(data):
         if not isinstance(item, dict):
-            return False, f"第{i+1}行数据格式错误，应为字典格式"
+            return False, f"Row {i+1} must be an object"
         
         missing_fields = required_fields - set(item.keys())
         if missing_fields:
@@ -172,7 +173,7 @@ def run_batch_evaluation(data: List[Dict[str, str]], selected_metrics: List[str]
         评测结果
     """
     if not data:
-        return {'error': '没有数据进行评测'}
+        return {'error': 'No data to evaluate'}
     
     # 提取预测和参考答案
     predictions = [item['prediction'] for item in data]
@@ -207,7 +208,7 @@ def run_batch_evaluation(data: List[Dict[str, str]], selected_metrics: List[str]
         }
     
     except Exception as e:
-        return {'error': f'评测过程中出错: {str(e)}'}
+        return {'error': f'Evaluation failed: {str(e)}'}
 
 
 def create_metrics_comparison_chart(results_dict: Dict[str, Dict[str, float]]) -> go.Figure:
@@ -222,7 +223,7 @@ def create_metrics_comparison_chart(results_dict: Dict[str, Dict[str, float]]) -
     """
     if not results_dict:
         fig = go.Figure()
-        fig.add_annotation(text="没有数据", x=0.5, y=0.5, showarrow=False)
+        fig.add_annotation(text="No data", x=0.5, y=0.5, showarrow=False)
         return fig
     
     # 提取所有指标名称
@@ -234,7 +235,7 @@ def create_metrics_comparison_chart(results_dict: Dict[str, Dict[str, float]]) -
     fig = go.Figure()
     
     # 为每个模型添加柱状图
-    colors = px.colors.qualitative.Set3
+    colors = PLOTLY_COLORWAY
     for i, (model_name, metrics) in enumerate(results_dict.items()):
         scores = [metrics.get(metric, 0) for metric in all_metrics]
         
@@ -248,9 +249,9 @@ def create_metrics_comparison_chart(results_dict: Dict[str, Dict[str, float]]) -
         ))
     
     fig.update_layout(
-        title="多模型评测结果对比",
-        xaxis_title="评测指标",
-        yaxis_title="分数",
+        title="Multi-Model Evaluation Comparison",
+        xaxis_title="Metric",
+        yaxis_title="Score",
         barmode='group',
         height=500,
         yaxis=dict(range=[0, 1])
@@ -271,7 +272,7 @@ def create_metrics_radar_chart(metrics: Dict[str, float]) -> go.Figure:
     """
     if not metrics:
         fig = go.Figure()
-        fig.add_annotation(text="没有数据", x=0.5, y=0.5, showarrow=False)
+        fig.add_annotation(text="No data", x=0.5, y=0.5, showarrow=False)
         return fig
     
     categories = list(metrics.keys())
@@ -283,9 +284,9 @@ def create_metrics_radar_chart(metrics: Dict[str, float]) -> go.Figure:
         r=values + [values[0]],
         theta=categories + [categories[0]],
         fill='toself',
-        name='评测结果',
-        line=dict(color='#1f77b4', width=2),
-        fillcolor='#1f77b4',
+        name='Evaluation Result',
+        line=dict(color=OPEN_DESIGN_COLORS["accent"], width=2),
+        fillcolor=OPEN_DESIGN_COLORS["accent"],
         opacity=0.3
     ))
     
@@ -298,7 +299,7 @@ def create_metrics_radar_chart(metrics: Dict[str, float]) -> go.Figure:
             )
         ),
         showlegend=False,
-        title=dict(text="评测指标雷达图", x=0.5, font=dict(size=16)),
+        title=dict(text="Evaluation Metrics Radar", x=0.5, font=dict(size=16)),
         width=500,
         height=500
     )
@@ -318,7 +319,7 @@ def create_sample_analysis_chart(sample_results: List[Dict]) -> go.Figure:
     """
     if not sample_results:
         fig = go.Figure()
-        fig.add_annotation(text="没有样本数据", x=0.5, y=0.5, showarrow=False)
+        fig.add_annotation(text="No sample data", x=0.5, y=0.5, showarrow=False)
         return fig
     
     # 提取每个样本的F1分数用于展示
@@ -339,10 +340,10 @@ def create_sample_analysis_chart(sample_results: List[Dict]) -> go.Figure:
             colorbar=dict(title="F1 Score"),
             line=dict(width=1, color='white')
         ),
-        line=dict(width=2, color='gray'),
+        line=dict(width=2, color=OPEN_DESIGN_COLORS["muted"]),
         name='F1 Score',
-        text=[f"样本{i}: {score:.3f}" for i, score in zip(indices, f1_scores)],
-        hovertemplate='<b>样本 %{x}</b><br>F1 Score: %{y:.3f}<extra></extra>'
+        text=[f"Sample {i}: {score:.3f}" for i, score in zip(indices, f1_scores)],
+        hovertemplate='<b>Sample %{x}</b><br>F1 Score: %{y:.3f}<extra></extra>'
     ))
     
     # 添加平均线
@@ -350,14 +351,14 @@ def create_sample_analysis_chart(sample_results: List[Dict]) -> go.Figure:
     fig.add_hline(
         y=avg_f1,
         line_dash="dash",
-        line_color="red",
-        annotation_text=f"平均 F1: {avg_f1:.3f}",
+        line_color=OPEN_DESIGN_COLORS["accent"],
+        annotation_text=f"Average F1: {avg_f1:.3f}",
         annotation_position="top right"
     )
     
     fig.update_layout(
-        title="样本级别评测结果分析",
-        xaxis_title="样本编号",
+        title="Sample-Level Evaluation Analysis",
+        xaxis_title="Sample",
         yaxis_title="F1 Score",
         height=400,
         yaxis=dict(range=[0, 1])
@@ -382,12 +383,12 @@ def format_sample_results_table(sample_results: List[Dict]) -> pd.DataFrame:
     rows = []
     for res in sample_results:
         row = {
-            '样本': res['index'] + 1,
-            '问题': res['question'][:50] + '...' if len(res['question']) > 50 else res['question'],
+            'Sample': res['index'] + 1,
+            'Question': res['question'][:50] + '...' if len(res['question']) > 50 else res['question'],
             'F1': f"{res['metrics'].get('f1', 0):.3f}",
             'BLEU': f"{res['metrics'].get('bleu', 0):.3f}",
             'ROUGE-L': f"{res['metrics'].get('rouge_l', 0):.3f}",
-            '精确匹配': f"{res['metrics'].get('exact_match', 0):.3f}"
+            'Exact Match': f"{res['metrics'].get('exact_match', 0):.3f}"
         }
         rows.append(row)
     
@@ -403,29 +404,29 @@ def render():
     """
     with gr.Column():
         gr.HTML("""
-        <div class="main-header">
-            <h1 style="color: #1f2937; margin-bottom: 8px;">🔄 自动化评测Pipeline</h1>
-            <p style="color: #6b7280; font-size: 1.1rem; margin: 0;">批量评测、结果分析和报告生成</p>
+        <div class="workbench-page-hero">
+            <h1>Evaluation Pipeline</h1>
+            <p>Load datasets, run batch metrics, inspect results, and export evaluation reports.</p>
         </div>
         """)
         
         with gr.Tabs():
             # Tab 1: 数据准备
-            with gr.Tab("数据准备"):
+            with gr.Tab("Data Setup"):
                 with gr.Row():
                     with gr.Column(scale=1):
-                        gr.Markdown("### 数据输入")
+                        gr.Markdown("### Data Input")
                         
                         # 数据来源选择
                         data_source = gr.Radio(
-                            choices=["上传文件", "使用示例数据"],
-                            value="使用示例数据",
-                            label="数据来源"
+                            choices=["Upload File", "Use Sample Data"],
+                            value="Use Sample Data",
+                            label="Data Source"
                         )
                         
                         # 文件上传
                         file_upload = gr.File(
-                            label="上传数据集文件 (JSON/CSV)",
+                            label="Upload Dataset File (JSON/CSV)",
                             file_types=[".json", ".csv"],
                             visible=False
                         )
@@ -434,52 +435,52 @@ def render():
                         sample_dataset_selector = gr.Dropdown(
                             choices=list(SAMPLE_DATASETS.keys()),
                             value=list(SAMPLE_DATASETS.keys())[0],
-                            label="选择示例数据集"
+                            label="Sample Dataset"
                         )
                         
-                        load_data_btn = gr.Button("加载数据", variant="primary")
+                        load_data_btn = gr.Button("Load Data", variant="primary")
                     
                     with gr.Column(scale=1):
-                        gr.Markdown("### 数据格式说明")
+                        gr.Markdown("### Data Format")
                         gr.Markdown("""
-                        **JSON格式示例:**
+                        **JSON example:**
                         ```json
                         [
                             {
-                                "question": "问题内容",
-                                "reference": "参考答案",
-                                "prediction": "模型预测"
+                                "question": "Question text",
+                                "reference": "Reference answer",
+                                "prediction": "Model prediction"
                             }
                         ]
                         ```
                         
-                        **CSV格式示例:**
+                        **CSV example:**
                         ```csv
                         question,reference,prediction
-                        问题1,参考答案1,模型预测1
-                        问题2,参考答案2,模型预测2
+                        Question 1,Reference 1,Prediction 1
+                        Question 2,Reference 2,Prediction 2
                         ```
                         """)
                 
                 # 数据预览
                 with gr.Row():
                     data_preview = gr.Dataframe(
-                        label="数据预览",
+                        label="Data Preview",
                         interactive=False
                     )
                 
                 # 数据统计
                 data_status = gr.Textbox(
-                    label="数据状态",
+                    label="Data Status",
                     interactive=False,
-                    value="请先加载数据"
+                    value="Load a dataset first"
                 )
             
             # Tab 2: 配置评测
-            with gr.Tab("配置评测"):
+            with gr.Tab("Configure Evaluation"):
                 with gr.Row():
                     with gr.Column():
-                        gr.Markdown("### 评测配置")
+                        gr.Markdown("### Evaluation Configuration")
                         
                         # 指标选择
                         metrics_selector = gr.CheckboxGroup(
@@ -491,69 +492,69 @@ def render():
                                 ('BERTScore F1', 'bertscore_f1')
                             ],
                             value=['exact_match', 'f1', 'bleu'],
-                            label="选择评测指标"
+                            label="Metrics"
                         )
                         
                         # 模型名称设置
                         model_name_input = gr.Textbox(
                             value="GPT-4",
-                            label="模型名称",
-                            info="用于生成报告"
+                            label="Model Name",
+                            info="Used in the exported report"
                         )
                         
                         dataset_name_input = gr.Textbox(
-                            value="自定义数据集",
-                            label="数据集名称",
-                            info="用于生成报告"
+                            value="Custom Dataset",
+                            label="Dataset Name",
+                            info="Used in the exported report"
                         )
                         
-                        run_eval_btn = gr.Button("开始评测", variant="primary")
+                        run_eval_btn = gr.Button("Run Evaluation", variant="primary")
                     
                     with gr.Column():
-                        gr.Markdown("### 指标说明")
+                        gr.Markdown("### Metric Notes")
                         gr.Markdown("""
-                        - **Exact Match**: 预测与参考完全匹配的比例
-                        - **F1 Score**: 基于token的精确率和召回率调和平均
-                        - **BLEU**: 机器翻译质量指标，基于n-gram匹配
-                        - **ROUGE-L**: 基于最长公共子序列的文本相似度
-                        - **BERTScore F1**: 基于语义理解的相似度评分
+                        - **Exact Match**: Share of predictions exactly matching the reference
+                        - **F1 Score**: Token-level harmonic mean of precision and recall
+                        - **BLEU**: N-gram overlap metric often used for translation
+                        - **ROUGE-L**: Longest-common-subsequence text similarity
+                        - **BERTScore F1**: Semantic similarity score
                         """)
             
             # Tab 3: 结果分析
-            with gr.Tab("结果分析"):
+            with gr.Tab("Results"):
                 with gr.Tabs():
-                    with gr.Tab("整体指标"):
+                    with gr.Tab("Overall Metrics"):
                         with gr.Row():
                             with gr.Column():
                                 # 整体指标表格
                                 overall_metrics_table = gr.Markdown(
-                                    value="请先完成评测",
-                                    label="整体评测结果"
+                                    value="Run evaluation first",
+                                    label="Overall Evaluation Results"
                                 )
                             
                             with gr.Column():
                                 # 雷达图
-                                metrics_radar_chart = gr.Plot(label="指标雷达图")
+                                metrics_radar_chart = gr.Plot(label="Metrics Radar")
                     
-                    with gr.Tab("样本分析"):
+                    with gr.Tab("Sample Analysis"):
                         # 样本级别分析图表
-                        sample_analysis_chart = gr.Plot(label="样本分析")
+                        sample_analysis_chart = gr.Plot(label="Sample Analysis")
                         
                         # 详细样本结果表格
                         sample_results_table = gr.Dataframe(
-                            label="样本详细结果",
+                            label="Sample Results",
                             interactive=False
                         )
                     
-                    with gr.Tab("多模型对比"):
+                    with gr.Tab("Model Comparison"):
                         gr.Markdown("""
-                        ### 多模型对比功能
+                        ### Model Comparison
                         
-                        此功能用于对比不同模型在同一数据集上的表现。
-                        在实际应用中，您可以：
-                        1. 分别评测不同模型的结果
-                        2. 保存各自的评测结果
-                        3. 在此进行可视化对比
+                        Compare model performance on the same dataset.
+                        In a real workflow:
+                        1. Evaluate each model separately.
+                        2. Save each result set.
+                        3. Visualize the comparison here.
                         """)
                         
                         # 预置一些对比数据用于演示
@@ -563,30 +564,30 @@ def render():
                                 'Claude-3.5': {'exact_match': 0.38, 'f1': 0.82, 'bleu': 0.48},
                                 'GPT-3.5': {'exact_match': 0.32, 'f1': 0.69, 'bleu': 0.41}
                             }),
-                            label="模型对比"
+                            label="Model Comparison"
                         )
             
             # Tab 4: 导出报告
-            with gr.Tab("导出报告"):
-                gr.Markdown("### 评测报告导出")
+            with gr.Tab("Export Report"):
+                gr.Markdown("### Export Evaluation Report")
                 
                 export_format = gr.Radio(
                     choices=["Markdown", "JSON"],
                     value="Markdown",
-                    label="导出格式"
+                    label="Export Format"
                 )
                 
-                generate_report_btn = gr.Button("生成报告", variant="primary")
+                generate_report_btn = gr.Button("Generate Report", variant="primary")
                 
                 # 报告预览
                 report_preview = gr.Textbox(
-                    label="报告预览",
+                    label="Report Preview",
                     lines=15,
                     interactive=False
                 )
                 
                 # 下载链接
-                report_download = gr.File(label="下载报告")
+                report_download = gr.File(label="Download Report")
         
         # 存储评测数据的状态变量
         eval_data_state = gr.State(value=[])
@@ -595,7 +596,7 @@ def render():
         # 事件处理函数
         def toggle_data_source(source):
             """切换数据来源显示"""
-            if source == "上传文件":
+            if source == "Upload File":
                 return gr.update(visible=True), gr.update(visible=False)
             else:
                 return gr.update(visible=False), gr.update(visible=True)
@@ -605,15 +606,15 @@ def render():
             if dataset_name in SAMPLE_DATASETS:
                 data = SAMPLE_DATASETS[dataset_name]['data']
                 df = pd.DataFrame(data)
-                status = f"✅ 已加载 {len(data)} 条样本数据"
+                status = f"Loaded {len(data)} samples"
                 return df, status, data
             else:
-                return pd.DataFrame(), "❌ 数据集不存在", []
+                return pd.DataFrame(), "Dataset not found", []
         
         def load_uploaded_data(file):
             """加载上传的文件数据"""
             if file is None:
-                return pd.DataFrame(), "❌ 请先上传文件", []
+                return pd.DataFrame(), "Upload a file first", []
             
             try:
                 # 读取文件内容
@@ -626,28 +627,28 @@ def render():
                 # 验证数据格式
                 is_valid, error_msg = validate_dataset(data)
                 if not is_valid:
-                    return pd.DataFrame(), f"❌ {error_msg}", []
+                    return pd.DataFrame(), f"Error: {error_msg}", []
                 
                 df = pd.DataFrame(data)
-                status = f"✅ 已加载 {len(data)} 条样本数据"
+                status = f"Loaded {len(data)} samples"
                 return df, status, data
                 
             except Exception as e:
-                return pd.DataFrame(), f"❌ 加载失败: {str(e)}", []
+                return pd.DataFrame(), f"Load failed: {str(e)}", []
         
         def run_evaluation(data, selected_metrics, model_name, dataset_name):
             """运行评测"""
             if not data:
-                return "❌ 请先加载数据", gr.update(), gr.update(), gr.update(), {}
+                return "Load data first", gr.update(), gr.update(), gr.update(), {}
             
             if not selected_metrics:
-                return "❌ 请选择至少一个评测指标", gr.update(), gr.update(), gr.update(), {}
+                return "Select at least one metric", gr.update(), gr.update(), gr.update(), {}
             
             # 运行评测
             results = run_batch_evaluation(data, selected_metrics)
             
             if 'error' in results:
-                return f"❌ {results['error']}", gr.update(), gr.update(), gr.update(), {}
+                return f"Error: {results['error']}", gr.update(), gr.update(), gr.update(), {}
             
             # 格式化整体指标表格
             metrics_table = format_metrics_table(results['overall_metrics'])
@@ -661,7 +662,7 @@ def render():
             # 格式化样本结果表格
             sample_table = format_sample_results_table(results['sample_results'])
             
-            status = f"✅ 评测完成，共处理 {results['total_samples']} 个样本"
+            status = f"Evaluation complete: {results['total_samples']} samples processed"
             
             # 保存结果用于生成报告
             report_results = {
@@ -676,7 +677,7 @@ def render():
         def generate_report(results, export_format):
             """生成评测报告"""
             if not results:
-                return "❌ 请先完成评测", None
+                return "Run evaluation first", None
             
             try:
                 # 准备样本预测数据
@@ -723,7 +724,7 @@ def render():
                     return report_content, report_file
                     
             except Exception as e:
-                return f"❌ 生成报告失败: {str(e)}", None
+                return f"Report generation failed: {str(e)}", None
         
         # 事件绑定
         data_source.change(
@@ -733,7 +734,7 @@ def render():
         )
         
         load_data_btn.click(
-            fn=lambda source, dataset_name, file: load_sample_data(dataset_name) if source == "使用示例数据" else load_uploaded_data(file),
+            fn=lambda source, dataset_name, file: load_sample_data(dataset_name) if source == "Use Sample Data" else load_uploaded_data(file),
             inputs=[data_source, sample_dataset_selector, file_upload],
             outputs=[data_preview, data_status, eval_data_state]
         )
@@ -756,7 +757,7 @@ def render():
         # 初始化加载示例数据
         initial_data = SAMPLE_DATASETS[list(SAMPLE_DATASETS.keys())[0]]['data']
         initial_df = pd.DataFrame(initial_data)
-        initial_status = f"✅ 已加载 {len(initial_data)} 条样本数据"
+        initial_status = f"Loaded {len(initial_data)} samples"
         
         data_preview.value = initial_df
         data_status.value = initial_status

@@ -314,10 +314,16 @@ def render():
     default_model_a = "Qwen2.5-7B"
     default_cat_b = "Alibaba (Qwen)"
     default_model_b = "Qwen3-8B"
-    
-    with gr.Row():
-        # 模型 A 选择
-        with gr.Column():
+
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>Config Diff</h1>
+      <p>Compare architecture settings, attention variants, context limits, and parameter estimates across two models.</p>
+    </div>
+    """)
+
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
             gr.Markdown("### Model A")
 
             mode_a = gr.Radio(
@@ -348,9 +354,7 @@ def render():
                 label="HF Token (Optional)",
                 type="password"
             )
-        
-        # 模型 B 选择
-        with gr.Column():
+
             gr.Markdown("### Model B")
 
             mode_b = gr.Radio(
@@ -381,24 +385,22 @@ def render():
                 label="HF Token (Optional)",
                 type="password"
             )
-    
-    gr.Markdown("---")
 
-    show_all = gr.Checkbox(label="Show All Config Items", value=False)
+            show_all = gr.Checkbox(label="Show All Config Items", value=False)
 
-    load_status = gr.Markdown("")
+        with gr.Column(scale=2, elem_classes=["workbench-output-panel"]):
+            load_status = gr.Markdown("")
 
-    # 结果区域
-    gr.Markdown("### Configuration Comparison")
-    diff_table = gr.Dataframe(label="Comparison Table")
+            gr.Markdown("### Parameter Estimation")
+            with gr.Row():
+                params_a_display = gr.Textbox(label="Model A Est. Parameters", interactive=False)
+                params_b_display = gr.Textbox(label="Model B Est. Parameters", interactive=False)
 
-    gr.Markdown("### Key Difference Analysis")
-    analysis_text = gr.Markdown("")
+            gr.Markdown("### Configuration Comparison")
+            diff_table = gr.Dataframe(label="Comparison Table")
 
-    gr.Markdown("### Parameter Estimation")
-    with gr.Row():
-        params_a_display = gr.Textbox(label="Model A Est. Parameters", interactive=False)
-        params_b_display = gr.Textbox(label="Model B Est. Parameters", interactive=False)
+            gr.Markdown("### Key Difference Analysis")
+            analysis_text = gr.Markdown("")
     
     # 事件绑定
     def toggle_mode_a(mode):

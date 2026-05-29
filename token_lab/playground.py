@@ -361,15 +361,26 @@ def render():
     initial_category = get_category_choices()[0] if get_category_choices() else None
     initial_models = get_model_choices(initial_category) if initial_category else []
 
-    with gr.Row():
-        with gr.Column(scale=1):
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>Tokenizer Playground</h1>
+      <p>Inspect encoding, decoding, byte fallback, Unicode normalization, and special token behavior.</p>
+    </div>
+    """)
+
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
+            gr.HTML("""
+            <p class="workbench-panel-title">Tokenizer Source</p>
+            <p class="workbench-panel-copy">Choose a vendor and model. Results stay empty until text is provided.</p>
+            """)
+
             category_dropdown = gr.Dropdown(
                 choices=get_category_choices(),
                 label="Vendor",
                 value=initial_category,
                 interactive=True
             )
-        with gr.Column(scale=2):
             model_dropdown = gr.Dropdown(
                 choices=initial_models,
                 label="Model",
@@ -377,99 +388,103 @@ def render():
                 interactive=True
             )
 
-    model_id_text = gr.Markdown("", elem_id="model-id-display")
+            model_id_text = gr.Markdown("", elem_id="model-id-display")
 
-    with gr.Accordion("Model Info", open=False):
-        model_info_md = gr.Markdown("")
+            with gr.Accordion("Model Info", open=False):
+                model_info_md = gr.Markdown("")
 
-    gr.Markdown("---")
+        with gr.Column(scale=3, elem_classes=["workbench-output-panel"]):
+            with gr.Tabs() as tabs:
 
-    with gr.Tabs() as tabs:
+                # Encoding Tab
+                with gr.Tab("Encode"):
+                    encode_input = gr.Textbox(
+                        label="Input Text",
+                        placeholder="Enter text to tokenize...",
+                        lines=4
+                    )
 
-        # Encoding Tab
-        with gr.Tab("Encode"):
-            encode_input = gr.Textbox(
-                label="Input Text",
-                placeholder="Enter text to tokenize...",
-                lines=4
-            )
+                    with gr.Row():
+                        show_ids_cb = gr.Checkbox(label="Show Token IDs", value=True)
+                        add_special_cb = gr.Checkbox(label="Add Special Tokens", value=False)
 
-            with gr.Row():
-                show_ids_cb = gr.Checkbox(label="Show Token IDs", value=True)
-                add_special_cb = gr.Checkbox(label="Add Special Tokens", value=False)
+                    with gr.Row(elem_classes=["metric-strip"]):
+                        with gr.Column(scale=1):
+                            stat_tokens = gr.Textbox(label="Tokens", interactive=False)
+                        with gr.Column(scale=1):
+                            stat_chars = gr.Textbox(label="Characters", interactive=False)
+                        with gr.Column(scale=1):
+                            stat_chars_per_token = gr.Textbox(label="Chars/Token", interactive=False)
+                        with gr.Column(scale=1):
+                            stat_bytes_per_token = gr.Textbox(label="Bytes/Token", interactive=False)
 
-            with gr.Row():
-                with gr.Column(scale=1):
-                    stat_tokens = gr.Textbox(label="Tokens", interactive=False)
-                with gr.Column(scale=1):
-                    stat_chars = gr.Textbox(label="Characters", interactive=False)
-                with gr.Column(scale=1):
-                    stat_chars_per_token = gr.Textbox(label="Chars/Token", interactive=False)
-                with gr.Column(scale=1):
-                    stat_bytes_per_token = gr.Textbox(label="Bytes/Token", interactive=False)
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        gr.Markdown("### Tokenization Result")
+                        tokens_html = gr.HTML("")
 
-            gr.Markdown("### Tokenization Result")
-            tokens_html = gr.HTML("")
+                    with gr.Accordion("Details", open=False):
+                        detail_df = gr.Dataframe(
+                            headers=["Index", "Token", "Decoded", "ID", "Bytes", "Special", "Fallback"],
+                            interactive=False
+                        )
 
-            with gr.Accordion("Details", open=False):
-                detail_df = gr.Dataframe(
-                    headers=["Index", "Token", "Decoded", "ID", "Bytes", "Special", "Fallback"],
-                    interactive=False
-                )
+                # Decoding Tab
+                with gr.Tab("Decode"):
+                    decode_input = gr.Textbox(
+                        label="Token IDs",
+                        placeholder="e.g., 128000, 50256 or [128000, 50256]",
+                        lines=1
+                    )
 
-        # Decoding Tab
-        with gr.Tab("Decode"):
-            decode_input = gr.Textbox(
-                label="Token IDs",
-                placeholder="e.g., 128000, 50256 or [128000, 50256]",
-                lines=1
-            )
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        gr.Markdown("### Decoded Result")
+                        decode_result = gr.Textbox(label="Decoded Text", interactive=False, lines=3)
+                        decode_details = gr.Markdown("")
 
-            gr.Markdown("### Decoded Result")
-            decode_result = gr.Textbox(label="Decoded Text", interactive=False, lines=3)
-            decode_details = gr.Markdown("")
+                # Byte Analysis Tab
+                with gr.Tab("Byte Analysis"):
+                    byte_input = gr.Textbox(
+                        label="Input Text",
+                        placeholder="Enter text with emojis or rare characters...",
+                        lines=2
+                    )
 
-        # Byte Analysis Tab
-        with gr.Tab("Byte Analysis"):
-            byte_input = gr.Textbox(
-                label="Input Text",
-                placeholder="Enter text with emojis or rare characters...",
-                lines=2
-            )
+                    with gr.Row(elem_classes=["metric-strip"]):
+                        byte_total = gr.Textbox(label="Total Tokens", interactive=False)
+                        byte_fallback = gr.Textbox(label="Byte Fallback", interactive=False)
+                        byte_bpe = gr.Textbox(label="Byte-Level BPE", interactive=False)
+                        byte_special = gr.Textbox(label="Special Tokens", interactive=False)
 
-            with gr.Row():
-                byte_total = gr.Textbox(label="Total Tokens", interactive=False)
-                byte_fallback = gr.Textbox(label="Byte Fallback", interactive=False)
-                byte_bpe = gr.Textbox(label="Byte-Level BPE", interactive=False)
-                byte_special = gr.Textbox(label="Special Tokens", interactive=False)
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        gr.Markdown("### Tokenization Result")
+                        byte_tokens_html = gr.HTML("")
 
-            gr.Markdown("### Tokenization Result")
-            byte_tokens_html = gr.HTML("")
+                    with gr.Accordion("Byte Fallback Details", open=False):
+                        byte_fallback_df = gr.Dataframe(interactive=False)
 
-            with gr.Accordion("Byte Fallback Details", open=False):
-                byte_fallback_df = gr.Dataframe(interactive=False)
+                # Unicode Tab
+                with gr.Tab("Unicode"):
+                    unicode_input = gr.Textbox(
+                        label="Input Text",
+                        placeholder="Enter text to analyze...",
+                        lines=1
+                    )
 
-        # Unicode Tab
-        with gr.Tab("Unicode"):
-            unicode_input = gr.Textbox(
-                label="Input Text",
-                placeholder="Enter text to analyze...",
-                lines=1
-            )
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        gr.Markdown("### Normalization Comparison")
+                        norm_df = gr.Dataframe(interactive=False)
 
-            gr.Markdown("### Normalization Comparison")
-            norm_df = gr.Dataframe(interactive=False)
+                        gr.Markdown("### Unicode Details")
+                        unicode_df = gr.Dataframe(interactive=False)
 
-            gr.Markdown("### Unicode Details")
-            unicode_df = gr.Dataframe(interactive=False)
+                # Special Tokens Tab
+                with gr.Tab("Special Tokens"):
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        gr.Markdown("### Standard Special Tokens")
+                        standard_df = gr.Dataframe(interactive=False)
 
-        # Special Tokens Tab
-        with gr.Tab("Special Tokens"):
-            gr.Markdown("### Standard Special Tokens")
-            standard_df = gr.Dataframe(interactive=False)
-
-            gr.Markdown("### Additional Special Tokens")
-            additional_df = gr.Dataframe(interactive=False)
+                        gr.Markdown("### Additional Special Tokens")
+                        additional_df = gr.Dataframe(interactive=False)
 
     # 事件绑定
     def update_models(category):

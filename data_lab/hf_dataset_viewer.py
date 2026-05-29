@@ -476,26 +476,34 @@ def get_string_fields():
 def render():
     """渲染页面"""
 
-    # 数据集配置区
-    with gr.Group():
-        with gr.Row():
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>Dataset Viewer</h1>
+      <p>Stream HuggingFace datasets, inspect samples, and audit field quality.</p>
+    </div>
+    """)
+
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
+            gr.Markdown("### Dataset Source")
             dataset_id = gr.Textbox(
                 label="Dataset ID",
                 value="tatsu-lab/alpaca",
                 placeholder="e.g., tatsu-lab/alpaca, databricks/dolly-15k"
             )
+
             config_name = gr.Textbox(
                 label="Config (Optional)",
                 value="",
                 placeholder="default"
             )
+
             split = gr.Dropdown(
                 label="Split",
                 choices=["train", "validation", "test"],
                 value="train"
             )
-        
-        with gr.Row():
+
             num_samples = gr.Slider(
                 label="Sample Count",
                 minimum=10,
@@ -504,60 +512,66 @@ def render():
                 step=10,
                 scale=3
             )
+
             load_btn = gr.Button("Load Dataset", variant="primary", scale=1, min_width=150)
-        
-        load_status = gr.Markdown("")
-    
-    # Tab 页面
-    with gr.Tabs():
-        # Tab 1: 样本预览
-        with gr.Tab("Sample Preview"):
-            with gr.Row():
-                sample_idx = gr.Slider(
-                    label="Sample Index",
-                    minimum=0,
-                    maximum=99,
-                    value=0,
-                    step=1,
-                    interactive=True
-                )
 
-            # 固定高度容器防止滑动时跳动
-            sample_display = gr.HTML(
-                label="Sample Content",
-                elem_id="sample-display-container"
-            )
+            load_status = gr.Markdown("")
 
-            with gr.Accordion("Raw JSON", open=False):
-                json_display = gr.Code(language="json", label="JSON")
-        
-        # Tab 2: 数据统计
-        with gr.Tab("Statistics"):
-            gr.Markdown("### Field Structure")
-            field_info_table = gr.Dataframe(label="Field Info")
+        with gr.Column(scale=3, elem_classes=["workbench-output-panel"]):
+            with gr.Tabs():
+                # Tab 1: 样本预览
+                with gr.Tab("Sample Preview"):
+                    sample_idx = gr.Slider(
+                        label="Sample Index",
+                        minimum=0,
+                        maximum=99,
+                        value=0,
+                        step=1,
+                        interactive=True
+                    )
 
-            gr.Markdown("### Field Statistics")
-            stats_table = gr.Dataframe(label="Stats Data")
-            stats_chart = gr.Plot(label="Stats Chart")
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        sample_display = gr.HTML(
+                            label="Sample Content",
+                            elem_id="sample-display-container"
+                        )
 
-            gr.Markdown("### Distribution Analysis")
-            field_select = gr.Dropdown(label="Select Field", choices=[], interactive=True)
+                    with gr.Accordion("Raw JSON", open=False):
+                        json_display = gr.Code(language="json", label="JSON")
 
-            with gr.Row():
-                length_chart = gr.Plot(label="Length Distribution")
-                word_chart = gr.Plot(label="Word Count Distribution")
+                # Tab 2: 数据统计
+                with gr.Tab("Statistics"):
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        gr.Markdown("### Field Structure")
+                        field_info_table = gr.Dataframe(label="Field Info")
 
-            dist_stats = gr.Markdown("")
-        
-        # Tab 3: 质量检查
-        with gr.Tab("Quality Check"):
-            quality_summary = gr.Markdown("")
+                    with gr.Column(elem_classes=["plot-frame"]):
+                        gr.Markdown("### Field Statistics")
+                        stats_table = gr.Dataframe(label="Stats Data")
+                        stats_chart = gr.Plot(label="Stats Chart")
 
-            gr.Markdown("### Field Quality Details")
-            quality_table = gr.Dataframe(label="Quality Data")
+                    with gr.Column(elem_classes=["plot-frame"]):
+                        gr.Markdown("### Distribution Analysis")
+                        field_select = gr.Dropdown(label="Select Field", choices=[], interactive=True)
 
-            gr.Markdown("### Potential Problem Samples")
-            problem_table = gr.Dataframe(label="Problem Samples")
+                        with gr.Row():
+                            length_chart = gr.Plot(label="Length Distribution")
+                            word_chart = gr.Plot(label="Word Count Distribution")
+
+                        dist_stats = gr.Markdown("")
+
+                # Tab 3: 质量检查
+                with gr.Tab("Quality Check"):
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        quality_summary = gr.Markdown("")
+
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        gr.Markdown("### Field Quality Details")
+                        quality_table = gr.Dataframe(label="Quality Data")
+
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        gr.Markdown("### Potential Problem Samples")
+                        problem_table = gr.Dataframe(label="Problem Samples")
     
     # 事件绑定
     def on_load_dataset(dataset_id, config_name, split, num_samples):
