@@ -4,33 +4,28 @@
 
 包含 **TokenLab** (分词实验室)、**EmbeddingLab** (向量分析工作台)、**GenerationLab** (生成机制探索)、**InterpretabilityLab** (可解释性分析)、**DataLab** (数据工程实验室)、**ModelLab** (模型工具箱)、**RAGLab** (RAG 调试器) 和 **FineTuneLab** (微调工具箱)。
 
-## 快速开始
+## Quick Start
 
 ```bash
-# 安装依赖
+# Install Python dependencies
 pip install -r requirements.txt
 
-# 运行 Gradio 应用
-python app_gradio.py
-```
-
-访问 `http://localhost:7860` 开始使用。
-
-## Mechanics Explorer Preview
-
-新工作台预览版使用 React + FastAPI，保留现有 Lab 工具函数，但提供新的 Pipeline Rail 工作台和普通 HTTP API。当前版本是无持久化设计：每次运行只返回本次请求结果，不保存会话、项目或历史记录。
-
-```bash
-# 启动无状态 API，默认暴露在 8001
+# Start the stateless API
 python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8001
 
-# 启动 React 工作台
+# Start the React workbench
 cd frontend
 npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-常用接口：
+Open `http://127.0.0.1:5173`.
+
+## Mechanics Explorer
+
+Mechanics Explorer is the primary workbench. It uses React + FastAPI, keeps the existing Lab tool functions, and exposes plain HTTP APIs for direct tool calls. The current version is stateless: each run returns only the current request result, with no session, project, or run-history persistence.
+
+Core API:
 
 | Endpoint | 用途 |
 |---|---|
@@ -41,6 +36,25 @@ npm run dev -- --host 127.0.0.1 --port 5173
 | `POST /api/tools/{tool_id}/export` | 执行工具并显式导出研究产物 |
 
 Mechanics Explorer 目前按七条工作路径组织：Input & Tokens、Representation Space、Probability & Decoding、Transformer Anatomy、Data & Context、Adaptation & Cost、Evaluation & Traces。
+
+Useful API calls:
+
+```bash
+curl -sS http://127.0.0.1:8001/api/tools | python -m json.tool
+curl -sS -X POST http://127.0.0.1:8001/api/tools/unicode_analyze/run \
+  -H 'Content-Type: application/json' \
+  -d '{"text":"Ａ café"}' | python -m json.tool
+```
+
+## Legacy Gradio App
+
+The old Gradio UI is still available for compatibility:
+
+```bash
+python app_gradio.py
+```
+
+Open `http://localhost:7860`.
 
 ---
 
