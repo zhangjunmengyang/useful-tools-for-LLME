@@ -6,6 +6,7 @@ LoRA Configuration Explorer - LoRA 配置探索器
 import gradio as gr
 import pandas as pd
 import plotly.graph_objects as go
+from workbench_theme import OPEN_DESIGN_COLORS
 from finetune_lab.finetune_utils import (
     MODEL_CATEGORIES,
     TARGET_MODULES,
@@ -132,9 +133,7 @@ def create_rank_comparison_chart(config: dict, selected_modules: list):
         text=[format_number(p) for p in params_list],
         textposition='outside',
         marker=dict(
-            color=[p / 1e6 for p in params_list],
-            colorscale='Blues',
-            showscale=False
+            color=OPEN_DESIGN_COLORS["accent"]
         ),
         hovertemplate='<b>Rank %{x}</b><br>Params: %{text}<extra></extra>'
     ))
@@ -166,7 +165,13 @@ def create_memory_breakdown_chart(memory: dict):
         memory['activations']
     ]
 
-    colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']
+    colors = [
+        OPEN_DESIGN_COLORS["fg_2"],
+        OPEN_DESIGN_COLORS["accent"],
+        OPEN_DESIGN_COLORS["info"],
+        OPEN_DESIGN_COLORS["warning"],
+        OPEN_DESIGN_COLORS["stone"],
+    ]
 
     fig = go.Figure(data=[go.Pie(
         labels=labels,
@@ -223,15 +228,16 @@ def render():
     default_alpha = 32
     default_modules = ["q_proj", "v_proj"]
 
-    gr.Markdown("# LoRA Configuration Explorer")
-    gr.Markdown(
-        "Explore LoRA configurations, calculate trainable parameters, and estimate memory requirements. "
-        "Adjust the parameters below to see real-time updates."
-    )
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>LoRA Explorer</h1>
+      <p>Explore LoRA and QLoRA settings, trainable parameter ratios, rank sensitivity, and memory pressure.</p>
+    </div>
+    """)
 
-    with gr.Row():
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
         # 左侧：配置面板
-        with gr.Column(scale=1):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
             gr.Markdown("### Model Selection")
 
             category = gr.Dropdown(
@@ -289,7 +295,7 @@ def render():
             )
 
         # 右侧：结果展示
-        with gr.Column(scale=2):
+        with gr.Column(scale=2, elem_classes=["workbench-output-panel"]):
             status = gr.Markdown("")
 
             gr.Markdown("### Parameter Statistics")

@@ -334,7 +334,7 @@ def format_metrics_table(metrics: Dict[str, float]) -> str:
     }
     
     table_rows = []
-    table_rows.append("| 指标 | 分数 |")
+    table_rows.append("| Metric | Score |")
     table_rows.append("|------|------|")
     
     for key, value in metrics.items():
@@ -363,57 +363,57 @@ def generate_eval_report(dataset_name: str, model_name: str, metrics: Dict[str, 
     report_lines = []
     
     # 报告头部
-    report_lines.append(f"# 模型评测报告")
+    report_lines.append(f"# Model Evaluation Report")
     report_lines.append("")
-    report_lines.append(f"**模型**: {model_name}")
-    report_lines.append(f"**数据集**: {dataset_name}")
-    report_lines.append(f"**评测时间**: {'-'}")  # 简化，不添加真实时间
+    report_lines.append(f"**Model**: {model_name}")
+    report_lines.append(f"**Dataset**: {dataset_name}")
+    report_lines.append(f"**Evaluation Time**: {'-'}")  # 简化，不添加真实时间
     report_lines.append("")
     
     # 整体指标
-    report_lines.append("## 整体指标")
+    report_lines.append("## Overall Metrics")
     report_lines.append("")
     report_lines.append(format_metrics_table(metrics))
     report_lines.append("")
     
     # 指标解释
-    report_lines.append("## 指标说明")
+    report_lines.append("## Metric Notes")
     report_lines.append("")
-    report_lines.append("- **Exact Match**: 预测结果与参考答案完全匹配的比例")
-    report_lines.append("- **F1 Score**: 基于 token 级别的 F1 分数")
-    report_lines.append("- **BLEU**: 机器翻译质量评价指标，基于 n-gram 匹配")
-    report_lines.append("- **ROUGE-L**: 基于最长公共子序列的文本相似度")
-    report_lines.append("- **BERTScore F1**: 基于语义理解的相似度评分（mock版本）")
+    report_lines.append("- **Exact Match**: Share of predictions exactly matching the reference")
+    report_lines.append("- **F1 Score**: Token-level F1 score")
+    report_lines.append("- **BLEU**: N-gram overlap metric often used for translation")
+    report_lines.append("- **ROUGE-L**: Longest-common-subsequence text similarity")
+    report_lines.append("- **BERTScore F1**: Semantic similarity score in mock mode")
     report_lines.append("")
     
     # 样本展示
     if sample_predictions:
-        report_lines.append("## 预测样本")
+        report_lines.append("## Prediction Samples")
         report_lines.append("")
         
         for i, (question, reference, prediction) in enumerate(sample_predictions[:3]):
-            report_lines.append(f"### 样本 {i + 1}")
+            report_lines.append(f"### Sample {i + 1}")
             report_lines.append("")
-            report_lines.append(f"**问题**: {question}")
+            report_lines.append(f"**Question**: {question}")
             report_lines.append("")
-            report_lines.append(f"**参考答案**: {reference}")
+            report_lines.append(f"**Reference**: {reference}")
             report_lines.append("")  
-            report_lines.append(f"**模型预测**: {prediction}")
+            report_lines.append(f"**Prediction**: {prediction}")
             report_lines.append("")
     
     # 评测建议  
-    report_lines.append("## 评测建议")
+    report_lines.append("## Recommendations")
     report_lines.append("")
     
     if metrics.get('exact_match', 0) < 0.3:
-        report_lines.append("- ⚠️ Exact Match 分数较低，建议检查输出格式")
+        report_lines.append("- Exact Match is low. Check output formatting and normalization.")
     
     if metrics.get('f1', 0) > 0.8:
-        report_lines.append("- ✅ F1 分数表现优秀，模型语义理解能力较强")
+        report_lines.append("- F1 is strong. The model appears to preserve semantic content well.")
     elif metrics.get('f1', 0) < 0.5:
-        report_lines.append("- ⚠️ F1 分数较低，建议优化模型或数据")
+        report_lines.append("- F1 is low. Review model quality, references, and dataset consistency.")
     
     if metrics.get('bleu', 0) > 0.4:
-        report_lines.append("- ✅ BLEU 分数优秀，适合生成任务")
+        report_lines.append("- BLEU is strong for this generation-style task.")
     
     return "\n".join(report_lines)

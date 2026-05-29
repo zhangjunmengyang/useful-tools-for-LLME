@@ -146,17 +146,17 @@ def create_flow_diagram(events: List[TraceEvent]) -> str:
         node_id = f"node{i}"
         
         if group["type"] == "thought":
-            shape = f"{node_id}[💭 Thinking]"
+            shape = f"{node_id}[Thinking]"
             style = f"    {node_id} --> "
         elif group["type"] == "action":
             action_name = events[group["start_idx"]].action
-            shape = f"{node_id}[🔧 {action_name}]"
+            shape = f"{node_id}[{action_name}]"
             style = f"    {node_id} --> "
         elif group["type"] == "observation":
-            shape = f"{node_id}[👀 Observation]"
+            shape = f"{node_id}[Observation]"
             style = f"    {node_id} --> "
         else:
-            shape = f"{node_id}[❌ Error]"
+            shape = f"{node_id}[Error]"
             style = f"    {node_id} --> "
         
         mermaid_lines.append(f"    {shape}")
@@ -169,7 +169,7 @@ def create_flow_diagram(events: List[TraceEvent]) -> str:
     # Add final completion node
     if flow_groups:
         last_node = f"node{len(flow_groups)-1}"
-        mermaid_lines.append(f"    {last_node} --> Complete[✅ Complete]")
+        mermaid_lines.append(f"    {last_node} --> Complete[Complete]")
     
     # Add styling
     mermaid_lines.extend([
@@ -375,11 +375,21 @@ def load_trace_from_json(json_text: str) -> tuple:
 
 def render() -> Dict[str, Any]:
     """渲染 Trace Viewer 页面"""
-    
-    with gr.Row():
-        with gr.Column(scale=1):
-            gr.Markdown("### Load Trace Data")
-            
+
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>Trace Viewer</h1>
+      <p>Load an agent trace, inspect execution timing, and review step-level observations.</p>
+    </div>
+    """)
+
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
+            gr.HTML("""
+            <p class="workbench-panel-title">Trace Source</p>
+            <p class="workbench-panel-copy">Start from a built-in example or upload a JSON trace from an agent run.</p>
+            """)
+
             with gr.Row():
                 react_btn = gr.Button("ReAct Example", variant="secondary", size="sm")
                 multi_btn = gr.Button("Multi-Agent Example", variant="secondary", size="sm")
@@ -392,24 +402,25 @@ def render() -> Dict[str, Any]:
             
             # Hidden state to store events data
             events_state = gr.Textbox(visible=False)
-    
-    with gr.Row():
-        with gr.Column(scale=2):
-            gr.Markdown("### Timeline View")
-            timeline_plot = gr.Plot(label="Agent Execution Timeline")
-        
-        with gr.Column(scale=1):
-            gr.Markdown("### Step Details")  
-            step_details = gr.HTML("<p>Select a step from the timeline to view details</p>")
-    
-    with gr.Row():
-        gr.Markdown("### Agent Flow Diagram")
-        flow_diagram = gr.Textbox(
-            label="Mermaid Flow Diagram",
-            lines=15,
-            value="graph TD\n    A[Click example buttons to load trace data]",
-            interactive=False
-        )
+
+        with gr.Column(scale=3, elem_classes=["workbench-output-panel"]):
+            with gr.Row():
+                with gr.Column(scale=2, elem_classes=["plot-frame"]):
+                    gr.Markdown("### Timeline View")
+                    timeline_plot = gr.Plot(label="Agent Execution Timeline")
+
+                with gr.Column(scale=1, elem_classes=["workbench-detail-panel"]):
+                    gr.Markdown("### Step Details")
+                    step_details = gr.HTML("<p>Select a step from the timeline to view details</p>")
+
+            with gr.Column(elem_classes=["code-surface"]):
+                gr.Markdown("### Agent Flow Diagram")
+                flow_diagram = gr.Textbox(
+                    label="Mermaid Flow Diagram",
+                    lines=15,
+                    value="graph TD\n    A[Click example buttons to load trace data]",
+                    interactive=False
+                )
     
     # Event handlers
     react_btn.click(
@@ -428,12 +439,13 @@ def render() -> Dict[str, Any]:
         outputs=[timeline_plot, events_state, step_details]
     )
     
-    # Timeline selection handler
-    timeline_plot.select(
-        fn=handle_trace_selection,
-        inputs=[events_state, timeline_plot],
-        outputs=[step_details]
-    )
+    # Gradio 6 removed Plot.select; keep app construction compatible.
+    if hasattr(timeline_plot, "select"):
+        timeline_plot.select(
+            fn=handle_trace_selection,
+            inputs=[events_state, timeline_plot],
+            outputs=[step_details]
+        )
     
     return {
         'load_fn': lambda: load_example_trace("react"),

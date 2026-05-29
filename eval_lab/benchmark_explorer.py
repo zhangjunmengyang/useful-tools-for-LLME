@@ -14,6 +14,8 @@ import pandas as pd
 from typing import List, Dict, Any, Tuple
 import json
 
+from workbench_theme import OPEN_DESIGN_COLORS, PLOTLY_COLORWAY
+
 
 # 内置 benchmark 数据（模拟真实数据）
 BENCHMARK_DATA = {
@@ -101,21 +103,18 @@ BENCHMARK_DATA = {
 
 # Benchmark 描述信息
 BENCHMARK_INFO = {
-    'MMLU': 'Massive Multitask Language Understanding - 涵盖57个学科的综合知识评测',
-    'HumanEval': 'Python 代码生成能力评测，包含164个编程问题',
-    'GSM8K': '小学数学应用题推理，测试基础数学推理能力', 
-    'HellaSwag': '常识推理评测，选择最合理的句子结尾',
-    'ARC': 'AI2 Reasoning Challenge - 科学常识推理',
-    'TruthfulQA': '评测模型回答的真实性和准确性',
-    'Winogrande': 'Winograd Schema Challenge 的扩展版本，常识推理',
-    'MATH': '高难度数学竞赛题目，测试高级数学推理能力'
+    'MMLU': 'Massive Multitask Language Understanding across 57 academic subjects',
+    'HumanEval': 'Python code generation benchmark with 164 programming tasks',
+    'GSM8K': 'Grade-school math word problems for basic reasoning',
+    'HellaSwag': 'Commonsense reasoning benchmark for plausible sentence endings',
+    'ARC': 'AI2 Reasoning Challenge for science commonsense reasoning',
+    'TruthfulQA': 'Truthfulness and factual accuracy benchmark',
+    'Winogrande': 'Expanded Winograd Schema Challenge for commonsense reasoning',
+    'MATH': 'Competition-level math problems for advanced reasoning'
 }
 
 # 颜色方案
-MODEL_COLORS = [
-    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-]
+MODEL_COLORS = PLOTLY_COLORWAY
 
 
 def create_radar_chart(selected_models: List[str], selected_benchmarks: List[str]) -> go.Figure:
@@ -132,7 +131,7 @@ def create_radar_chart(selected_models: List[str], selected_benchmarks: List[str
     if not selected_models or not selected_benchmarks:
         fig = go.Figure()
         fig.add_annotation(
-            text="请至少选择一个模型和一个Benchmark",
+            text="Select at least one model and one benchmark",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
             font=dict(size=16, color="gray")
@@ -172,23 +171,24 @@ def create_radar_chart(selected_models: List[str], selected_benchmarks: List[str
                 visible=True,
                 range=[0, 100],
                 tickfont=dict(size=12),
-                gridcolor='lightgray'
+                gridcolor=OPEN_DESIGN_COLORS["border_soft"]
             ),
             angularaxis=dict(
-                tickfont=dict(size=12, color='black'),
+                tickfont=dict(size=12, color=OPEN_DESIGN_COLORS["fg"]),
                 rotation=90,
                 direction='counterclockwise'
             )
         ),
         showlegend=True,
         title=dict(
-            text="模型性能雷达图对比",
+            text="Model Performance Radar",
             x=0.5,
-            font=dict(size=18, color='black')
+            font=dict(size=18, color=OPEN_DESIGN_COLORS["fg"])
         ),
-        font=dict(family="Arial, sans-serif"),
-        width=700,
+        font=dict(family="Inter, system-ui, sans-serif"),
+        autosize=True,
         height=600,
+        paper_bgcolor=OPEN_DESIGN_COLORS["bg"],
         legend=dict(
             orientation="v",
             yanchor="top",
@@ -215,7 +215,7 @@ def create_bar_chart(selected_models: List[str], selected_benchmarks: List[str])
     if not selected_models or not selected_benchmarks:
         fig = go.Figure()
         fig.add_annotation(
-            text="请至少选择一个模型和一个Benchmark",
+            text="Select at least one model and one benchmark",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
             font=dict(size=16, color="gray")
@@ -248,16 +248,18 @@ def create_bar_chart(selected_models: List[str], selected_benchmarks: List[str])
     # 更新布局
     fig.update_layout(
         title=dict(
-            text="Benchmark 得分对比",
+            text="Benchmark Score Comparison",
             x=0.5,
-            font=dict(size=18, color='black')
+            font=dict(size=18, color=OPEN_DESIGN_COLORS["fg"])
         ),
         xaxis_title="Benchmark",
-        yaxis_title="得分",
+        yaxis_title="Score",
         barmode='group',
-        width=800,
+        autosize=True,
         height=500,
-        font=dict(family="Arial, sans-serif"),
+        font=dict(family="Inter, system-ui, sans-serif"),
+        paper_bgcolor=OPEN_DESIGN_COLORS["bg"],
+        plot_bgcolor=OPEN_DESIGN_COLORS["bg"],
         yaxis=dict(range=[0, 100]),
         legend=dict(
             orientation="h",
@@ -285,7 +287,7 @@ def create_heatmap(selected_models: List[str], selected_benchmarks: List[str]) -
     if not selected_models or not selected_benchmarks:
         fig = go.Figure()
         fig.add_annotation(
-            text="请至少选择一个模型和一个Benchmark",
+            text="Select at least one model and one benchmark",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
             font=dict(size=16, color="gray")
@@ -308,7 +310,7 @@ def create_heatmap(selected_models: List[str], selected_benchmarks: List[str]) -
     if not matrix:
         fig = go.Figure()
         fig.add_annotation(
-            text="没有可用的数据",
+            text="No data available",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
             font=dict(size=16, color="gray")
@@ -324,18 +326,19 @@ def create_heatmap(selected_models: List[str], selected_benchmarks: List[str]) -
         text=[[f'{val:.1f}' for val in row] for row in matrix],
         texttemplate="%{text}",
         textfont={"size": 12},
-        colorbar=dict(title="得分")
+        colorbar=dict(title="Score")
     ))
     
     fig.update_layout(
         title=dict(
-            text="模型-Benchmark 得分热力图",
+            text="Model-Benchmark Score Heatmap",
             x=0.5,
-            font=dict(size=18, color='black')
+            font=dict(size=18, color=OPEN_DESIGN_COLORS["fg"])
         ),
-        width=700,
+        autosize=True,
         height=400 + len(model_labels) * 30,
-        font=dict(family="Arial, sans-serif")
+        font=dict(family="Inter, system-ui, sans-serif"),
+        paper_bgcolor=OPEN_DESIGN_COLORS["bg"]
     )
     
     return fig
@@ -352,7 +355,7 @@ def get_benchmark_details(selected_benchmark: str) -> str:
         Benchmark详细信息的Markdown文本
     """
     if not selected_benchmark or selected_benchmark not in BENCHMARK_INFO:
-        return "请选择一个Benchmark查看详情"
+        return "Select a benchmark to view details."
     
     info = BENCHMARK_INFO[selected_benchmark]
     
@@ -367,9 +370,9 @@ def get_benchmark_details(selected_benchmark: str) -> str:
     
     # 构建详情文本
     details = f"## {selected_benchmark}\n\n"
-    details += f"**描述**: {info}\n\n"
-    details += "### 排名\n\n"
-    details += "| 排名 | 模型 | 得分 |\n"
+    details += f"**Description**: {info}\n\n"
+    details += "### Ranking\n\n"
+    details += "| Rank | Model | Score |\n"
     details += "|------|------|------|\n"
     
     for i, (model, score) in enumerate(scores, 1):
@@ -388,7 +391,7 @@ def create_benchmark_overview_table() -> pd.DataFrame:
     # 转换数据格式以适配表格展示
     rows = []
     for model, benchmarks in BENCHMARK_DATA.items():
-        row = {'模型': model}
+        row = {'Model': model}
         for benchmark in BENCHMARK_INFO.keys():
             score = benchmarks.get(benchmark, None)
             row[benchmark] = f"{score:.1f}" if score is not None else "-"
@@ -407,62 +410,76 @@ def render():
     """
     with gr.Column():
         gr.HTML("""
-        <div class="main-header">
-            <h1 style="color: #1f2937; margin-bottom: 8px;">🏆 Benchmark Explorer</h1>
-            <p style="color: #6b7280; font-size: 1.1rem; margin: 0;">主流 LLM Benchmark 可视化对比工具</p>
+        <div class="workbench-page-hero">
+            <h1>Benchmark Explorer</h1>
+            <p>Compare mainstream LLM benchmark scores across models and task families.</p>
         </div>
         """)
         
-        with gr.Row():
-            with gr.Column(scale=1):
+        initial_models = ['GPT-4', 'Claude-3.5-Sonnet', 'Llama-3-70B']
+        initial_benchmarks = ['MMLU', 'HumanEval', 'GSM8K', 'HellaSwag']
+        initial_radar = create_radar_chart(initial_models, initial_benchmarks)
+        initial_bar = create_bar_chart(initial_models, initial_benchmarks)
+        initial_heatmap = create_heatmap(initial_models, initial_benchmarks)
+
+        with gr.Row(elem_classes=["workbench-tool-shell"]):
+            with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
+                gr.HTML("""
+                <p class="workbench-panel-title">Benchmark Slice</p>
+                <p class="workbench-panel-copy">Select models and benchmark families, then inspect the active comparison view.</p>
+                """)
+
                 # 模型选择
                 model_selector = gr.CheckboxGroup(
                     choices=list(BENCHMARK_DATA.keys()),
-                    value=['GPT-4', 'Claude-3.5-Sonnet', 'Llama-3-70B'],
-                    label="选择模型",
-                    info="选择要对比的模型"
+                    value=initial_models,
+                    label="Models",
+                    info="Choose models to compare"
                 )
                 
                 # Benchmark选择
                 benchmark_selector = gr.CheckboxGroup(
                     choices=list(BENCHMARK_INFO.keys()),
-                    value=['MMLU', 'HumanEval', 'GSM8K', 'HellaSwag'],
-                    label="选择Benchmark",
-                    info="选择要对比的评测指标"
+                    value=initial_benchmarks,
+                    label="Benchmarks",
+                    info="Choose benchmark dimensions"
                 )
                 
                 # Benchmark详情查看
                 benchmark_detail_selector = gr.Dropdown(
                     choices=list(BENCHMARK_INFO.keys()),
                     value='MMLU',
-                    label="查看Benchmark详情",
-                    info="选择查看详细信息"
+                    label="Benchmark Details",
+                    info="Choose one benchmark to inspect"
                 )
             
-            with gr.Column(scale=2):
+            with gr.Column(scale=2, elem_classes=["workbench-output-panel"]):
                 # 可视化tabs
                 with gr.Tabs():
-                    with gr.Tab("雷达图对比"):
-                        radar_plot = gr.Plot(label="雷达图")
+                    with gr.Tab("Radar") as radar_tab:
+                        with gr.Column(elem_classes=["plot-frame"]):
+                            radar_plot = gr.Plot(value=initial_radar, label="Radar Chart")
                     
-                    with gr.Tab("柱状图对比"):  
-                        bar_plot = gr.Plot(label="柱状图")
+                    with gr.Tab("Bars") as bars_tab:
+                        with gr.Column(elem_classes=["plot-frame"]):
+                            bar_plot = gr.Plot(value=initial_bar, label="Bar Chart")
                     
-                    with gr.Tab("热力图"):
-                        heatmap_plot = gr.Plot(label="热力图")
+                    with gr.Tab("Heatmap") as heatmap_tab:
+                        with gr.Column(elem_classes=["plot-frame"]):
+                            heatmap_plot = gr.Plot(value=initial_heatmap, label="Heatmap")
                     
-                    with gr.Tab("数据表格"):
+                    with gr.Tab("Table") as table_tab:
                         overview_table = gr.Dataframe(
                             value=create_benchmark_overview_table(),
-                            label="完整数据表格",
+                            label="Full Score Table",
                             interactive=False
                         )
         
         # Benchmark详情展示
-        with gr.Row():
+        with gr.Row(elem_classes=["workbench-detail-panel"]):
             benchmark_details = gr.Markdown(
                 value=get_benchmark_details('MMLU'),
-                label="Benchmark 详情"
+                label="Benchmark Details"
             )
         
         # 事件绑定
@@ -492,18 +509,50 @@ def render():
             inputs=[benchmark_detail_selector],
             outputs=[benchmark_details]
         )
-        
-        # 初始化图表
-        initial_radar = create_radar_chart(['GPT-4', 'Claude-3.5-Sonnet', 'Llama-3-70B'], 
-                                         ['MMLU', 'HumanEval', 'GSM8K', 'HellaSwag'])
-        initial_bar = create_bar_chart(['GPT-4', 'Claude-3.5-Sonnet', 'Llama-3-70B'],
-                                     ['MMLU', 'HumanEval', 'GSM8K', 'HellaSwag'])  
-        initial_heatmap = create_heatmap(['GPT-4', 'Claude-3.5-Sonnet', 'Llama-3-70B'],
-                                       ['MMLU', 'HumanEval', 'GSM8K', 'HellaSwag'])
-        
-        radar_plot.value = initial_radar
-        bar_plot.value = initial_bar
-        heatmap_plot.value = initial_heatmap
+
+        radar_tab.select(
+            fn=create_radar_chart,
+            inputs=[model_selector, benchmark_selector],
+            outputs=[radar_plot],
+        )
+
+        bars_tab.select(
+            fn=create_bar_chart,
+            inputs=[model_selector, benchmark_selector],
+            outputs=[bar_plot],
+        )
+
+        heatmap_tab.select(
+            fn=create_heatmap,
+            inputs=[model_selector, benchmark_selector],
+            outputs=[heatmap_plot],
+        )
+
+        table_tab.select(
+            fn=create_benchmark_overview_table,
+            outputs=[overview_table],
+        )
+
+        def on_load():
+            """初始化隐藏 Tab 中的图表。"""
+            return (
+                create_radar_chart(initial_models, initial_benchmarks),
+                create_bar_chart(initial_models, initial_benchmarks),
+                create_heatmap(initial_models, initial_benchmarks),
+                create_benchmark_overview_table(),
+                get_benchmark_details('MMLU'),
+            )
+
+        return {
+            'load_fn': on_load,
+            'load_outputs': [
+                radar_plot,
+                bar_plot,
+                heatmap_plot,
+                overview_table,
+                benchmark_details,
+            ],
+        }
 
 
 if __name__ == "__main__":

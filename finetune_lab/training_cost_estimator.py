@@ -215,14 +215,12 @@ def create_gpu_comparison(trainable_params: int, total_tokens: float, num_gpus: 
         title="GPU Comparison (Cost vs Time)",
         xaxis_title="GPU Type",
         yaxis=dict(
-            title="Cost (USD)",
-            titlefont=dict(color="#FF6B6B"),
+            title=dict(text="Cost (USD)", font=dict(color="#FF6B6B")),
             tickfont=dict(color="#FF6B6B"),
             gridcolor='#E8E8E8'
         ),
         yaxis2=dict(
-            title="Training Time (Hours)",
-            titlefont=dict(color="#4ECDC4"),
+            title=dict(text="Training Time (Hours)", font=dict(color="#4ECDC4")),
             tickfont=dict(color="#4ECDC4"),
             overlaying='y',
             side='right'
@@ -259,15 +257,16 @@ def render():
     default_num_gpus = 1
     default_mfu = 0.5
 
-    gr.Markdown("# Training Cost Estimator")
-    gr.Markdown(
-        "Estimate training time and cost for full fine-tuning or LoRA. "
-        "Compare different GPU configurations and dataset sizes."
-    )
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>Training Cost Estimator</h1>
+      <p>Estimate full fine-tuning or LoRA cost across GPU configurations and dataset sizes.</p>
+    </div>
+    """)
 
-    with gr.Row():
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
         # 左侧：配置面板
-        with gr.Column(scale=1):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
             gr.Markdown("### Model Configuration")
 
             category = gr.Dropdown(
@@ -343,35 +342,40 @@ def render():
             )
 
         # 右侧：结果展示
-        with gr.Column(scale=2):
+        with gr.Column(scale=3, elem_classes=["workbench-output-panel"]):
             status = gr.Markdown("")
 
             gr.Markdown("### Estimation Results")
 
-            with gr.Row():
-                trainable_params = gr.Textbox(label="Trainable Parameters", interactive=False)
-                total_flops = gr.Textbox(label="Total FLOPs", interactive=False)
+            with gr.Row(elem_classes=["metric-strip"]):
+                with gr.Column(scale=1):
+                    trainable_params = gr.Textbox(label="Trainable Parameters", interactive=False)
+                with gr.Column(scale=1):
+                    total_flops = gr.Textbox(label="Total FLOPs", interactive=False)
+                with gr.Column(scale=1):
+                    training_time = gr.Textbox(label="Estimated Training Time", interactive=False)
+                with gr.Column(scale=1):
+                    total_cost = gr.Textbox(label="Total Cost", interactive=False)
+                with gr.Column(scale=1):
+                    cost_per_hour = gr.Textbox(label="Cost per Hour", interactive=False)
+                with gr.Column(scale=1):
+                    gpu_memory = gr.Textbox(label="GPU Memory", interactive=False)
 
-            with gr.Row():
-                training_time = gr.Textbox(label="Estimated Training Time", interactive=False)
-                total_cost = gr.Textbox(label="Total Cost", interactive=False)
+            with gr.Column(elem_classes=["plot-frame"]):
+                gr.Markdown("### Cost Analysis")
+                gr.Markdown("How training cost scales with dataset size:")
+                cost_curve_chart = gr.Plot()
 
-            with gr.Row():
-                cost_per_hour = gr.Textbox(label="Cost per Hour", interactive=False)
-                gpu_memory = gr.Textbox(label="GPU Memory", interactive=False)
+            with gr.Column(elem_classes=["plot-frame"]):
+                gr.Markdown("### GPU Comparison")
+                gr.Markdown("Compare cost and time across different GPU types:")
+                gpu_comparison_chart = gr.Plot()
 
-            gr.Markdown("### Cost Analysis")
-            gr.Markdown("How training cost scales with dataset size:")
-            cost_curve_chart = gr.Plot()
-
-            gr.Markdown("### GPU Comparison")
-            gr.Markdown("Compare cost and time across different GPU types:")
-            gpu_comparison_chart = gr.Plot()
-
-            gr.Markdown(
-                "*Note: These are theoretical estimates. Actual training time and cost may vary "
-                "based on implementation details, framework overhead, and infrastructure efficiency.*"
-            )
+            with gr.Column(elem_classes=["workbench-detail-panel"]):
+                gr.Markdown(
+                    "*Note: These are theoretical estimates. Actual training time and cost may vary "
+                    "based on implementation details, framework overhead, and infrastructure efficiency.*"
+                )
 
     # 事件绑定
     def update_model_list(cat):

@@ -1,664 +1,555 @@
 """
-LLM Tools Workbench - Gradio 版本
-一个用于大模型学习与实验的工具集
+LLM Tools Workbench - Gradio 版本。
+
+一个用于大模型学习与实验的可视化工具集。
 """
+
+import importlib
+import importlib.util
+from collections.abc import Callable
+from typing import Any
 
 import gradio as gr
 
-# 自定义 CSS 样式 - HuggingFace Style
-CUSTOM_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-:root {
-    --color-accent: #FF9D00;
-    --color-accent-light: #FFF7ED;
-    --color-accent-dark: #EA580C;
-    --color-success: #10B981;
-    --color-warning: #F59E0B;
-    --color-error: #EF4444;
-    --color-info: #3B82F6;
-    --font-mono: 'IBM Plex Mono', monospace;
-    --hf-yellow: #FFD21E;
-    --hf-orange: #FF9D00;
-}
-
-/* 全局样式 - HuggingFace Style */
-.gradio-container {
-    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-    max-width: 1400px !important;
-}
-
-/* HuggingFace 风格头部 */
-.main-header {
-    background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-    border: 1px solid #FED7AA;
-}
-
-/* 主要按钮 - HF 橙色 */
-button.primary {
-    background: linear-gradient(135deg, #FF9D00 0%, #EA580C 100%) !important;
-    border: none !important;
-    color: white !important;
-    font-weight: 600 !important;
-}
-
-button.primary:hover {
-    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
-}
-
-/* 标题样式 */
-.module-title {
-    font-size: 1.75rem !important;
-    font-weight: 600 !important;
-    color: #111827 !important;
-    border-bottom: 2px solid #E5E7EB;
-    padding-bottom: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-/* Token 显示样式 */
-.token-display {
-    background-color: #F3F4F6;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
-    padding: 16px;
-    line-height: 2.2;
-    font-family: var(--font-mono);
-}
-
-.token {
-    display: inline-block;
-    padding: 4px 8px;
-    margin: 2px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: default;
-    transition: transform 0.15s ease;
-}
-
-.token:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.token-special {
-    border: 2px solid #DC2626 !important;
-}
-
-.token-byte {
-    border: 2px dashed #D97706 !important;
-}
-
-/* 统计卡片 */
-.stat-card {
-    background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #FF9D00;
-    font-family: var(--font-mono);
-}
-
-.stat-label {
-    color: #64748B;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-top: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.stat-unit {
-    color: #64748B;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-top: 4px;
-}
-
-/* Tab 样式增强 - HuggingFace Style */
-.tab-nav button {
-    font-weight: 600 !important;
-    color: #6B7280 !important;
-    border-radius: 8px 8px 0 0 !important;
-    transition: all 0.2s ease !important;
-}
-
-.tab-nav button:hover {
-    color: #FF9D00 !important;
-    background: #FFF7ED !important;
-}
-
-.tab-nav button.selected {
-    border-bottom: 3px solid #FF9D00 !important;
-    color: #FF9D00 !important;
-    background: #FFF7ED !important;
-}
-
-/* 信息面板 */
-.info-panel {
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    padding: 16px;
-}
-
-/* 按钮样式 - HuggingFace Orange */
-.primary-btn {
-    background: linear-gradient(135deg, #FF9D00 0%, #EA580C 100%) !important;
-    border: none !important;
-    font-weight: 600 !important;
-    color: white !important;
-}
-
-.primary-btn:hover {
-    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 157, 0, 0.3);
-}
-
-/* 预设按钮组 */
-.preset-btn {
-    background: #F3F4F6 !important;
-    border: 1px solid #D1D5DB !important;
-    color: #374151 !important;
-    font-size: 0.875rem !important;
-}
-
-.preset-btn:hover {
-    background: #E5E7EB !important;
-}
-
-/* Markdown 内容样式 */
-.prose code {
-    background: #F3F4F6;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-}
-
-/* 提示框 - HuggingFace Style */
-.tip-box {
-    background: #FFF7ED;
-    border-left: 4px solid #FF9D00;
-    padding: 12px 16px;
-    border-radius: 0 8px 8px 0;
-    margin: 16px 0;
-}
-
-.warning-box {
-    background: #FEF3C7;
-    border-left: 4px solid #D97706;
-    padding: 12px 16px;
-    border-radius: 0 8px 8px 0;
-    margin: 16px 0;
-}
-
-/* Dataframe 样式 */
-.dataframe {
-    font-size: 0.875rem !important;
-}
-
-/* 折叠面板 */
-.accordion {
-    border: 1px solid #E5E7EB !important;
-    border-radius: 8px !important;
-}
-
-/* 颜色变量 - Token 颜色 */
-.token-color-0 { background-color: #D1FAE5; }
-.token-color-1 { background-color: #DBEAFE; }
-.token-color-2 { background-color: #E9D5FF; }
-.token-color-3 { background-color: #FED7AA; }
-.token-color-4 { background-color: #FBCFE8; }
-.token-color-5 { background-color: #FEF08A; }
-.token-color-6 { background-color: #CFFAFE; }
-.token-color-7 { background-color: #FECDD3; }
-.token-color-8 { background-color: #DDD6FE; }
-.token-color-9 { background-color: #A7F3D0; }
-.token-color-10 { background-color: #FFEDD5; }
-.token-color-11 { background-color: #E2E8F0; }
-
-/* 隐藏 Gradio 默认页脚 */
-footer {
-    display: none !important;
-}
-
-/* 修复按钮在 Row 中的背景问题 */
-.row > .block {
-    background: transparent !important;
-}
-
-/* 确保主要按钮样式正确 */
-button.primary, button[variant="primary"] {
-    background: linear-gradient(135deg, #FF9D00 0%, #EA580C 100%) !important;
-    border: none !important;
-    color: white !important;
-    font-weight: 600 !important;
-    padding: 10px 24px !important;
-    border-radius: 8px !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-}
-
-button.primary:hover, button[variant="primary"]:hover {
-    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(255, 157, 0, 0.3) !important;
-}
-
-/* Group 容器样式优化 */
-.group {
-    background: transparent !important;
-    border: none !important;
-}
-
-/* 表格样式优化 - 移除橙色边框 */
-table {
-    border-collapse: collapse !important;
-}
-
-table th, table td {
-    border-color: #E5E7EB !important;
-}
-
-/* Markdown 表格样式 */
-.prose table {
-    border: 1px solid #E5E7EB !important;
-}
-
-.prose th, .prose td {
-    border: 1px solid #E5E7EB !important;
-    padding: 8px 12px !important;
-}
-
-/* Dataframe 样式优化 */
-.dataframe {
-    border: 1px solid #E5E7EB !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-}
-
-/* HTML 组件内的表格 */
-.html-container table {
-    border: none !important;
-}
-
-/* 输入框边框颜色 - 非聚焦状态 */
-input, textarea, select {
-    border-color: #D1D5DB !important;
-}
-
-input:focus, textarea:focus, select:focus {
-    border-color: #FF9D00 !important;
-    box-shadow: 0 0 0 3px rgba(255, 157, 0, 0.1) !important;
-}
-"""
-
-# Token 颜色列表
-TOKEN_COLORS = [
-    "#D1FAE5", "#DBEAFE", "#E9D5FF", "#FED7AA", "#FBCFE8", "#FEF08A",
-    "#CFFAFE", "#FECDD3", "#DDD6FE", "#A7F3D0", "#FFEDD5", "#E2E8F0"
-]
-
-# 自定义主题 - HuggingFace Style
-CUSTOM_THEME = gr.themes.Soft(
-    primary_hue="orange",
-    secondary_hue="gray",
-    neutral_hue="gray",
-    font=[gr.themes.GoogleFont("Source Sans Pro"), "system-ui", "sans-serif"],
-    font_mono=[gr.themes.GoogleFont("IBM Plex Mono"), "monospace"],
-    radius_size="md",
-    spacing_size="md",
-).set(
-    # 主要颜色
-    button_primary_background_fill="linear-gradient(135deg, #FF9D00 0%, #EA580C 100%)",
-    button_primary_background_fill_hover="linear-gradient(135deg, #EA580C 0%, #C2410C 100%)",
-    button_primary_text_color="white",
-    button_primary_border_color="transparent",
-
-    # 输入框聚焦颜色
-    input_border_color_focus="#FF9D00",
-
-    # 滑块颜色
-    slider_color="#FF9D00",
-
-    # 复选框颜色
-    checkbox_background_color_selected="#FF9D00",
-    checkbox_border_color_selected="#FF9D00",
-
-    # 区块样式
-    block_title_text_weight="600",
-    block_label_text_weight="500",
+from workbench_theme import (
+    CUSTOM_CSS,
+    CUSTOM_THEME,
+    configure_plotly_theme,
+    render_app_footer,
+    render_app_header,
+    render_command_header,
+    render_legacy_page_context,
+    render_legacy_page_header,
 )
 
 
-def create_app():
-    """创建 Gradio 应用"""
+PAGE_REGISTRY: list[dict[str, str]] = [
+    {
+        "id": "toolbox_tool_runner",
+        "group": "Research Toolbox",
+        "group_description": "Run reusable tools and export structured research artifacts.",
+        "lab": "Toolbox",
+        "label": "Tool Runner",
+        "module": "toolbox_lab.tool_runner",
+    },
+    {
+        "id": "token_playground",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "TokenLab",
+        "label": "Playground",
+        "module": "token_lab.playground",
+    },
+    {
+        "id": "token_arena",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "TokenLab",
+        "label": "Arena",
+        "module": "token_lab.arena",
+    },
+    {
+        "id": "token_chat_template",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "TokenLab",
+        "label": "Chat Template",
+        "module": "token_lab.chat_builder",
+    },
+    {
+        "id": "embedding_vector_arithmetic",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "EmbeddingLab",
+        "label": "Vector Arithmetic",
+        "module": "embedding_lab.vector_arithmetic",
+    },
+    {
+        "id": "embedding_model_comparison",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "EmbeddingLab",
+        "label": "Model Comparison",
+        "module": "embedding_lab.model_comparison",
+    },
+    {
+        "id": "embedding_visualization",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "EmbeddingLab",
+        "label": "Visualization",
+        "module": "embedding_lab.vector_visualization",
+    },
+    {
+        "id": "embedding_semantic_similarity",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "EmbeddingLab",
+        "label": "Semantic Similarity",
+        "module": "embedding_lab.semantic_similarity",
+    },
+    {
+        "id": "generation_logits",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "GenerationLab",
+        "label": "Logits Inspector",
+        "module": "generation_lab.logits_inspector",
+    },
+    {
+        "id": "generation_beam",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "GenerationLab",
+        "label": "Beam Search",
+        "module": "generation_lab.beam_visualizer",
+    },
+    {
+        "id": "generation_kv_cache",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "GenerationLab",
+        "label": "KV Cache",
+        "module": "generation_lab.kv_cache_sim",
+    },
+    {
+        "id": "interpretability_attention",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "InterpretabilityLab",
+        "label": "Attention",
+        "module": "interpretability_lab.attention_map",
+    },
+    {
+        "id": "interpretability_rope",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "InterpretabilityLab",
+        "label": "RoPE Explorer",
+        "module": "interpretability_lab.rope_explorer",
+    },
+    {
+        "id": "interpretability_ffn",
+        "group": "Core Mechanics",
+        "group_description": "Inspect tokens, vectors, generation, and model internals.",
+        "lab": "InterpretabilityLab",
+        "label": "FFN Activation",
+        "module": "interpretability_lab.ffn_activation",
+    },
+    {
+        "id": "data_dataset_viewer",
+        "group": "Knowledge & Data",
+        "group_description": "Prepare datasets and reason about retrieval behavior.",
+        "lab": "DataLab",
+        "label": "Dataset Viewer",
+        "module": "data_lab.hf_dataset_viewer",
+    },
+    {
+        "id": "data_cleaner",
+        "group": "Knowledge & Data",
+        "group_description": "Prepare datasets and reason about retrieval behavior.",
+        "lab": "DataLab",
+        "label": "Data Cleaner",
+        "module": "data_lab.cleaner_playground",
+    },
+    {
+        "id": "data_formatter",
+        "group": "Knowledge & Data",
+        "group_description": "Prepare datasets and reason about retrieval behavior.",
+        "lab": "DataLab",
+        "label": "Format Converter",
+        "module": "data_lab.instruct_formatter",
+    },
+    {
+        "id": "rag_chunking",
+        "group": "Knowledge & Data",
+        "group_description": "Prepare datasets and reason about retrieval behavior.",
+        "lab": "RAGLab",
+        "label": "Chunking",
+        "module": "rag_lab.chunking_playground",
+    },
+    {
+        "id": "rag_retrieval",
+        "group": "Knowledge & Data",
+        "group_description": "Prepare datasets and reason about retrieval behavior.",
+        "lab": "RAGLab",
+        "label": "Retrieval",
+        "module": "rag_lab.retrieval_sim",
+    },
+    {
+        "id": "model_memory",
+        "group": "Model Ops",
+        "group_description": "Estimate memory, fine-tuning cost, and inference constraints.",
+        "lab": "ModelLab",
+        "label": "Memory Estimator",
+        "module": "model_lab.memory_estimator",
+    },
+    {
+        "id": "model_peft",
+        "group": "Model Ops",
+        "group_description": "Estimate memory, fine-tuning cost, and inference constraints.",
+        "lab": "ModelLab",
+        "label": "PEFT Calculator",
+        "module": "model_lab.peft_calculator",
+    },
+    {
+        "id": "model_config_diff",
+        "group": "Model Ops",
+        "group_description": "Estimate memory, fine-tuning cost, and inference constraints.",
+        "lab": "ModelLab",
+        "label": "Config Diff",
+        "module": "model_lab.config_diff",
+    },
+    {
+        "id": "finetune_lora",
+        "group": "Model Ops",
+        "group_description": "Estimate memory, fine-tuning cost, and inference constraints.",
+        "lab": "FineTuneLab",
+        "label": "LoRA Explorer",
+        "module": "finetune_lab.lora_explorer",
+    },
+    {
+        "id": "finetune_training_cost",
+        "group": "Model Ops",
+        "group_description": "Estimate memory, fine-tuning cost, and inference constraints.",
+        "lab": "FineTuneLab",
+        "label": "Training Cost",
+        "module": "finetune_lab.training_cost_estimator",
+    },
+    {
+        "id": "inference_throughput",
+        "group": "Model Ops",
+        "group_description": "Estimate memory, fine-tuning cost, and inference constraints.",
+        "lab": "InferenceLab",
+        "label": "Throughput",
+        "module": "inference_lab.throughput_calculator",
+        "optional_package": "inference_lab",
+    },
+    {
+        "id": "inference_quantization",
+        "group": "Model Ops",
+        "group_description": "Estimate memory, fine-tuning cost, and inference constraints.",
+        "lab": "InferenceLab",
+        "label": "Quantization",
+        "module": "inference_lab.quantization_analyzer",
+        "optional_package": "inference_lab",
+    },
+    {
+        "id": "agent_trace_viewer",
+        "group": "Evaluation",
+        "group_description": "Review agent traces and compare evaluation pipelines.",
+        "lab": "Agent Trace Lab",
+        "label": "Trace Viewer",
+        "module": "agent_trace_lab.trace_viewer",
+    },
+    {
+        "id": "agent_trace_analyzer",
+        "group": "Evaluation",
+        "group_description": "Review agent traces and compare evaluation pipelines.",
+        "lab": "Agent Trace Lab",
+        "label": "Trace Analyzer",
+        "module": "agent_trace_lab.trace_analyzer",
+    },
+    {
+        "id": "eval_benchmark",
+        "group": "Evaluation",
+        "group_description": "Review agent traces and compare evaluation pipelines.",
+        "lab": "Eval Lab",
+        "label": "Benchmark Explorer",
+        "module": "eval_lab.benchmark_explorer",
+    },
+    {
+        "id": "eval_llm_judge",
+        "group": "Evaluation",
+        "group_description": "Review agent traces and compare evaluation pipelines.",
+        "lab": "Eval Lab",
+        "label": "LLM Judge",
+        "module": "eval_lab.llm_judge",
+    },
+    {
+        "id": "eval_pipeline",
+        "group": "Evaluation",
+        "group_description": "Review agent traces and compare evaluation pipelines.",
+        "lab": "Eval Lab",
+        "label": "Eval Pipeline",
+        "module": "eval_lab.eval_pipeline",
+    },
+]
 
-    # 收集所有需要初始化的 load 事件
-    load_events = []
+LAB_NAV_LABELS = {
+    "TokenLab": "Token",
+    "EmbeddingLab": "Embedding",
+    "GenerationLab": "Generation",
+    "InterpretabilityLab": "Interpretability",
+    "DataLab": "Data",
+    "RAGLab": "RAG",
+    "ModelLab": "Model",
+    "FineTuneLab": "FineTune",
+    "InferenceLab": "Inference",
+    "Agent Trace Lab": "Agent Trace",
+    "Eval Lab": "Eval",
+    "Toolbox": "Toolbox",
+}
+
+WORKBENCH_LAYOUT_MARKERS = (
+    "workbench-page-hero",
+    "workbench-tool-shell",
+    "workbench-control-panel",
+    "workbench-output-panel",
+)
+
+
+def optional_lab_available(package_name: str) -> bool:
+    """判断可选实验室模块是否存在。"""
+    return importlib.util.find_spec(package_name) is not None
+
+
+def get_available_pages() -> list[dict[str, str]]:
+    """返回当前环境可用的页面注册表。"""
+    pages = []
+    for page in PAGE_REGISTRY:
+        optional_package = page.get("optional_package")
+        if optional_package and not optional_lab_available(optional_package):
+            continue
+        pages.append(page)
+    return pages
+
+
+def _empty_outputs(output_count: int) -> Any:
+    """生成与 Gradio 输出数量匹配的空值。"""
+    if output_count == 1:
+        return None
+    return tuple(None for _ in range(output_count))
+
+
+def _cached_load_handler(result: dict[str, Any], page_name: str) -> Callable[[], Any]:
+    """为 Tab 懒加载创建单次缓存包装。"""
+    load_fn = result["load_fn"]
+    output_count = len(result["load_outputs"])
+    cache: dict[str, Any] = {"ready": False, "value": None}
+
+    def load_once() -> Any:
+        if cache["ready"]:
+            return cache["value"]
+
+        try:
+            value = load_fn()
+        except Exception as exc:
+            print(f"Load event error in {page_name}: {exc}")
+            value = _empty_outputs(output_count)
+
+        cache["value"] = value
+        cache["ready"] = True
+        return value
+
+    return load_once
+
+
+def bind_lazy_load_events(tabs: list[gr.Tab], result: Any, page_name: str) -> None:
+    """把页面初始化绑定到一个或多个 Tab，避免应用启动时预加载所有模型。"""
+    if not result:
+        return
+
+    load_handler = _cached_load_handler(result, page_name)
+    for tab in tabs:
+        tab.select(fn=load_handler, outputs=result["load_outputs"])
+
+
+def bind_lazy_load_event(tab: gr.Tab, result: Any, page_name: str) -> None:
+    """把页面初始化绑定到对应 Tab。"""
+    bind_lazy_load_events([tab], result, page_name)
+
+
+def _render_page(page: dict[str, str]) -> Any:
+    """导入并渲染一个页面模块。"""
+    module = importlib.import_module(page["module"])
+    return module.render()
+
+
+def _page_source(page: dict[str, str]) -> str:
+    """读取页面模块源码，用于识别是否已迁移到 workbench 布局。"""
+    try:
+        spec = importlib.util.find_spec(page["module"])
+    except (ModuleNotFoundError, ValueError):
+        return ""
+
+    if spec is None or spec.origin is None:
+        return ""
+
+    try:
+        with open(spec.origin, encoding="utf-8") as source_file:
+            return source_file.read()
+    except OSError:
+        return ""
+
+
+def _page_uses_workbench_layout(page: dict[str, str]) -> bool:
+    """判断页面是否已经原生使用 workbench 布局。"""
+    source = _page_source(page)
+    return all(marker in source for marker in WORKBENCH_LAYOUT_MARKERS)
+
+
+def _render_page_with_frame(page: dict[str, str], page_name: str) -> Any:
+    """渲染页面；未迁移页面自动套入统一 workbench frame。"""
+    if _page_uses_workbench_layout(page):
+        return _render_page(page)
+
+    gr.HTML(render_legacy_page_header(page, page_name))
+    with gr.Row(elem_classes=["workbench-tool-shell", "workbench-legacy-page-shell"]):
+        with gr.Column(
+            scale=1,
+            elem_classes=["workbench-control-panel", "workbench-legacy-page-context"],
+        ):
+            gr.HTML(render_legacy_page_context(page, page_name))
+        with gr.Column(
+            scale=3,
+            elem_classes=["workbench-output-panel", "workbench-legacy-output-panel"],
+        ):
+            result = _render_page(page)
+
+    return result
+
+
+def _page_tab_label(page: dict[str, str]) -> str:
+    """生成工具选择器使用的紧凑页面标题。"""
+    lab_label = LAB_NAV_LABELS.get(page["lab"], page["lab"])
+    return f'{lab_label} / {page["label"]}'
+
+
+def _page_groups(pages: list[dict[str, str]]) -> list[str]:
+    """按注册顺序返回任务域列表。"""
+    groups = []
+    for page in pages:
+        if page["group"] not in groups:
+            groups.append(page["group"])
+    return groups
+
+
+def _tool_choices_for_group(
+    pages: list[dict[str, str]],
+    group: str,
+) -> list[tuple[str, str]]:
+    """返回某个任务域下的工具选择项。"""
+    return [
+        (_page_tab_label(page), page["id"])
+        for page in pages
+        if page["group"] == group
+    ]
+
+
+def _first_page_id_for_group(pages: list[dict[str, str]], group: str) -> str:
+    """返回任务域中的第一个页面 id。"""
+    for page in pages:
+        if page["group"] == group:
+            return page["id"]
+    return pages[0]["id"]
+
+
+def _group_for_page_id(pages: list[dict[str, str]], page_id: str) -> str:
+    """返回页面 id 所属的任务域。"""
+    for page in pages:
+        if page["id"] == page_id:
+            return page["group"]
+    return pages[0]["group"]
+
+
+def create_app():
+    """创建 Gradio 应用。"""
+    configure_plotly_theme()
+    pages = get_available_pages()
+    default_page_id = pages[0]["id"]
+    default_group = pages[0]["group"]
+    groups = _page_groups(pages)
 
     with gr.Blocks(
         title="LLM Tools Workbench",
-        analytics_enabled=False
+        analytics_enabled=False,
     ) as app:
+        gr.HTML(render_app_header())
 
-        # 标题 - HuggingFace Style Header
-        gr.HTML("""
-        <div style="
-            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
-            border-radius: 12px;
-            padding: 24px 32px;
-            margin-bottom: 24px;
-            border: 1px solid #FED7AA;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        ">
-            <div style="
-                width: 48px;
-                height: 48px;
-                background: linear-gradient(135deg, #FF9D00 0%, #EA580C 100%);
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-            ">
-                <span style="filter: brightness(0) invert(1);">&#x1F9E0;</span>
-            </div>
-            <div>
-                <h1 style="margin: 0; font-size: 1.75rem; font-weight: 700; color: #1F2937;">
-                    LLM Tools Workbench
-                </h1>
-                <p style="margin: 4px 0 0 0; color: #6B7280; font-size: 1rem;">
-                    Interactive tools for exploring Large Language Models
-                </p>
-            </div>
-        </div>
-        """)
-        
-        # 主 Tab 导航
-        with gr.Tabs() as main_tabs:
-            
-            # ==================== TokenLab ====================
-            with gr.Tab("TokenLab", id="tokenlab"):
-                from token_lab import playground, arena, chat_builder
-                
-                with gr.Tabs() as token_tabs:
-                    with gr.Tab("Playground", id="playground"):
-                        result = playground.render()
-                        if result:
-                            load_events.append(result)
+        with gr.Column(elem_classes=["workbench-app-layout"]):
+            with gr.Column(elem_classes=["workbench-command-surface"]):
+                gr.HTML(render_command_header(pages))
+                with gr.Row(elem_classes=["workbench-launcher-controls"]):
+                    group_selector = gr.Dropdown(
+                        label="Task Area",
+                        choices=groups,
+                        value=default_group,
+                        interactive=True,
+                        elem_classes=["workbench-group-selector"],
+                    )
+                    tool_selector = gr.Dropdown(
+                        label="Tool",
+                        choices=_tool_choices_for_group(pages, default_group),
+                        value=default_page_id,
+                        filterable=True,
+                        interactive=True,
+                        elem_classes=["workbench-tool-selector"],
+                    )
 
-                    with gr.Tab("Arena", id="arena"):
-                        result = arena.render()
-                        if result:
-                            load_events.append(result)
+            with gr.Tabs(
+                selected=default_page_id,
+                elem_classes=["workbench-page-switcher", "workbench-page-router"],
+            ) as page_tabs:
+                for page in pages:
+                    page_name = _page_tab_label(page)
+                    with gr.Tab(
+                        page_name,
+                        id=page["id"],
+                    ) as page_tab:
+                        result = _render_page_with_frame(page, page_name)
+                        bind_lazy_load_event(
+                            page_tab,
+                            result,
+                            page_name,
+                        )
 
-                    with gr.Tab("Chat Template", id="chat"):
-                        chat_builder.render()
-            
-            # ==================== EmbeddingLab ====================
-            with gr.Tab("EmbeddingLab", id="embeddinglab"):
-                from embedding_lab import (
-                    vector_arithmetic,
-                    model_comparison,
-                    vector_visualization,
-                    semantic_similarity
-                )
-                
-                with gr.Tabs() as embed_tabs:
-                    with gr.Tab("Vector Arithmetic", id="vector_arithmetic"):
-                        result = vector_arithmetic.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("Model Comparison", id="model_comparison"):
-                        result = model_comparison.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("Visualization", id="vector_viz"):
-                        result = vector_visualization.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("Semantic Similarity", id="semantic_sim"):
-                        result = semantic_similarity.render()
-                        if result:
-                            load_events.append(result)
-            
-            # ==================== GenerationLab ====================
-            with gr.Tab("GenerationLab", id="generationlab"):
-                from generation_lab import (
-                    logits_inspector,
-                    beam_visualizer,
-                    kv_cache_sim
-                )
-                
-                with gr.Tabs() as gen_tabs:
-                    with gr.Tab("Logits Inspector", id="logits"):
-                        result = logits_inspector.render()
-                        if result:
-                            load_events.append(result)
-                    
-                    with gr.Tab("Beam Search", id="beam"):
-                        result = beam_visualizer.render()
-                        if result:
-                            load_events.append(result)
-                    
-                    with gr.Tab("KV Cache", id="kvcache"):
-                        result = kv_cache_sim.render()
-                        if result:
-                            load_events.append(result)
-            
-            # ==================== InterpretabilityLab ====================
-            with gr.Tab("InterpretabilityLab", id="interpretabilitylab"):
-                from interpretability_lab import (
-                    attention_map,
-                    rope_explorer,
-                    ffn_activation
-                )
-                
-                with gr.Tabs() as interp_tabs:
-                    with gr.Tab("Attention", id="attention"):
-                        result = attention_map.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("RoPE Explorer", id="rope"):
-                        rope_explorer.render()
-
-                    with gr.Tab("FFN Activation", id="ffn"):
-                        result = ffn_activation.render()
-                        if result:
-                            load_events.append(result)
-            
-            # ==================== DataLab ====================
-            with gr.Tab("DataLab", id="datalab"):
-                from data_lab import (
-                    hf_dataset_viewer,
-                    cleaner_playground,
-                    instruct_formatter
-                )
-                
-                with gr.Tabs() as data_tabs:
-                    with gr.Tab("Dataset Viewer", id="dataset"):
-                        hf_dataset_viewer.render()
-
-                    with gr.Tab("Data Cleaner", id="cleaner"):
-                        cleaner_playground.render()
-
-                    with gr.Tab("Format Converter", id="formatter"):
-                        instruct_formatter.render()
-            
-            # ==================== ModelLab ====================
-            with gr.Tab("ModelLab", id="modellab"):
-                from model_lab import (
-                    memory_estimator,
-                    peft_calculator,
-                    config_diff
-                )
-                
-                with gr.Tabs() as model_tabs:
-                    with gr.Tab("Memory Estimator", id="memory"):
-                        result = memory_estimator.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("PEFT Calculator", id="peft"):
-                        result = peft_calculator.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("Config Diff", id="config"):
-                        result = config_diff.render()
-                        if result:
-                            load_events.append(result)
-
-            # ==================== RAGLab ====================
-            with gr.Tab("RAGLab", id="raglab"):
-                from rag_lab import (
-                    chunking_playground,
-                    retrieval_sim
+            def update_group(group: str) -> tuple[Any, Any]:
+                """切换任务域，同时打开该域的第一个工具。"""
+                page_id = _first_page_id_for_group(pages, group)
+                return (
+                    gr.update(
+                        choices=_tool_choices_for_group(pages, group),
+                        value=page_id,
+                    ),
+                    gr.Tabs(selected=page_id),
                 )
 
-                with gr.Tabs() as rag_tabs:
-                    with gr.Tab("Chunking", id="chunking"):
-                        result = chunking_playground.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("Retrieval", id="retrieval"):
-                        result = retrieval_sim.render()
-                        if result:
-                            load_events.append(result)
-
-            # ==================== FineTuneLab ====================
-            with gr.Tab("FineTuneLab", id="finetunelab"):
-                from finetune_lab import (
-                    lora_explorer,
-                    training_cost_estimator
+            def update_tool(page_id: str) -> tuple[Any, Any, Any]:
+                """切换当前工具页面，并保持任务域与工具状态一致。"""
+                group = _group_for_page_id(pages, page_id)
+                return (
+                    gr.update(value=group),
+                    gr.update(
+                        choices=_tool_choices_for_group(pages, group),
+                        value=page_id,
+                    ),
+                    gr.Tabs(selected=page_id),
                 )
 
-                with gr.Tabs() as finetune_tabs:
-                    with gr.Tab("LoRA Explorer", id="lora_explorer"):
-                        result = lora_explorer.render()
-                        if result:
-                            load_events.append(result)
+            group_selector.change(
+                fn=update_group,
+                inputs=[group_selector],
+                outputs=[tool_selector, page_tabs],
+            )
+            tool_selector.change(
+                fn=update_tool,
+                inputs=[tool_selector],
+                outputs=[group_selector, tool_selector, page_tabs],
+            )
 
-                    with gr.Tab("Training Cost", id="training_cost"):
-                        result = training_cost_estimator.render()
-                        if result:
-                            load_events.append(result)
+        gr.HTML(render_app_footer())
 
-            # ==================== InferenceLab ====================
-            with gr.Tab("InferenceLab", id="inferencelab"):
-                from inference_lab import (
-                    throughput_calculator,
-                    quantization_analyzer
-                )
-
-                with gr.Tabs() as inference_tabs:
-                    with gr.Tab("Throughput", id="throughput"):
-                        result = throughput_calculator.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("Quantization", id="quantization"):
-                        result = quantization_analyzer.render()
-                        if result:
-                            load_events.append(result)
-
-            # ==================== Agent Trace Lab ====================
-            with gr.Tab("Agent Trace Lab", id="agenttracelab"):
-                from agent_trace_lab import (
-                    trace_viewer,
-                    trace_analyzer
-                )
-
-                with gr.Tabs() as agent_trace_tabs:
-                    with gr.Tab("Trace Viewer", id="trace_viewer"):
-                        result = trace_viewer.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("Trace Analyzer", id="trace_analyzer"):
-                        result = trace_analyzer.render()
-                        if result:
-                            load_events.append(result)
-
-            # ==================== Eval Lab ====================
-            with gr.Tab("Eval Lab", id="evallab"):
-                from eval_lab import (
-                    benchmark_explorer,
-                    llm_judge,
-                    eval_pipeline
-                )
-
-                with gr.Tabs() as eval_tabs:
-                    with gr.Tab("Benchmark Explorer", id="benchmark_explorer"):
-                        result = benchmark_explorer.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("LLM Judge", id="llm_judge"):
-                        result = llm_judge.render()
-                        if result:
-                            load_events.append(result)
-
-                    with gr.Tab("Eval Pipeline", id="eval_pipeline"):
-                        result = eval_pipeline.render()
-                        if result:
-                            load_events.append(result)
-
-
-        # 页面加载时执行所有初始化函数
-        if load_events:
-            def combined_load():
-                """合并所有 load 事件"""
-                all_outputs = []
-                for event in load_events:
-                    try:
-                        result = event['load_fn']()
-                        if isinstance(result, tuple):
-                            all_outputs.extend(result)
-                        else:
-                            all_outputs.append(result)
-                    except Exception as e:
-                        print(f"Load event error: {e}")
-                        # 填充空值
-                        all_outputs.extend([None] * len(event['load_outputs']))
-                return all_outputs
-            
-            # 收集所有输出组件
-            all_load_outputs = []
-            for event in load_events:
-                all_load_outputs.extend(event['load_outputs'])
-            
-            app.load(fn=combined_load, outputs=all_load_outputs)
-    
     return app
 
 
 if __name__ == "__main__":
-    app = create_app()
-    app.launch(
+    demo = create_app()
+    demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
         share=False,
         show_error=True,
         theme=CUSTOM_THEME,
-        css=CUSTOM_CSS
+        css=CUSTOM_CSS,
     )

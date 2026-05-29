@@ -193,43 +193,52 @@ _This indicates significant differences in how models understand semantics._
 def render():
     """渲染页面"""
 
-    # 模型选择
-    with gr.Row():
-        use_tfidf = gr.Checkbox(label="TF-IDF", value=True)
-        use_bm25 = gr.Checkbox(label="BM25", value=True)
-        use_multilingual = gr.Checkbox(label="Multilingual MiniLM", value=False)
-        use_minilm = gr.Checkbox(label="MiniLM-L6 (English)", value=False)
-    
-    # Input area
-    with gr.Row():
-        with gr.Column(scale=1):
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>Model Comparison</h1>
+      <p>Compare sparse and dense embedding models on the same query and candidate set.</p>
+    </div>
+    """)
+
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
+            gr.Markdown("### Model Set")
+            use_tfidf = gr.Checkbox(label="TF-IDF", value=True)
+            use_bm25 = gr.Checkbox(label="BM25", value=True)
+            use_multilingual = gr.Checkbox(label="Multilingual MiniLM", value=False)
+            use_minilm = gr.Checkbox(label="MiniLM-L6 (English)", value=False)
+
+            gr.Markdown("### Query")
             query = gr.Textbox(
                 label="Query Text",
                 placeholder="Enter query text...",
                 lines=1
             )
 
-        with gr.Column(scale=2):
             candidates = gr.Textbox(
                 label="Candidate Texts (one per line)",
                 placeholder="fruit\nphone\ncomputer",
                 lines=6
             )
-    
-    # Preset examples
-    with gr.Row():
-        preset1 = gr.Button("Apple Ambiguity", size="sm")
-        preset2 = gr.Button("Bank Ambiguity", size="sm")
-        preset3 = gr.Button("Tesla", size="sm")
-        preset4 = gr.Button("Semantic Search", size="sm")
 
-    # Results
-    chart = gr.Plot(label="Similarity Comparison")
+            gr.Markdown("### Presets")
+            with gr.Row():
+                preset1 = gr.Button("Apple Ambiguity", size="sm")
+                preset2 = gr.Button("Bank Ambiguity", size="sm")
+            with gr.Row():
+                preset3 = gr.Button("Tesla", size="sm")
+                preset4 = gr.Button("Semantic Search", size="sm")
 
-    with gr.Accordion("Detailed Scores", open=True):
-        score_df = gr.Dataframe(interactive=False)
-    
-    analysis_md = gr.Markdown("")
+        with gr.Column(scale=3, elem_classes=["workbench-output-panel"]):
+            with gr.Column(elem_classes=["plot-frame"]):
+                chart = gr.Plot(label="Similarity Comparison")
+
+            with gr.Column(elem_classes=["workbench-detail-panel"]):
+                gr.Markdown("### Detailed Scores")
+                score_df = gr.Dataframe(interactive=False)
+
+            with gr.Column(elem_classes=["workbench-detail-panel"]):
+                analysis_md = gr.Markdown("")
     
     # ==================== 事件绑定 ====================
     

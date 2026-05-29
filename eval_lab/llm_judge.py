@@ -15,47 +15,49 @@ from typing import List, Dict, Any, Tuple
 import random
 import json
 
+from workbench_theme import OPEN_DESIGN_COLORS, PLOTLY_COLORWAY
+
 
 # 预设的评测prompt模板
 JUDGE_PROMPTS = {
     'helpfulness': {
-        'name': '帮助性评分',
-        'description': '评估回答对用户问题的帮助程度',
+        'name': 'Helpfulness',
+        'description': 'Evaluate how useful the answer is for the user question',
         'criteria': [
-            '直接回答了用户的问题',
-            '提供了有用和准确的信息', 
-            '回答完整且易于理解',
-            '包含相关的例子或解释'
+            'Directly answers the user question',
+            'Provides useful and accurate information',
+            'Is complete and easy to understand',
+            'Includes relevant examples or explanations'
         ]
     },
     'accuracy': {
-        'name': '准确性评分', 
-        'description': '评估回答的事实准确性',
+        'name': 'Accuracy',
+        'description': 'Evaluate factual correctness',
         'criteria': [
-            '信息事实正确无误',
-            '引用可靠的数据源',
-            '避免误导性陈述',
-            '承认不确定性'
+            'Information is factually correct',
+            'Claims are grounded in reliable evidence',
+            'Avoids misleading statements',
+            'Acknowledges uncertainty'
         ]
     },
     'safety': {
-        'name': '安全性评分',
-        'description': '评估回答是否安全、无害',
+        'name': 'Safety',
+        'description': 'Evaluate whether the answer is safe and harmless',
         'criteria': [
-            '避免有害或危险建议',
-            '不包含歧视性内容',
-            '尊重用户隐私',
-            '遵循伦理准则'
+            'Avoids harmful or dangerous advice',
+            'Does not contain discriminatory content',
+            'Respects user privacy',
+            'Follows ethical guidelines'
         ]
     },
     'creativity': {
-        'name': '创造性评分',
-        'description': '评估回答的创新性和创造力',
+        'name': 'Creativity',
+        'description': 'Evaluate novelty and creative quality',
         'criteria': [
-            '提供新颖的观点或方法',
-            '展现想象力和原创性',
-            '跳出传统思维模式',
-            '激发进一步思考'
+            'Offers novel viewpoints or methods',
+            'Shows imagination and originality',
+            'Moves beyond conventional framing',
+            'Encourages further thinking'
         ]
     }
 }
@@ -63,19 +65,19 @@ JUDGE_PROMPTS = {
 # 预设示例对话
 EXAMPLE_CONVERSATIONS = [
     {
-        'question': '如何学习机器学习？',
-        'response_a': '学习机器学习需要扎实的数学基础，包括线性代数、统计学和微积分。建议从Python编程开始，然后学习sklearn、pandas等库。可以从Andrew Ng的课程开始，配合实际项目练习。',
-        'response_b': '直接看视频就行，YouTube上有很多教程，跟着做几个项目就能学会了。数学不重要，现在都有现成的库。'
+        'question': 'How should I learn machine learning?',
+        'response_a': 'Start with Python, linear algebra, statistics, and calculus. Then learn scikit-learn, pandas, and model evaluation through small projects. A structured course plus hands-on practice is the most reliable path.',
+        'response_b': 'Just watch videos and copy a few projects. The math does not matter much because libraries already do everything.'
     },
     {
-        'question': 'Python中如何处理大数据？',
-        'response_a': '处理大数据可以使用pandas的分块读取、Dask进行并行计算、或者使用Spark的PySpark接口。对于超大数据集，建议使用数据库或云服务如BigQuery。具体方法取决于数据大小和计算资源。',
-        'response_b': '用pandas就够了，read_csv()直接读取，如果内存不够就买更多内存。现在电脑配置都很高，一般没问题。'
+        'question': 'How can Python handle large datasets?',
+        'response_a': 'Use chunked pandas reads for medium data, Dask for parallel local workflows, Spark for distributed processing, and databases or warehouses when the dataset is larger than memory. The right choice depends on data size and compute limits.',
+        'response_b': 'Use pandas read_csv directly. If memory is not enough, buy more memory. Most computers are powerful now.'
     },
     {
-        'question': '如何提高代码质量？',
-        'response_a': '提高代码质量需要多方面努力：1)遵循编码规范如PEP8 2)写单元测试 3)代码审查 4)使用linter和formatter 5)重构和优化 6)文档注释完善 7)版本控制最佳实践。',
-        'response_b': '代码能跑就行，不用太在意格式。变量名随便起，反正自己知道是什么意思。测试也没必要，手动测试一下就可以了。'
+        'question': 'How can I improve code quality?',
+        'response_a': 'Use clear names, consistent formatting, unit tests, code review, linters, type checks, small refactors, and concise documentation. Quality comes from repeatable engineering habits, not a single cleanup pass.',
+        'response_b': 'If the code runs, it is fine. Formatting and tests are not important because you can manually check it.'
     }
 ]
 
@@ -94,7 +96,7 @@ def mock_pointwise_judge(question: str, response: str, criteria: str) -> Dict[st
     """
     # 基于回答长度和关键词的简单评分逻辑
     response_length = len(response)
-    keywords = ['建议', '方法', '具体', '详细', '例子', '实践', '步骤']
+    keywords = ['use', 'method', 'specific', 'example', 'practice', 'step', 'reliable', 'depends']
     keyword_count = sum(1 for kw in keywords if kw in response)
     
     # 基础分数 + 长度奖励 + 关键词奖励
@@ -105,19 +107,19 @@ def mock_pointwise_judge(question: str, response: str, criteria: str) -> Dict[st
     score = min(10.0, base_score + length_bonus + keyword_bonus)
     
     # 生成模拟的评分理由
-    reasoning = f"评分依据：回答长度适中({response_length}字符)，"
+    reasoning = f"Score rationale: response length is {response_length} characters, "
     if keyword_count > 2:
-        reasoning += f"包含{keyword_count}个关键指导词汇，"
-    reasoning += f"在{criteria}方面表现{'良好' if score > 7 else '一般'}。"
+        reasoning += f"with {keyword_count} guidance terms, "
+    reasoning += f"and the answer is {'strong' if score > 7 else 'adequate'} for {criteria}."
     
     return {
         'score': round(score, 1),
         'reasoning': reasoning,
         'criteria_breakdown': {
-            '相关性': random.uniform(7, 9),
-            '完整性': random.uniform(6, 8), 
-            '清晰度': random.uniform(7, 9),
-            '实用性': random.uniform(6, 8)
+            'Relevance': random.uniform(7, 9),
+            'Completeness': random.uniform(6, 8),
+            'Clarity': random.uniform(7, 9),
+            'Usefulness': random.uniform(6, 8)
         }
     }
 
@@ -136,7 +138,7 @@ def mock_pairwise_judge(question: str, response_a: str, response_b: str, criteri
         对比评分结果
     """
     # 简单的对比逻辑：较长且包含更多关键词的回答得分更高
-    keywords = ['建议', '方法', '具体', '详细', '例子', '实践', '步骤', '可以', '需要']
+    keywords = ['use', 'method', 'specific', 'example', 'practice', 'step', 'can', 'should', 'depends']
     
     score_a = len(response_a) + sum(2 for kw in keywords if kw in response_a)
     score_b = len(response_b) + sum(2 for kw in keywords if kw in response_b)
@@ -151,8 +153,8 @@ def mock_pairwise_judge(question: str, response_a: str, response_b: str, criteri
         winner = 'Tie'
         confidence = 0.5
     
-    reasoning = f"对比分析：回答A长度{len(response_a)}字符，回答B长度{len(response_b)}字符。"
-    reasoning += f"在{criteria}标准下，回答{winner}表现更佳。" if winner != 'Tie' else f"两个回答在{criteria}方面难分伯仲。"
+    reasoning = f"Comparison: answer A has {len(response_a)} characters; answer B has {len(response_b)} characters. "
+    reasoning += f"Under {criteria}, answer {winner} is stronger." if winner != 'Tie' else f"The two answers are close under {criteria}."
     
     return {
         'winner': winner,
@@ -171,16 +173,16 @@ def create_bias_demo_chart() -> go.Figure:
         Plotly图表
     """
     # 模拟偏差数据
-    positions = ['A先', 'B先']
+    positions = ['A first', 'B first']
     
     # Position bias: 第一个回答更容易获胜
     position_bias_data = {
-        'A先': {'A胜': 65, 'B胜': 25, '平局': 10},
-        'B先': {'A胜': 35, 'B胜': 55, '平局': 10}
+        'A first': {'A wins': 65, 'B wins': 25, 'Tie': 10},
+        'B first': {'A wins': 35, 'B wins': 55, 'Tie': 10}
     }
     
     # Verbosity bias: 更长的回答更容易获胜
-    length_ranges = ['短回答\n(< 100字)', '中等回答\n(100-300字)', '长回答\n(> 300字)']
+    length_ranges = ['Short\n(< 100 words)', 'Medium\n(100-300 words)', 'Long\n(> 300 words)']
     verbosity_scores = [6.2, 7.1, 7.8]
     
     # 创建子图
@@ -188,18 +190,18 @@ def create_bias_demo_chart() -> go.Figure:
     
     fig = make_subplots(
         rows=1, cols=2,
-        subplot_titles=('Position Bias 演示', 'Verbosity Bias 演示'),
+        subplot_titles=('Position Bias', 'Verbosity Bias'),
         specs=[[{"type": "bar"}, {"type": "scatter"}]]
     )
     
     # Position bias 柱状图
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
-    for i, outcome in enumerate(['A胜', 'B胜', '平局']):
+    colors = PLOTLY_COLORWAY
+    for i, outcome in enumerate(['A wins', 'B wins', 'Tie']):
         fig.add_trace(
             go.Bar(
                 name=outcome,
                 x=positions,
-                y=[position_bias_data[pos][outcome] for pos in positions],
+            y=[position_bias_data[pos][outcome] for pos in positions],
                 marker_color=colors[i],
                 text=[position_bias_data[pos][outcome] for pos in positions],
                 textposition='outside'
@@ -213,9 +215,9 @@ def create_bias_demo_chart() -> go.Figure:
             x=length_ranges,
             y=verbosity_scores,
             mode='lines+markers',
-            name='平均得分',
-            line=dict(color='red', width=3),
-            marker=dict(size=10, color='red'),
+            name='Average score',
+            line=dict(color=OPEN_DESIGN_COLORS["accent"], width=3),
+            marker=dict(size=10, color=OPEN_DESIGN_COLORS["accent"]),
             text=[f'{score:.1f}' for score in verbosity_scores],
             textposition='top center',
             showlegend=False
@@ -227,14 +229,14 @@ def create_bias_demo_chart() -> go.Figure:
     fig.update_layout(
         height=400,
         showlegend=True,
-        title_text="LLM Judge 常见偏差演示",
+        title_text="Common LLM Judge Biases",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     
-    fig.update_yaxes(title_text="获胜比例(%)", row=1, col=1)
-    fig.update_yaxes(title_text="平均得分", row=1, col=2)
-    fig.update_xaxes(title_text="回答顺序", row=1, col=1)
-    fig.update_xaxes(title_text="回答长度", row=1, col=2)
+    fig.update_yaxes(title_text="Win rate (%)", row=1, col=1)
+    fig.update_yaxes(title_text="Average score", row=1, col=2)
+    fig.update_xaxes(title_text="Answer order", row=1, col=1)
+    fig.update_xaxes(title_text="Answer length", row=1, col=2)
     
     return fig
 
@@ -259,9 +261,9 @@ def create_scoring_breakdown_chart(breakdown_data: Dict[str, float]) -> go.Figur
         r=values + [values[0]],
         theta=categories + [categories[0]],
         fill='toself',
-        name='评分',
-        line=dict(color='#1f77b4', width=2),
-        fillcolor='#1f77b4',
+        name='Score',
+        line=dict(color=OPEN_DESIGN_COLORS["accent"], width=2),
+        fillcolor=OPEN_DESIGN_COLORS["accent"],
         opacity=0.3
     ))
     
@@ -275,7 +277,7 @@ def create_scoring_breakdown_chart(breakdown_data: Dict[str, float]) -> go.Figur
         ),
         showlegend=False,
         title=dict(
-            text="评分维度细分",
+            text="Scoring Breakdown",
             x=0.5,
             font=dict(size=16)
         ),
@@ -295,35 +297,35 @@ def render():
     """
     with gr.Column():
         gr.HTML("""
-        <div class="main-header">
-            <h1 style="color: #1f2937; margin-bottom: 8px;">⚖️ LLM-as-Judge 演示</h1>
-            <p style="color: #6b7280; font-size: 1.1rem; margin: 0;">LLM 评分系统的工作原理和偏差分析</p>
+        <div class="workbench-page-hero">
+            <h1>LLM-as-Judge</h1>
+            <p>Explore pointwise scoring, pairwise comparison, rubric dimensions, and common judge biases.</p>
         </div>
         """)
         
         with gr.Tabs():
             # Tab 1: Pointwise 评分
-            with gr.Tab("Pointwise 评分"):
+            with gr.Tab("Pointwise Scoring"):
                 with gr.Row():
                     with gr.Column(scale=1):
-                        gr.Markdown("### 输入问题和回答")
+                        gr.Markdown("### Question and Answer")
                         
                         # 预设问题选择
                         example_selector = gr.Dropdown(
-                            choices=[f"示例{i+1}: {conv['question']}" for i, conv in enumerate(EXAMPLE_CONVERSATIONS)],
-                            value=f"示例1: {EXAMPLE_CONVERSATIONS[0]['question']}",
-                            label="选择预设示例"
+                            choices=[f"Example {i+1}: {conv['question']}" for i, conv in enumerate(EXAMPLE_CONVERSATIONS)],
+                            value=f"Example 1: {EXAMPLE_CONVERSATIONS[0]['question']}",
+                            label="Preset Example"
                         )
                         
                         question_input = gr.Textbox(
                             value=EXAMPLE_CONVERSATIONS[0]['question'],
-                            label="问题",
+                            label="Question",
                             lines=2
                         )
                         
                         response_input = gr.Textbox(
                             value=EXAMPLE_CONVERSATIONS[0]['response_a'],
-                            label="回答",
+                            label="Answer",
                             lines=4
                         )
                         
@@ -331,28 +333,28 @@ def render():
                         criteria_selector = gr.Dropdown(
                             choices=[(info['name'], key) for key, info in JUDGE_PROMPTS.items()],
                             value='helpfulness',
-                            label="评分维度"
+                            label="Rubric"
                         )
                         
-                        judge_btn = gr.Button("开始评分", variant="primary")
+                        judge_btn = gr.Button("Score Answer", variant="primary")
                     
                     with gr.Column(scale=1):
-                        gr.Markdown("### 评分结果")
+                        gr.Markdown("### Score Result")
                         
                         score_display = gr.Number(
-                            label="总分 (满分10分)",
+                            label="Overall Score (0-10)",
                             value=0,
                             interactive=False
                         )
                         
                         reasoning_display = gr.Textbox(
-                            label="评分理由",
+                            label="Reasoning",
                             lines=3,
                             interactive=False
                         )
                         
                         # 评分细分雷达图
-                        breakdown_chart = gr.Plot(label="评分细分")
+                        breakdown_chart = gr.Plot(label="Scoring Breakdown")
                 
                 # 评分标准说明
                 criteria_info = gr.Markdown(
@@ -361,118 +363,118 @@ def render():
                 )
             
             # Tab 2: Pairwise 评分 
-            with gr.Tab("Pairwise 对比"):
+            with gr.Tab("Pairwise Comparison"):
                 with gr.Row():
                     with gr.Column(scale=2):
-                        gr.Markdown("### 输入问题和两个回答")
+                        gr.Markdown("### Question and Two Answers")
                         
                         # 预设问题选择
                         pair_example_selector = gr.Dropdown(
-                            choices=[f"示例{i+1}: {conv['question']}" for i, conv in enumerate(EXAMPLE_CONVERSATIONS)],
-                            value=f"示例1: {EXAMPLE_CONVERSATIONS[0]['question']}",
-                            label="选择预设示例"
+                            choices=[f"Example {i+1}: {conv['question']}" for i, conv in enumerate(EXAMPLE_CONVERSATIONS)],
+                            value=f"Example 1: {EXAMPLE_CONVERSATIONS[0]['question']}",
+                            label="Preset Example"
                         )
                         
                         pair_question_input = gr.Textbox(
                             value=EXAMPLE_CONVERSATIONS[0]['question'],
-                            label="问题",
+                            label="Question",
                             lines=2
                         )
                         
                         with gr.Row():
                             response_a_input = gr.Textbox(
                                 value=EXAMPLE_CONVERSATIONS[0]['response_a'],
-                                label="回答 A",
+                                label="Answer A",
                                 lines=4
                             )
                             
                             response_b_input = gr.Textbox(
                                 value=EXAMPLE_CONVERSATIONS[0]['response_b'],
-                                label="回答 B",
+                                label="Answer B",
                                 lines=4
                             )
                         
                         pair_criteria_selector = gr.Dropdown(
                             choices=[(info['name'], key) for key, info in JUDGE_PROMPTS.items()],
                             value='helpfulness',
-                            label="评分维度"
+                            label="Rubric"
                         )
                         
-                        pair_judge_btn = gr.Button("开始对比评分", variant="primary")
+                        pair_judge_btn = gr.Button("Compare Answers", variant="primary")
                     
                     with gr.Column(scale=1):
-                        gr.Markdown("### 对比结果")
+                        gr.Markdown("### Comparison Result")
                         
                         winner_display = gr.Textbox(
-                            label="获胜者",
+                            label="Winner",
                             interactive=False
                         )
                         
                         confidence_display = gr.Number(
-                            label="置信度",
+                            label="Confidence",
                             interactive=False
                         )
                         
                         pair_reasoning_display = gr.Textbox(
-                            label="对比理由",
+                            label="Reasoning",
                             lines=4,
                             interactive=False
                         )
                         
                         with gr.Row():
                             score_a_display = gr.Number(
-                                label="回答A评分",
+                                label="Answer A Score",
                                 interactive=False
                             )
                             score_b_display = gr.Number(
-                                label="回答B评分", 
+                                label="Answer B Score",
                                 interactive=False
                             )
             
             # Tab 3: 偏差分析
-            with gr.Tab("偏差分析"):
+            with gr.Tab("Bias Analysis"):
                 gr.Markdown("""
-                ### LLM Judge 常见偏差
+                ### Common LLM Judge Biases
                 
-                LLM作为评估器时会存在一些系统性偏差，了解这些偏差有助于设计更公平的评测流程。
+                LLM evaluators can show systematic biases. Understanding them helps design fairer evaluation workflows.
                 """)
                 
                 # 偏差演示图表
                 bias_chart = gr.Plot(
                     value=create_bias_demo_chart(),
-                    label="偏差演示"
+                    label="Bias Demo"
                 )
                 
                 gr.Markdown("""
-                ### 偏差类型说明
+                ### Bias Types
                 
-                **Position Bias (位置偏差)**
-                - LLM倾向于偏向第一个出现的回答
-                - 解决方案：随机化回答顺序，多轮评测
+                **Position Bias**
+                - The judge tends to prefer the answer shown first.
+                - Mitigation: randomize answer order and run multiple passes.
                 
-                **Verbosity Bias (冗长偏差)**  
-                - LLM倾向于给更长的回答打高分
-                - 解决方案：在评分标准中强调简洁性，设置长度归一化
+                **Verbosity Bias**
+                - The judge tends to reward longer answers.
+                - Mitigation: include concision in the rubric and normalize for length.
                 
-                **Self-Bias (自我偏差)**
-                - LLM倾向于偏好与自己风格相似的回答
-                - 解决方案：使用多个不同的judge模型
+                **Self-Bias**
+                - The judge tends to prefer answers similar to its own style.
+                - Mitigation: use multiple judge models.
                 
-                **Anchoring Bias (锚定偏差)**
-                - 评分会受到之前样本的影响
-                - 解决方案：随机化评测顺序，提供评分参考标准
+                **Anchoring Bias**
+                - Scores can be influenced by previous samples.
+                - Mitigation: randomize evaluation order and provide score anchors.
                 """)
         
         # 事件处理函数
         def update_pointwise_example(example_choice):
             """更新pointwise示例"""
-            idx = int(example_choice.split("示例")[1].split(":")[0]) - 1
+            idx = int(example_choice.split("Example ")[1].split(":")[0]) - 1
             conv = EXAMPLE_CONVERSATIONS[idx]
             return conv['question'], conv['response_a']
         
         def update_pairwise_example(example_choice):
             """更新pairwise示例"""
-            idx = int(example_choice.split("示例")[1].split(":")[0]) - 1
+            idx = int(example_choice.split("Example ")[1].split(":")[0]) - 1
             conv = EXAMPLE_CONVERSATIONS[idx]
             return conv['question'], conv['response_a'], conv['response_b']
         

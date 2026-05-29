@@ -405,93 +405,113 @@ def render():
     default_top_k = 10
     default_top_p = 0.9
 
-    # 模型选择
-    with gr.Row():
-        model_mode = gr.Radio(
-            label="Input Method",
-            choices=["Preset Model", "Custom Model"],
-            value="Preset Model"
-        )
+    gr.HTML("""
+    <div class="workbench-page-hero">
+      <h1>Logits Inspector</h1>
+      <p>Inspect next-token probabilities, temperature effects, and Top-K / Top-P sampling cutoffs.</p>
+    </div>
+    """)
 
-    with gr.Row():
-        preset_model = gr.Dropdown(
-            choices=list(DEMO_MODELS.keys()),
-            value=default_model,
-            label="Select Model"
-        )
+    with gr.Row(elem_classes=["workbench-tool-shell"]):
+        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
+            gr.HTML("""
+            <p class="workbench-panel-title">Generation Input</p>
+            <p class="workbench-panel-copy">Use the small preset model for quick inspection, or provide a custom model when needed.</p>
+            """)
 
-        custom_model = gr.Textbox(
-            label="Model Name or URL",
-            placeholder="e.g., openai-community/gpt2, meta-llama/Llama-2-7b-hf",
-            visible=False
-        )
-
-    hf_token = gr.Textbox(
-        label="HF Token (Optional)",
-        type="password",
-        placeholder="For private models",
-        visible=False
-    )
-
-    # Prompt 输入
-    prompt = gr.Textbox(
-        label="Input Prompt",
-        value=default_prompt,
-        lines=3,
-        placeholder="Enter text, model will predict the next token..."
-    )
-    
-    with gr.Tabs():
-        # Tab 1: Probability Distribution
-        with gr.Tab("Probability") as prob_tab:
-            with gr.Row():
-                top1_token = gr.Textbox(label="Top-1 Token", interactive=False)
-                top1_prob = gr.Textbox(label="Top-1 Probability", interactive=False)
-                top1_logit = gr.Textbox(label="Top-1 Logit", interactive=False)
-                top5_prob = gr.Textbox(label="Top-5 Cumulative", interactive=False)
-
-            prob_chart = gr.Plot(label="Probability Distribution")
-
-            with gr.Accordion("Detailed Data (Top-50)", open=False):
-                detail_df = gr.Dataframe(interactive=False)
-
-        # Tab 2: Temperature
-        with gr.Tab("Temperature") as temp_tab:
-            temperature = gr.Slider(
-                label="Temperature",
-                minimum=0.1,
-                maximum=3.0,
-                value=default_temp,
-                step=0.1
+            model_mode = gr.Radio(
+                label="Input Method",
+                choices=["Preset Model", "Custom Model"],
+                value="Preset Model"
             )
 
-            with gr.Row():
-                temp_chart1 = gr.Plot(label="Current Temperature Distribution")
-                temp_chart2 = gr.Plot(label="Original Distribution T=1.0")
+            preset_model = gr.Dropdown(
+                choices=list(DEMO_MODELS.keys()),
+                value=default_model,
+                label="Select Model"
+            )
 
-            temp_compare_chart = gr.Plot(label="Multi-Temperature Comparison")
+            custom_model = gr.Textbox(
+                label="Model Name or URL",
+                placeholder="e.g., openai-community/gpt2, meta-llama/Llama-2-7b-hf",
+                visible=False
+            )
 
-        # Tab 3: Top-K/Top-P
-        with gr.Tab("Top-K/Top-P") as sampling_tab:
-            with gr.Row():
-                top_k_slider = gr.Slider(
-                    label="Top-K",
-                    minimum=1,
-                    maximum=50,
-                    value=default_top_k,
-                    step=1
-                )
-                top_p_slider = gr.Slider(
-                    label="Top-P (Nucleus)",
-                    minimum=0.1,
-                    maximum=1.0,
-                    value=default_top_p,
-                    step=0.05
-                )
+            hf_token = gr.Textbox(
+                label="HF Token (Optional)",
+                type="password",
+                placeholder="For private models",
+                visible=False
+            )
 
-            sampling_summary = gr.Markdown("")
-            sampling_chart = gr.Plot(label="Sampling Cutoff")
-            cdf_chart = gr.Plot(label="CDF")
+            prompt = gr.Textbox(
+                label="Input Prompt",
+                value=default_prompt,
+                lines=5,
+                placeholder="Enter text, model will predict the next token..."
+            )
+
+        with gr.Column(scale=3, elem_classes=["workbench-output-panel"]):
+            with gr.Tabs():
+                # Tab 1: Probability Distribution
+                with gr.Tab("Probability") as prob_tab:
+                    with gr.Row(elem_classes=["metric-strip"]):
+                        top1_token = gr.Textbox(label="Top-1 Token", interactive=False)
+                        top1_prob = gr.Textbox(label="Top-1 Probability", interactive=False)
+                        top1_logit = gr.Textbox(label="Top-1 Logit", interactive=False)
+                        top5_prob = gr.Textbox(label="Top-5 Cumulative", interactive=False)
+
+                    with gr.Column(elem_classes=["plot-frame"]):
+                        prob_chart = gr.Plot(label="Probability Distribution")
+
+                    with gr.Accordion("Detailed Data (Top-50)", open=False):
+                        detail_df = gr.Dataframe(interactive=False)
+
+                # Tab 2: Temperature
+                with gr.Tab("Temperature") as temp_tab:
+                    temperature = gr.Slider(
+                        label="Temperature",
+                        minimum=0.1,
+                        maximum=3.0,
+                        value=default_temp,
+                        step=0.1
+                    )
+
+                    with gr.Row():
+                        with gr.Column(elem_classes=["plot-frame"]):
+                            temp_chart1 = gr.Plot(label="Current Temperature Distribution")
+                        with gr.Column(elem_classes=["plot-frame"]):
+                            temp_chart2 = gr.Plot(label="Original Distribution T=1.0")
+
+                    with gr.Column(elem_classes=["plot-frame"]):
+                        temp_compare_chart = gr.Plot(label="Multi-Temperature Comparison")
+
+                # Tab 3: Top-K/Top-P
+                with gr.Tab("Top-K/Top-P") as sampling_tab:
+                    with gr.Row():
+                        top_k_slider = gr.Slider(
+                            label="Top-K",
+                            minimum=1,
+                            maximum=50,
+                            value=default_top_k,
+                            step=1
+                        )
+                        top_p_slider = gr.Slider(
+                            label="Top-P (Nucleus)",
+                            minimum=0.1,
+                            maximum=1.0,
+                            value=default_top_p,
+                            step=0.05
+                        )
+
+                    with gr.Column(elem_classes=["workbench-detail-panel"]):
+                        sampling_summary = gr.Markdown("")
+
+                    with gr.Row():
+                        with gr.Column(elem_classes=["plot-frame"]):
+                            sampling_chart = gr.Plot(label="Sampling Cutoff")
+                        with gr.Column(elem_classes=["plot-frame"]):
+                            cdf_chart = gr.Plot(label="CDF")
 
     # Toggle函数：切换预设/自定义模型模式
     def toggle_model_mode(mode):
