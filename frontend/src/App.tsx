@@ -23,6 +23,16 @@ export default function App({ initialPayload }: AppProps) {
 
   useEffect(() => {
     if (initialPayload) {
+      const nextCategoryId = firstCategoryWithTools(
+        initialPayload.categories,
+        initialPayload.tools
+      );
+      const nextTool = toolsForCategory(initialPayload.tools, nextCategoryId)[0];
+      setPayload(initialPayload);
+      setSelectedCategoryId(nextCategoryId);
+      setSelectedToolId(nextTool?.id ?? "");
+      setLoading(false);
+      setError(null);
       return;
     }
 
