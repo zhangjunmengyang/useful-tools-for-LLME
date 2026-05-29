@@ -434,9 +434,10 @@ function buildExampleInput(tool?: ToolSpec): string {
 }
 
 function copyCurlCommand(toolId: string, jsonInput: string) {
+  const endpoint = new URL(`/api/tools/${toolId}/run`, window.location.origin).toString();
   const curl = [
     "curl -X POST",
-    shellQuote(`/api/tools/${toolId}/run`),
+    shellQuote(endpoint),
     "-H 'Content-Type: application/json'",
     `-d ${shellQuote(jsonInput)}`
   ].join(" ");

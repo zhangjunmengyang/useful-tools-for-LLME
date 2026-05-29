@@ -161,6 +161,23 @@ describe("App", () => {
     );
   });
 
+  it("copies an executable curl command for the current tool payload", async () => {
+    const writeText = vi.fn();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText }
+    });
+
+    render(<App initialPayload={payload} />);
+    fireEvent.click(screen.getByRole("button", { name: "Copy cURL" }));
+
+    expect(writeText).toHaveBeenCalledTimes(1);
+    const command = writeText.mock.calls[0][0] as string;
+    expect(command).toContain(`${window.location.origin}/api/tools/unicode_analyze/run`);
+    expect(command).toContain("-H 'Content-Type: application/json'");
+    expect(command).toContain("\"text\": \"Ａ café\"");
+  });
+
   it("runs the selected stateless tool and shows result JSON", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(
