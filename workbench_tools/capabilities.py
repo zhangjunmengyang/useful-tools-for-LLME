@@ -8,6 +8,7 @@ from .schemas import LabCapability
 
 PAGE_LABELS = {
     "toolbox_tool_runner": ("Tool Runner", "Toolbox"),
+    "embedding_semantic_similarity": ("Semantic Similarity", "EmbeddingLab"),
     "token_playground": ("Playground", "TokenLab"),
     "generation_logits": ("Logits Inspector", "GenerationLab"),
     "generation_kv_cache": ("KV Cache", "GenerationLab"),

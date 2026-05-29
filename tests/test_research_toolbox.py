@@ -107,9 +107,10 @@ class ResearchToolboxTest(unittest.TestCase):
             "kv_cache_estimate",
             "rag_chunk",
             "trace_analyze",
+            "vector_similarity",
         }
         self.assertTrue(expected.issubset(tool_ids))
-        self.assertGreaterEqual(len(tool_ids), 16)
+        self.assertGreaterEqual(len(tool_ids), 17)
 
     def test_non_model_tools_are_callable_without_gradio(self):
         from workbench_tools.registry import get_registry
@@ -168,6 +169,13 @@ class ResearchToolboxTest(unittest.TestCase):
                 "text_fields": ["instruction", "output"],
             },
         )
+        vectors = get_registry().run(
+            "vector_similarity",
+            {
+                "vectors": [[1, 0, 0], [0.9, 0.1, 0], [0, 1, 0]],
+                "labels": ["query", "near", "far"],
+            },
+        )
 
         self.assertEqual(sampling.status, "success")
         self.assertEqual(len(sampling.result["distribution"]), 3)
@@ -179,6 +187,8 @@ class ResearchToolboxTest(unittest.TestCase):
         self.assertIn("GELU", ffn.result["activations"])
         self.assertEqual(retrieval.result["results"][0]["document_index"], 0)
         self.assertEqual(quality.result["duplicate_count"], 1)
+        self.assertEqual(vectors.result["nearest_pair"]["left"], "query")
+        self.assertEqual(vectors.result["nearest_pair"]["right"], "near")
         json.dumps(sampling.to_dict(), allow_nan=False)
 
     def test_artifact_export_writes_markdown_and_json_inside_output_dir(self):

@@ -18,6 +18,8 @@ app = FastAPI(
     version="0.1.0",
 )
 
+DEFAULT_ARTIFACT_ROOT = Path("research")
+
 
 def _registry():
     """返回工具注册表。"""
@@ -42,6 +44,12 @@ def _request_body_error(tool_id: str) -> dict[str, Any]:
         error="Request body must be a JSON object",
     )
     return _run_payload(run)
+
+
+def _artifact_root() -> Path:
+    """返回 HTTP API 允许写入的 artifact 根目录。"""
+    configured_root = getattr(app.state, "artifact_root", DEFAULT_ARTIFACT_ROOT)
+    return Path(configured_root).expanduser().resolve()
 
 
 async def _read_json_object(request: Request) -> dict[str, Any] | None:
@@ -111,6 +119,5 @@ async def export_tool(tool_id: str, request: Request) -> dict[str, Any]:
     inputs = body.get("inputs", {})
     if not isinstance(inputs, dict):
         return _request_body_error(tool_id)
-    output_dir = Path(str(body.get("output_dir", "research")))
-    run = _registry().run(tool_id, inputs, export=True, output_dir=output_dir)
+    run = _registry().run(tool_id, inputs, export=True, output_dir=_artifact_root())
     return _run_payload(run, include_artifact=True)

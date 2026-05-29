@@ -16,6 +16,14 @@ class WorkbenchApiTest(unittest.TestCase):
 
     def setUp(self):
         self.client = TestClient(app)
+        self.previous_artifact_root = getattr(app.state, "artifact_root", None)
+
+    def tearDown(self):
+        if self.previous_artifact_root is None:
+            if hasattr(app.state, "artifact_root"):
+                delattr(app.state, "artifact_root")
+        else:
+            app.state.artifact_root = self.previous_artifact_root
 
     def test_health_endpoint(self):
         response = self.client.get("/api/health")
@@ -116,12 +124,16 @@ class WorkbenchApiTest(unittest.TestCase):
 
     def test_export_endpoint_writes_artifact_only_when_requested(self):
         with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            app.state.artifact_root = tmp_path / "api_artifacts"
+            ignored_output_dir = tmp_path / "ignored"
+
             run_response = self.client.post(
                 "/api/tools/eval_metrics/run",
                 json={
                     "predictions": ["Paris"],
                     "references": ["Paris"],
-                    "output_dir": tmp,
+                    "output_dir": str(ignored_output_dir),
                 },
             )
 
@@ -129,13 +141,13 @@ class WorkbenchApiTest(unittest.TestCase):
             run_payload = run_response.json()
             self.assertEqual(run_payload["status"], "success")
             self.assertNotIn("artifact", run_payload)
-            self.assertEqual(list(Path(tmp).iterdir()), [])
+            self.assertFalse(ignored_output_dir.exists())
 
             response = self.client.post(
                 "/api/tools/eval_metrics/export",
                 json={
                     "inputs": {"predictions": ["Paris"], "references": ["Paris"]},
-                    "output_dir": tmp,
+                    "output_dir": str(ignored_output_dir),
                 },
             )
 
@@ -143,8 +155,13 @@ class WorkbenchApiTest(unittest.TestCase):
             payload = response.json()
             self.assertEqual(payload["status"], "success")
             self.assertIn("artifact", payload)
-            self.assertTrue(Path(payload["artifact"]["json_path"]).is_file())
-            self.assertTrue(Path(payload["artifact"]["markdown_path"]).is_file())
+            json_path = Path(payload["artifact"]["json_path"])
+            markdown_path = Path(payload["artifact"]["markdown_path"])
+            self.assertTrue(json_path.is_file())
+            self.assertTrue(markdown_path.is_file())
+            self.assertTrue(json_path.resolve().is_relative_to(app.state.artifact_root.resolve()))
+            self.assertTrue(markdown_path.resolve().is_relative_to(app.state.artifact_root.resolve()))
+            self.assertFalse(ignored_output_dir.exists())
 
     def test_unknown_tool_returns_404(self):
         response = self.client.post("/api/tools/not_real/run", json={})

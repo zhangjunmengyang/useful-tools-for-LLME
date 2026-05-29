@@ -303,6 +303,22 @@ textarea:focus {
   cursor: not-allowed;
 }
 
+.copy-button {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #111827;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  border-color: #111827;
+}
+
 .endpoint {
   margin-bottom: 0;
   border: 1px solid #d1d5db;

@@ -139,6 +139,8 @@ describe("App", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText(/model_name/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/token_count/)).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Copy cURL" })).toBeInTheDocument();
+    expect(screen.getByText("Current Payload")).toBeInTheDocument();
   });
 
   it("loads runnable example JSON for the selected tool", async () => {
@@ -185,6 +187,31 @@ describe("App", () => {
       expect(screen.getByText(/"char_count": 6/)).toBeInTheDocument()
     );
     fetchMock.mockRestore();
+  });
+
+  it("shows tool-level API errors returned with HTTP 200", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          tool_id: "unicode_analyze",
+          status: "error",
+          inputs: {},
+          result: {},
+          duration_ms: 1,
+          error: "$.text is required",
+          started_at: "2026-05-29T00:00:00+00:00"
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+
+    render(<App initialPayload={payload} />);
+    fireEvent.click(screen.getByRole("button", { name: "Run Tool" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("$.text is required")).toBeInTheDocument()
+    );
+    expect(screen.queryByText(/"char_count": 6/)).not.toBeInTheDocument();
   });
 
   it("shows invalid JSON errors without calling fetch", async () => {

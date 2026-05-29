@@ -39,6 +39,17 @@ class MechanicsTaxonomyTest(unittest.TestCase):
                 self.assertIsInstance(spec.mechanics_stage, int)
                 self.assertGreaterEqual(spec.mechanics_stage, 1)
 
+    def test_every_pipeline_category_has_a_registered_tool(self):
+        category_ids = {category["id"] for category in MECHANICS_CATEGORIES}
+        counts_by_category = {category_id: 0 for category_id in category_ids}
+        for spec in get_registry().list_specs():
+            counts_by_category[spec.mechanics_category] += 1
+
+        self.assertEqual(
+            {category_id for category_id, count in counts_by_category.items() if count == 0},
+            set(),
+        )
+
     def test_enriched_tool_spec_includes_category_details(self):
         spec = get_registry().get_spec("dataset_quality_check")
         payload = enrich_tool_spec(spec)

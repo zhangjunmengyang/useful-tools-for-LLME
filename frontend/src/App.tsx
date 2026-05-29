@@ -124,6 +124,14 @@ const TOOL_INPUT_EXAMPLES: Record<string, Record<string, unknown>> = {
   },
   unicode_analyze: {
     text: "Ａ café"
+  },
+  vector_similarity: {
+    vectors: [
+      [1, 0, 0],
+      [0.9, 0.1, 0],
+      [0, 1, 0]
+    ],
+    labels: ["query", "near", "far"]
   }
 };
 
@@ -272,7 +280,12 @@ export default function App({ initialPayload }: AppProps) {
       const inputs = JSON.parse(jsonInput) as Record<string, unknown>;
       const nextResult = await runTool(toolId, inputs);
       if (isActiveRun()) {
-        setRunResult(nextResult);
+        if (nextResult.status === "error") {
+          setRunError(nextResult.error ?? "Tool returned an error");
+          setRunResult(null);
+        } else {
+          setRunResult(nextResult);
+        }
       }
     } catch (toolError: unknown) {
       if (isActiveRun()) {
@@ -386,6 +399,14 @@ export default function App({ initialPayload }: AppProps) {
                 <p className="endpoint">
                   POST /api/tools/{selectedTool.id}/run
                 </p>
+                <button
+                  className="copy-button"
+                  onClick={() => copyCurlCommand(selectedTool.id, jsonInput)}
+                  type="button"
+                >
+                  Copy cURL
+                </button>
+                <CodeBlock label="Current Payload" value={jsonInput} />
                 <SchemaBlock
                   label="Request Schema"
                   value={selectedTool.input_schema}
@@ -410,6 +431,20 @@ function buildExampleInput(tool?: ToolSpec): string {
     return "{}";
   }
   return formatJson(TOOL_INPUT_EXAMPLES[tool.id] ?? buildSchemaExample(tool));
+}
+
+function copyCurlCommand(toolId: string, jsonInput: string) {
+  const curl = [
+    "curl -X POST",
+    shellQuote(`/api/tools/${toolId}/run`),
+    "-H 'Content-Type: application/json'",
+    `-d ${shellQuote(jsonInput)}`
+  ].join(" ");
+  void navigator.clipboard?.writeText(curl);
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, "'\\''")}'`;
 }
 
 function buildSchemaExample(tool: ToolSpec): Record<string, unknown> {
@@ -500,6 +535,15 @@ function SchemaBlock({
     <section className="schema-block">
       <h3>{label}</h3>
       <pre>{formatJson(value)}</pre>
+    </section>
+  );
+}
+
+function CodeBlock({ label, value }: { label: string; value: string }) {
+  return (
+    <section className="schema-block">
+      <h3>{label}</h3>
+      <pre>{value}</pre>
     </section>
   );
 }

@@ -131,6 +131,72 @@ def run_sampling_distribution(inputs: dict[str, Any]) -> dict[str, Any]:
     return make_json_safe({"distribution": distribution})
 
 
+def run_vector_similarity(inputs: dict[str, Any]) -> dict[str, Any]:
+    """计算显式向量之间的余弦相似度矩阵。"""
+    import numpy as np
+    from embedding_lab.embedding_utils import cosine_similarity
+
+    raw_vectors = inputs["vectors"]
+    if not isinstance(raw_vectors, list) or len(raw_vectors) < 2:
+        raise ValueError("`vectors` must contain at least two vectors")
+
+    vectors: list[list[float]] = []
+    dimension = None
+    for raw_vector in raw_vectors:
+        if not isinstance(raw_vector, list) or not raw_vector:
+            raise ValueError("Each vector must be a non-empty list of numbers")
+        vector = []
+        for value in raw_vector:
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ValueError("Each vector must contain only numbers")
+            vector.append(float(value))
+        if dimension is None:
+            dimension = len(vector)
+        elif len(vector) != dimension:
+            raise ValueError("All vectors must have the same dimension")
+        vectors.append(vector)
+
+    raw_labels = inputs.get("labels")
+    if raw_labels is None:
+        labels = [f"vector_{index}" for index in range(len(vectors))]
+    elif isinstance(raw_labels, list) and all(isinstance(label, str) for label in raw_labels):
+        if len(raw_labels) != len(vectors):
+            raise ValueError("`labels` must have the same length as `vectors`")
+        labels = raw_labels
+    else:
+        raise ValueError("`labels` must be a list of strings")
+
+    vector_array = [np.array(vector, dtype=np.float32) for vector in vectors]
+    matrix = []
+    pairs = []
+    for left_index, left_vector in enumerate(vector_array):
+        row = []
+        for right_index, right_vector in enumerate(vector_array):
+            score = cosine_similarity(left_vector, right_vector)
+            row.append(score)
+            if left_index < right_index:
+                pairs.append(
+                    {
+                        "left": labels[left_index],
+                        "right": labels[right_index],
+                        "similarity": score,
+                    }
+                )
+        matrix.append(row)
+    pairs.sort(key=lambda pair: pair["similarity"], reverse=True)
+
+    return make_json_safe(
+        {
+            "labels": labels,
+            "vector_count": len(vectors),
+            "dimension": dimension,
+            "similarity_matrix": matrix,
+            "pairs": pairs,
+            "nearest_pair": pairs[0] if pairs else None,
+        }
+    )
+
+
 def run_kv_cache_growth(inputs: dict[str, Any]) -> dict[str, Any]:
     """模拟 prefill/decode 过程中的 KV Cache 增长曲线。"""
     from generation_lab.generation_utils import simulate_kv_cache_growth
@@ -603,6 +669,33 @@ BUILTIN_TOOLS: list[tuple[ToolSpec, ToolHandler]] = [
             output_schema={"type": "object"},
         ),
         run_sampling_distribution,
+    ),
+    (
+        ToolSpec(
+            id="vector_similarity",
+            label="Vector Similarity",
+            description="Compute a transparent cosine-similarity matrix for explicit vectors.",
+            lab="EmbeddingLab",
+            page_id="embedding_semantic_similarity",
+            concepts=["embedding", "similarity", "vector-space"],
+            requires_model_download=False,
+            dependencies=["numpy"],
+            mechanics_category="representation_space",
+            mechanics_stage=1,
+            input_schema={
+                "type": "object",
+                "required": ["vectors"],
+                "properties": {
+                    "vectors": {
+                        "type": "array",
+                        "items": {"type": "array", "items": {"type": "number"}},
+                    },
+                    "labels": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+            output_schema={"type": "object"},
+        ),
+        run_vector_similarity,
     ),
     (
         ToolSpec(

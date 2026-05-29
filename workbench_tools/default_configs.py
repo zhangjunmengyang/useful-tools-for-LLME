@@ -104,4 +104,8 @@ DEFAULT_CONFIGS: dict[str, dict[str, Any]] = {
     "unicode_analyze": {
         "text": "Ａ café",
     },
+    "vector_similarity": {
+        "vectors": [[1, 0, 0], [0.9, 0.1, 0], [0, 1, 0]],
+        "labels": ["query", "near", "far"],
+    },
 }
