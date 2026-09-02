@@ -464,6 +464,8 @@ def create_app():
     with gr.Blocks(
         title="LLM Tools Workbench",
         analytics_enabled=False,
+        theme=CUSTOM_THEME,
+        css=CUSTOM_CSS,
     ) as app:
         gr.HTML(render_app_header())
 
@@ -476,6 +478,7 @@ def create_app():
                         choices=groups,
                         value=default_group,
                         interactive=True,
+                        show_label=False,
                         elem_classes=["workbench-group-selector"],
                     )
                     tool_selector = gr.Dropdown(
@@ -484,6 +487,7 @@ def create_app():
                         value=default_page_id,
                         filterable=True,
                         interactive=True,
+                        show_label=False,
                         elem_classes=["workbench-tool-selector"],
                     )
 
@@ -535,6 +539,24 @@ def create_app():
             tool_selector.change(
                 fn=update_tool,
                 inputs=[tool_selector],
+                outputs=[group_selector, tool_selector, page_tabs],
+            )
+
+            page_ids = {page["id"] for page in pages}
+
+            def apply_query_page(request: gr.Request) -> tuple[Any, Any, Any]:
+                """Open a lab from ?lab= so the learn shell can deep-link charts."""
+                page_id = default_page_id
+                try:
+                    raw = request.query_params.get("lab")
+                except Exception:
+                    raw = None
+                if raw in page_ids:
+                    page_id = raw
+                return update_tool(page_id)
+
+            app.load(
+                fn=apply_query_page,
                 outputs=[group_selector, tool_selector, page_tabs],
             )
 

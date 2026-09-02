@@ -142,7 +142,7 @@ footer {
 .workbench-header {
     border-bottom: 1px solid var(--od-border);
     background: rgba(255, 255, 255, 0.96);
-    padding: 12px 24px;
+    padding: 10px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -207,9 +207,10 @@ footer {
 }
 
 .workbench-app-layout {
+    gap: 8px !important;
     max-width: 1280px !important;
     margin: 0 auto !important;
-    padding: 14px 24px 32px !important;
+    padding: 8px 24px 32px !important;
 }
 
 .workbench-main-surface {
@@ -223,22 +224,27 @@ footer {
 }
 
 .workbench-command-surface {
-    background: var(--od-bg) !important;
-    border: 1px solid var(--od-border) !important;
-    border-radius: var(--od-radius-md) !important;
+    align-items: center !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--od-border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     display: grid !important;
-    gap: 10px !important;
-    margin-bottom: 16px !important;
-    padding: 12px !important;
+    gap: 14px !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    margin-bottom: 0 !important;
+    padding: 0 0 8px !important;
 }
 
 .workbench-command-header {
     align-items: center;
-    border-bottom: 1px solid var(--od-border);
-    display: grid;
-    gap: 12px;
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding-bottom: 10px;
+    border: 0;
+    display: inline-flex;
+    gap: 8px;
+    min-height: 38px;
+    min-width: 112px;
+    padding: 0;
 }
 
 .workbench-command-title {
@@ -256,16 +262,21 @@ footer {
     margin: 3px 0 0;
 }
 
+.workbench-command-count,
 .workbench-command-meta {
     align-items: center;
+    color: var(--od-meta);
     display: flex;
     flex-wrap: wrap;
+    font-size: 12px;
+    font-weight: 500;
     gap: 6px;
     justify-content: flex-end;
+    line-height: 1;
 }
 
 .workbench-launcher-controls {
-    align-items: end !important;
+    align-items: center !important;
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
@@ -276,13 +287,13 @@ footer {
 }
 
 .workbench-command-surface .workbench-launcher-controls > .form {
-    align-items: end !important;
+    align-items: center !important;
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
     display: grid !important;
     gap: 10px !important;
-    grid-template-columns: minmax(180px, 0.42fr) minmax(320px, 1fr) !important;
+    grid-template-columns: minmax(160px, 0.36fr) minmax(280px, 1fr) !important;
     padding: 0 !important;
     width: 100% !important;
 }
@@ -351,6 +362,155 @@ footer {
     gap: 12px !important;
     grid-template-columns: minmax(240px, var(--od-nav-width)) minmax(0, 1fr) !important;
     margin-top: 10px !important;
+}
+
+.workbench-tool-runner {
+    min-width: 0 !important;
+}
+
+.workbench-tool-runner-toolbar {
+    background: var(--od-bg) !important;
+    border: 1px solid var(--od-border-soft) !important;
+    border-radius: var(--od-radius-md) !important;
+    box-shadow: none !important;
+    margin-bottom: 12px !important;
+    padding: 12px !important;
+}
+
+.tool-runner-toolbar-row {
+    align-items: end !important;
+    display: grid !important;
+    gap: 10px !important;
+    grid-template-columns: minmax(160px, 0.32fr) minmax(160px, 0.32fr) minmax(320px, 1fr) !important;
+}
+
+.tool-runner-toolbar-row > .form {
+    display: contents !important;
+}
+
+.workbench-tool-runner-grid.workbench-tool-shell {
+    grid-template-columns: minmax(340px, 420px) minmax(0, 1fr) !important;
+    margin-top: 0 !important;
+}
+
+.tool-runner-config-panel,
+.tool-runner-results-panel {
+    padding: 16px !important;
+}
+
+.tool-runner-config-panel {
+    position: sticky !important;
+    top: 16px !important;
+}
+
+.tool-runner-config-panel .markdown h3,
+.tool-runner-results-panel .markdown h3 {
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+    margin: 0 0 6px !important;
+}
+
+.tool-runner-config-panel .markdown p {
+    color: var(--od-muted) !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    margin: 0 0 10px !important;
+}
+
+.tool-runner-run-button,
+.tool-runner-run-button button {
+    min-height: 42px !important;
+    width: 100% !important;
+}
+
+.tool-runner-overview {
+    border-bottom: 1px solid var(--od-border-soft);
+    display: grid;
+    gap: 14px;
+    margin-bottom: 12px;
+    padding-bottom: 14px;
+}
+
+.tool-runner-eyebrow {
+    color: var(--od-meta);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    margin: 0 0 7px;
+    text-transform: uppercase;
+}
+
+.tool-runner-overview h2 {
+    color: var(--od-fg);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.tool-runner-overview p {
+    color: var(--od-muted);
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 7px 0 0;
+    max-width: 76ch;
+}
+
+.tool-runner-meta-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tool-runner-meta-grid > div {
+    background: var(--od-surface);
+    border: 1px solid var(--od-border-soft);
+    border-radius: var(--od-radius-md);
+    min-width: 0;
+    padding: 10px;
+}
+
+.tool-runner-meta-grid span {
+    color: var(--od-meta);
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.tool-runner-meta-grid strong,
+.tool-runner-meta-grid code {
+    color: var(--od-fg);
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tool-runner-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tool-runner-chip {
+    background: var(--od-bg);
+    border: 1px solid var(--od-border);
+    border-radius: var(--od-radius-pill);
+    color: var(--od-muted);
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 5px 9px;
+}
+
+.tool-runner-result-tabs {
+    margin-top: 4px !important;
 }
 
 .workbench-page-switcher > .tabitem .tab-wrapper {
@@ -896,18 +1056,19 @@ table td,
     }
 
     .workbench-app-layout {
-        padding: 12px !important;
+        padding: 8px 12px 24px !important;
     }
 
     .workbench-command-surface {
-        gap: 12px !important;
-        padding: 12px !important;
+        gap: 8px !important;
+        grid-template-columns: 1fr !important;
+        margin-bottom: 0 !important;
+        padding: 0 0 10px !important;
     }
 
     .workbench-command-header {
-        align-items: start;
-        display: flex;
-        flex-direction: column;
+        min-height: 0;
+        min-width: 0;
     }
 
     .workbench-launcher-controls {
@@ -933,8 +1094,32 @@ table td,
         gap: 10px !important;
     }
 
+    .workbench-tool-runner-grid.workbench-tool-shell {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .workbench-tool-runner-grid > .column {
+        flex: 0 0 auto !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .tool-runner-toolbar-row {
+        grid-template-columns: 1fr !important;
+    }
+
     .workbench-control-panel {
         position: static !important;
+    }
+
+    .tool-runner-config-panel {
+        position: static !important;
+    }
+
+    .tool-runner-meta-grid {
+        grid-template-columns: 1fr !important;
     }
 
     .metric-strip {
@@ -1010,14 +1195,8 @@ def render_command_header(pages: list[dict[str, str]]) -> str:
 
     return f"""
     <section class="workbench-command-header" aria-label="Workbench command header">
-      <div>
-        <h2 class="workbench-command-title">Open a Work Surface</h2>
-        <p class="workbench-command-copy">Pick a task area, then choose one focused tool. No summary card stack, no long tool rail.</p>
-      </div>
-      <div class="workbench-command-meta">
-        <span class="workbench-pill">{escape(str(tool_count))} tools</span>
-        <span class="workbench-pill">Vercel / Linear density</span>
-      </div>
+      <h2 class="workbench-command-title">Workbench</h2>
+      <span class="workbench-command-count">{escape(str(tool_count))} tools</span>
     </section>
     """
 

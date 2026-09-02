@@ -404,6 +404,24 @@ class ResearchToolboxTest(unittest.TestCase):
         self.assertIn("Lab Filter", source)
         self.assertIn("Tool Catalog", source)
 
+    def test_tool_runner_uses_command_first_layout(self):
+        page_source = (ROOT / "toolbox_lab" / "tool_runner.py").read_text(encoding="utf-8")
+        theme_source = (ROOT / "workbench_theme.py").read_text(encoding="utf-8")
+
+        self.assertIn("workbench-tool-runner-toolbar", page_source)
+        self.assertIn("workbench-tool-runner-grid", page_source)
+        self.assertIn("tool-runner-config-panel", page_source)
+        self.assertIn("tool-runner-results-panel", page_source)
+        self.assertIn("gr.HTML(value=details)", page_source)
+        self.assertIn('gr.Accordion("Implementation Details"', page_source)
+        self.assertIn('gr.Accordion("Tool Catalog", open=False)', page_source)
+
+        self.assertIn(".workbench-tool-runner-grid.workbench-tool-shell", theme_source)
+        self.assertIn("minmax(340px, 420px) minmax(0, 1fr)", theme_source)
+        self.assertIn(".tool-runner-toolbar-row", theme_source)
+        self.assertIn(".workbench-tool-runner-grid > .column", theme_source)
+        self.assertIn("flex: 0 0 auto !important", theme_source)
+
 
 if __name__ == "__main__":
     unittest.main()

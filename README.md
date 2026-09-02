@@ -1,34 +1,66 @@
-# LLM Tools Workbench
+# 学习台
 
-一站式 LLM 可视化工具集，面向 LLM 工程师的底层机制探索与调试平台。
+一个多主题教程站。左侧切换主题，和量化深耕里换市场是同一类操作：换主题后，目录、课文和可玩的东西一起换。
 
-包含 **TokenLab** (分词实验室)、**EmbeddingLab** (向量分析工作台)、**GenerationLab** (生成机制探索)、**InterpretabilityLab** (可解释性分析)、**DataLab** (数据工程实验室)、**ModelLab** (模型工具箱)、**RAGLab** (RAG 调试器) 和 **FineTuneLab** (微调工具箱)。
+当前四个主题：
 
-## Quick Start
+| 主题 | 从哪读正文 | 能做什么 |
+|---|---|---|
+| Omni | 旁边的 `learn-omni/learn-omni` | 读 / 学；玩是课里的实验段 |
+| 世界模型 | `learn-omni/learn-wm` 或 `learn-wm` | 读 / 学；玩是课里的实验段 |
+| 持续学习 | `learn-omni/learn-cl` 或 `learn-cl` | 读 / 学；玩是课里的实验段 |
+| LLM | 本仓库 `content/llm` | 读 / 学；玩是嵌在课里的 `/api/tools` 组件 |
 
-开发模式一键启动 API 和 React 工作台：
+Omni、世界模型、持续学习的课文仍放在原仓库，这里只读进来。LLM 是新写的短主线，不把 notebook 目录当成大纲。
+
+## 怎么跑
 
 ```bash
-# Install Python dependencies
 pip install -r requirements.txt
-
-# Install frontend dependencies
 cd frontend && npm install && cd ..
-
-# Start API and Vite dev server
 python scripts/dev_workbench.py
 ```
 
-Open `http://127.0.0.1:5173`.
+打开 `http://127.0.0.1:8765`（前端）。API 在 `http://127.0.0.1:8766`。这两个端口远离 5173 和 8000 / 8001。默认进 Omni。左上角切换主题。课文顶上三个按钮：读、学、玩。侧栏还有工具台和实验室，旧工作台的工具和图表都在那里。
+
+只开 API：
+
+```bash
+python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8766
+```
+
+前端开发服务器会把 `/api` 和 `/labs` 转到 8766。
+
+打包后单端口：
+
+```bash
+cd frontend && npm run build && cd ..
+python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8766
+```
+
+打开 `http://127.0.0.1:8766`。
+
+## 怎么加一个主题
+
+1. 在 `content/topics.json` 加一项。`kind` 是 `sibling_markdown`（读旁边仓库的 `web/content/lessons`）或 `local_markdown`（读本仓库一个目录）。
+2. 本地课要有 `content/<id>/course.json` 和 `content/<id>/lessons/*.md`。课文开头可用 YAML：`id`、`title`、`unit`、`play_tools`、`checkpoints`。
+3. 旁边仓库的课靠 `web/lib/course-data.ts` 取幕和标题，靠 markdown 正文做读 / 学 / 玩。
+4. 重启 API。切换器按 `topics.json` 的顺序显示。
+
+不要把 mem-learn 门户加成第五门课。它只是旧的选题页。
+
+## 工具 API
+
+原来的 FastAPI 工具还在。LLM 的「玩」直接打这些接口。
 
 生产式本地预览只暴露 FastAPI 一个端口：
 
 ```bash
 cd frontend && npm run build && cd ..
-python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8001
+python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8766
 ```
 
-Open `http://127.0.0.1:8001`.
+Open `http://127.0.0.1:8766`.
 
 ## Mechanics Explorer
 
@@ -38,7 +70,7 @@ Artifact export writes under `research/` by default. Override it for agent toolk
 
 ```bash
 WORKBENCH_ARTIFACT_ROOT=/tmp/llm-workbench-artifacts \
-  python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8001
+  python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8766
 ```
 
 Core API:
@@ -46,6 +78,10 @@ Core API:
 | Endpoint | 用途 |
 |---|---|
 | `GET /api/health` | 健康检查 |
+| `GET /api/learn/topics` | 四个主题 |
+| `GET /api/learn/topics/{id}` | 主题大纲 |
+| `GET /api/learn/topics/{id}/lessons/{lesson}` | 一课的读 / 学 / 玩 |
+| `GET /api/labs` | Gradio 实验室目录（29 页图表） |
 | `GET /api/tools` | 获取 Mechanics 分类和工具清单 |
 | `GET /api/tools/{tool_id}` | 获取单个工具定义 |
 | `POST /api/tools/{tool_id}/run` | 执行工具并返回无状态结果 |
@@ -56,8 +92,8 @@ Mechanics Explorer 目前按七条工作路径组织：Input & Tokens、Represen
 Useful API calls:
 
 ```bash
-curl -sS http://127.0.0.1:8001/api/tools | python -m json.tool
-curl -sS -X POST http://127.0.0.1:8001/api/tools/unicode_analyze/run \
+curl -sS http://127.0.0.1:8766/api/tools | python -m json.tool
+curl -sS -X POST http://127.0.0.1:8766/api/tools/unicode_analyze/run \
   -H 'Content-Type: application/json' \
   -d '{"text":"Ａ café"}' | python -m json.tool
 ```
@@ -77,6 +113,8 @@ Open `http://localhost:7860`.
 ## 项目结构
 
 ```
+├── content/                   # 主题注册 + LLM 课文
+├── learn_platform/            # 主题目录和读课接口
 ├── app_gradio.py              # Gradio 应用入口
 ├── token_lab/                 # TokenLab 模块
 │   ├── tokenizer_utils.py     # Tokenizer 核心工具

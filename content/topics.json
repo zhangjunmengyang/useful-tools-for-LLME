@@ -1,0 +1,60 @@
+{
+  "topics": [
+    {
+      "id": "omni",
+      "title": "Omni",
+      "title_en": "Omni",
+      "short": "Omni",
+      "short_en": "Omni",
+      "blurb": "从 MiniMind-O 到现代全模态系统：文本、语音、图像和动作怎么接在同一条链路上。",
+      "blurb_en": "From MiniMind-O to modern omni systems: how text, speech, images, and actions share one stack.",
+      "kind": "sibling_markdown",
+      "project_roots": ["learn-omni/learn-omni", "learn-omni"],
+      "lessons_dir": "web/content/lessons",
+      "meta_file": "web/lib/course-data.ts",
+      "original_base": "http://127.0.0.1:3000",
+      "original_course_prefix": "/course"
+    },
+    {
+      "id": "wm",
+      "title": "世界模型",
+      "title_en": "World Models",
+      "short": "世界模型",
+      "short_en": "World Models",
+      "blurb": "从 2018 年 World Models 复现，走到潜空间、生成式、JEPA 和具身桌宠。",
+      "blurb_en": "From the 2018 World Models reproduction through latent spaces, generative models, JEPA, and an embodied desktop pet.",
+      "kind": "sibling_markdown",
+      "project_roots": ["learn-omni/learn-wm", "learn-wm"],
+      "lessons_dir": "web/content/lessons",
+      "meta_file": "web/lib/course-data.ts",
+      "original_base": "http://127.0.0.1:3001",
+      "original_course_prefix": "/course"
+    },
+    {
+      "id": "cl",
+      "title": "持续学习",
+      "title_en": "Continual Learning",
+      "short": "持续学习",
+      "short_en": "Continual Learning",
+      "blurb": "灾难性遗忘怎么量、四类补丁怎么补，以及大模型接龙和在岗学习。",
+      "blurb_en": "How to measure catastrophic forgetting, four families of fixes, and what changes when the model is already large.",
+      "kind": "sibling_markdown",
+      "project_roots": ["learn-omni/learn-cl", "learn-cl"],
+      "lessons_dir": "web/content/lessons",
+      "meta_file": "web/lib/course-data.ts",
+      "original_base": "http://127.0.0.1:3002",
+      "original_course_prefix": "/course"
+    },
+    {
+      "id": "llm",
+      "title": "LLM",
+      "title_en": "LLM",
+      "short": "LLM",
+      "short_en": "LLM",
+      "blurb": "分词、位置、采样、KV Cache 和 LoRA。课里直接跑现成工具，不把笔记本当大纲。",
+      "blurb_en": "Tokens, position, sampling, KV cache, and LoRA. Tools run inside the lesson; notebooks stay extras.",
+      "kind": "local_markdown",
+      "root": "content/llm"
+    }
+  ]
+}

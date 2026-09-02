@@ -5,20 +5,25 @@ from __future__ import annotations
 from json import JSONDecodeError
 import os
 from pathlib import Path
+import sys
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 
+from learn_platform.labs import list_lab_pages
+from learn_platform.routes import router as learn_router
 from workbench_tools.mechanics import MECHANICS_CATEGORIES, enrich_tool_spec
 from workbench_tools.registry import get_registry
 from workbench_tools.schemas import ToolRun
 
 
 app = FastAPI(
-    title="LLM Tools Workbench API",
-    version="0.1.0",
+    title="Learn Platform API",
+    version="0.2.0",
 )
+app.include_router(learn_router)
+_LABS_MOUNTED = False
 
 DEFAULT_ARTIFACT_ROOT = Path("research")
 DEFAULT_FRONTEND_DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
@@ -140,24 +145,61 @@ async def export_tool(tool_id: str, request: Request) -> dict[str, Any]:
     return _run_payload(run, include_artifact=True)
 
 
-@app.get("/")
-@app.get("/{full_path:path}")
-def serve_frontend(full_path: str = ""):
-    """托管构建后的 React 工作台，并支持前端深链。"""
-    if full_path.startswith("api/"):
-        raise HTTPException(status_code=404, detail="Not Found")
+@app.get("/api/labs")
+def list_labs() -> dict[str, Any]:
+    """返回全部 Gradio 实验室页面，供新壳挂入口。"""
+    return list_lab_pages(labs_mounted=_LABS_MOUNTED)
 
-    dist_root = _frontend_dist()
-    index_path = dist_root / "index.html"
-    if not index_path.is_file():
-        raise HTTPException(
-            status_code=404,
-            detail="Frontend build not found. Run `cd frontend && npm run build`.",
-        )
 
-    if full_path:
-        candidate = (dist_root / full_path).resolve()
-        if candidate.is_file() and candidate.is_relative_to(dist_root):
-            return FileResponse(candidate)
+def _should_mount_labs() -> bool:
+    """测试进程不挂 Gradio，避免拖慢 /api 用例。"""
+    if os.environ.get("WORKBENCH_MOUNT_LABS") == "1":
+        return True
+    if os.environ.get("WORKBENCH_SKIP_LABS") == "1":
+        return False
+    if "pytest" in sys.modules:
+        return False
+    return not any(name.startswith("tests.") or name.startswith("test_") for name in sys.modules)
 
-    return FileResponse(index_path)
+
+def _mount_labs() -> None:
+    """把旧 Gradio 工作台挂到 /labs，图表页继续可达。"""
+    global _LABS_MOUNTED
+    if not _should_mount_labs():
+        return
+    import gradio as gr
+    from app_gradio import create_app as create_gradio_app
+
+    demo = create_gradio_app()
+    gr.mount_gradio_app(app, demo, path="/labs")
+    _LABS_MOUNTED = True
+
+
+def _register_frontend() -> None:
+    """前端托管放在 Gradio mount 之后，并避开 /api 与 /labs。"""
+
+    @app.get("/")
+    @app.get("/{full_path:path}")
+    def serve_frontend(full_path: str = ""):
+        """托管构建后的 React 工作台，并支持前端深链。"""
+        if full_path.startswith("api/") or full_path.startswith("labs"):
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        dist_root = _frontend_dist()
+        index_path = dist_root / "index.html"
+        if not index_path.is_file():
+            raise HTTPException(
+                status_code=404,
+                detail="Frontend build not found. Run `cd frontend && npm run build`.",
+            )
+
+        if full_path:
+            candidate = (dist_root / full_path).resolve()
+            if candidate.is_file() and candidate.is_relative_to(dist_root):
+                return FileResponse(candidate)
+
+        return FileResponse(index_path)
+
+
+_mount_labs()
+_register_frontend()

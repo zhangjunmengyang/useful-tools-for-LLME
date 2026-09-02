@@ -1,0 +1,785 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Design System: Quant Platform Pro
+   视觉基准是币安。上游原包在 design-system/binance/（逐字节不动），
+   平台落地映射和每一处偏离的理由在 design-system/platform-tokens.md。
+
+   两套面孔共用同一组语义名：浅色 白底+黄，深色 #181A20+黄。
+   新增颜色变量必须同时写 :root 和 .dark，只写一半在另一套下会串色。
+   ============================================ */
+
+@layer base {
+  :root {
+    /* ========== Spacing Scale ========== */
+    --space-1: 0.25rem; /* 4px */
+    --space-2: 0.5rem; /* 8px */
+    --space-3: 0.75rem; /* 12px */
+    --space-4: 1rem; /* 16px */
+    --space-5: 1.25rem; /* 20px */
+    --space-6: 1.5rem; /* 24px */
+    --space-8: 2rem; /* 32px */
+    --space-10: 2.5rem; /* 40px */
+    --space-12: 3rem; /* 48px */
+    --space-16: 4rem; /* 64px */
+
+    /* ========== Typography Scale ==========
+       对齐币安字号阶梯（design-system/binance/DESIGN.md §3）。
+       三处具名偏离，理由见 design-system/platform-tokens.md §4：
+       - 2xs 是平台自有档，bn 没有；
+       - xs 保持 12px 不跟 bn 的 11px，否则与 2xs(10px) 只差 1px 塌成一档；
+       - 3xl/4xl 保留但工作台禁用，bn 的 34/60px 是营销页 hero 尺度。 */
+    --font-size-base: 16px;
+
+    --text-2xs: 10px;
+    --text-xs: 12px;
+    --text-sm: 14px;
+    --text-base: 16px;
+    --text-lg: 20px;
+    --text-xl: 24px;
+    --text-2xl: 28px;
+    --text-3xl: 30px;
+    --text-4xl: 36px;
+
+    /* ========== Reading Scale ========== */
+    /* 课程阅读页正文列宽。17px 全角字下默认 720px 约 42 个汉字；阅读器可切换窄/宽。 */
+    --reading-measure: 720px;
+    --reading-toc-width: 220px;
+    /* 课号 + 12 字中文标题在单行内大致够用；阅读器仍可拖动覆盖。 */
+    --reading-rail-width: 360px;
+
+    /* ========== Font Families ==========
+       BinancePlex 是币安专有字体，无对外授权，拿不到。它取代的是 DIN Next，
+       所以替代品往 DIN 系找：Archivo 是几何骨架、字宽 0.563（Inter 0.591 更宽）、
+       x 高 0.526 与 Noto Sans SC 只差 1%，且带 tabular numerals 能对齐价格列。
+       详见 design-system/platform-tokens.md §4。 */
+    --font-sans: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      "Noto Sans SC", ui-sans-serif, sans-serif;
+    --font-serif: "Source Serif Pro", Georgia, "Times New Roman", serif;
+    --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, ui-monospace, monospace;
+
+    /* ========== Background Layers ========== */
+    --background: 0 0% 100%;
+    --background-subtle: 0 0% 98%;
+    --foreground: 225 12% 13%;
+
+    /* ========== Card Surfaces ========== */
+    --card: 0 0% 100%;
+    --card-foreground: 225 12% 13%;
+
+    /* ========== Popover Surfaces ========== */
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 12% 13%;
+
+    /* ========== Primary: Binance Yellow ==========
+       填充与文字必须分开。#F0B90B 对白底只有 1.8:1，做文字读不出来；
+       --primary-ink 是同色相压暗到 5.33:1 的可读金，用于黄字、黄边和图标。
+       详见 design-system/platform-tokens.md 第 1 节。 */
+    --primary: 46 91% 49%;
+    --primary-foreground: 225 12% 13%;
+    --primary-hover: 44 100% 39%;
+    --primary-muted: 46 92% 94%;
+    --primary-ink: 43 100% 27%;
+
+    /* ========== Secondary: Pearl ========== */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 225 12% 13%;
+
+    /* ========== Muted: Slate ========== */
+    --muted: 210 9% 96%;
+    --muted-foreground: 217 10% 49%;
+
+    /* ========== Accent: Soft Gold ========== */
+    --accent: 46 92% 94%;
+    --accent-foreground: 43 100% 27%;
+
+    /* ========== Semantic Status Colors ==========
+       涨跌沿用币安浅色主题的深一档值；上游包给的 #0ECB81/#F6465D 是
+       深色终端色，放白底上分别只有 2.13:1 和 3.53:1。 */
+    --success: 159 96% 33%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 159 60% 94%;
+
+    --warning: 36 92% 45%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 38 100% 95%;
+
+    --destructive: 350 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-muted: 350 80% 96%;
+
+    --info: 217 91% 45%;
+    --info-foreground: 0 0% 100%;
+    --info-muted: 214 100% 96%;
+
+    /* ========== Market Direction ==========
+       行情方向与操作结果分开命名：将来支持「红涨绿跌」只翻转这两个，
+       不能把「删除按钮」一起翻过去。 */
+    --up: 159 96% 33%;
+    --up-muted: 159 60% 94%;
+    --down: 350 62% 50%;
+    --down-muted: 350 80% 96%;
+
+    /* ========== Borders and Inputs ========== */
+    --border: 210 9% 91%;
+    --border-soft: 210 7% 95%;
+    --input: 210 9% 91%;
+    --ring: 46 91% 49%;
+
+    /* ========== Radius Scale ==========
+       上游的 24px/50px 胶囊是营销页语言，工作台不采用。 */
+    --radius: 0.5rem;
+    --radius-sm: 0.375rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 0.75rem;
+
+    /* ========== Sidebar ========== */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 217 10% 49%;
+    --sidebar-border: 210 9% 91%;
+    --sidebar-accent: 46 92% 94%;
+    --sidebar-accent-foreground: 225 12% 13%;
+    --sidebar-primary: 46 91% 49%;
+    --sidebar-primary-foreground: 225 12% 13%;
+
+    /* ========== Shadow Depths ==========
+       上游封顶 5%：金融界面里重阴影显得轻浮。 */
+    --shadow-1: 0 1px 2px rgb(32 32 37 / 0.04);
+    --shadow-2: 0 3px 5px rgb(32 32 37 / 0.05);
+    --shadow-3: 0 8px 20px rgb(32 32 37 / 0.07);
+    --shadow-4: 0 20px 44px rgb(32 32 37 / 0.1);
+  }
+
+  /* ============================================
+     暗色 token。取自币安交易端面色：#181A20 底、#1E2329 卡、#2B3139 弹层。
+     深色下靠面色差分层，不靠阴影——深底上的阴影本来就看不见。
+     与 :root 一一对应，挂 .dark 到 <html> 即全站生效。
+     ============================================ */
+  .dark {
+    /* ========== Background Layers ========== */
+    --background: 225 14% 11%;
+    --background-subtle: 213 15% 14%;
+    --foreground: 216 14% 93%;
+
+    /* ========== Card Surfaces ========== */
+    --card: 213 15% 14%;
+    --card-foreground: 216 14% 93%;
+
+    /* ========== Popover Surfaces ========== */
+    --popover: 214 14% 20%;
+    --popover-foreground: 216 14% 93%;
+
+    /* ========== Primary: Binance Gold ==========
+       深底上不需要拆填充/文字：#FCD535 对 #181A20 是 12.18:1，
+       所以 --primary-ink 与 --primary 同值。 */
+    --primary: 48 97% 60%;
+    --primary-foreground: 225 12% 13%;
+    --primary-hover: 46 91% 49%;
+    --primary-muted: 45 40% 18%;
+    --primary-ink: 48 97% 60%;
+
+    /* ========== Secondary ========== */
+    --secondary: 214 14% 20%;
+    --secondary-foreground: 216 14% 93%;
+
+    /* ========== Muted ========== */
+    --muted: 214 14% 20%;
+    --muted-foreground: 216 12% 75%;
+
+    /* ========== Accent ========== */
+    --accent: 45 40% 18%;
+    --accent-foreground: 48 97% 60%;
+
+    /* ========== Semantic Status Colors ========== */
+    --success: 157 87% 43%;
+    --success-foreground: 225 12% 13%;
+    --success-muted: 157 40% 16%;
+
+    --warning: 46 91% 49%;
+    --warning-foreground: 225 12% 13%;
+    --warning-muted: 45 40% 18%;
+
+    --destructive: 352 91% 62%;
+    --destructive-foreground: 225 12% 13%;
+    --destructive-muted: 352 40% 20%;
+
+    --info: 217 74% 62%;
+    --info-foreground: 225 12% 13%;
+    --info-muted: 217 36% 20%;
+
+    /* ========== Market Direction ========== */
+    --up: 157 87% 43%;
+    --up-muted: 157 40% 16%;
+    --down: 352 91% 62%;
+    --down-muted: 352 40% 20%;
+
+    /* ========== Borders and Inputs ========== */
+    --border: 214 14% 20%;
+    --border-soft: 213 15% 17%;
+    --input: 214 14% 24%;
+    --ring: 48 97% 60%;
+
+    /* ========== Sidebar ========== */
+    --sidebar-background: 225 14% 11%;
+    --sidebar-foreground: 216 12% 75%;
+    --sidebar-border: 214 14% 20%;
+    --sidebar-accent: 45 40% 18%;
+    --sidebar-accent-foreground: 216 14% 93%;
+    --sidebar-primary: 48 97% 60%;
+    --sidebar-primary-foreground: 225 12% 13%;
+
+    /* 深底上阴影靠纯黑加深，不靠灰度 */
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-2: 0 4px 16px rgb(0 0 0 / 0.48);
+    --shadow-3: 0 12px 28px rgb(0 0 0 / 0.56);
+    --shadow-4: 0 22px 48px rgb(0 0 0 / 0.64);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 16px;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    min-height: 100dvh;
+    font-size: var(--text-base);
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "tnum" 1, "cv02" 1;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    letter-spacing: 0;
+    background: hsl(var(--background));
+  }
+
+  /* ========== Typography System ========== */
+  /* Page title - used for main page headings */
+  h1 {
+    @apply text-xl font-semibold md:text-2xl;
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  /* Section title - used for card headers, section headers */
+  h2 {
+    @apply text-base font-semibold;
+    line-height: 1.35;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  /* Subsection title */
+  h3 {
+    @apply text-base font-semibold;
+    line-height: 1.3;
+    letter-spacing: 0;
+  }
+
+  /* Small title */
+  h4,
+  h5,
+  h6 {
+    @apply text-sm font-medium;
+    line-height: 1.4;
+  }
+
+  /* Body text defaults */
+  p {
+    @apply leading-relaxed;
+    text-wrap: pretty;
+  }
+
+  /* Small text utility */
+  small {
+    @apply text-xs text-muted-foreground;
+  }
+
+  /* Selection color */
+  ::selection {
+    @apply bg-primary-muted text-foreground;
+  }
+
+  /* Focus visible styles */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring) / 0.8);
+    outline-offset: 3px;
+  }
+}
+
+/* ============================================
+   Custom Scrollbar
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full border-2 border-transparent bg-muted-foreground/20 bg-clip-padding;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/40;
+}
+
+::-webkit-scrollbar-corner {
+  @apply bg-transparent;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@layer utilities {
+  /* 课程阅读正文作用域：局部放大字号基准。
+     注意 --text-* 阶梯必须在这里重新派生一遍——CSS 自定义属性在声明处就完成
+     substitution，:root 里的 --text-base 已经按 :root 的 --font-size-base 算成
+     定值了，后代只改 --font-size-base 不会让它重算。 */
+  .reading-scope {
+    --font-size-base: 17px;
+    --text-2xs: calc(var(--font-size-base) * 0.625);
+    --text-xs: calc(var(--font-size-base) * 0.75);
+    --text-sm: calc(var(--font-size-base) * 0.875);
+    --text-base: var(--font-size-base);
+    --text-lg: calc(var(--font-size-base) * 1.125);
+    --text-xl: calc(var(--font-size-base) * 1.25);
+    --text-2xl: calc(var(--font-size-base) * 1.5);
+    --text-3xl: calc(var(--font-size-base) * 1.75);
+    --text-4xl: calc(var(--font-size-base) * 2.125);
+  }
+
+  /* Fade animations */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .animate-fade-out {
+    animation: fadeOut 0.3s ease-out forwards;
+  }
+
+  /* Slide animations */
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out forwards;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out forwards;
+  }
+
+  .animate-slide-left {
+    animation: slideLeft 0.3s ease-out forwards;
+  }
+
+  .animate-slide-right {
+    animation: slideRight 0.3s ease-out forwards;
+  }
+
+  /* Scale animations */
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+
+  .animate-scale-out {
+    animation: scaleOut 0.2s ease-out forwards;
+  }
+
+  /* Stagger animation delays */
+  .stagger-1 {
+    animation-delay: 0.05s;
+  }
+  .stagger-2 {
+    animation-delay: 0.1s;
+  }
+  .stagger-3 {
+    animation-delay: 0.15s;
+  }
+  .stagger-4 {
+    animation-delay: 0.2s;
+  }
+  .stagger-5 {
+    animation-delay: 0.25s;
+  }
+  .stagger-6 {
+    animation-delay: 0.3s;
+  }
+  .stagger-7 {
+    animation-delay: 0.35s;
+  }
+  .stagger-8 {
+    animation-delay: 0.4s;
+  }
+
+  /* Pulse glow effect */
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  /* Shimmer loading effect */
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--background)) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px hsl(var(--primary) / 0.2);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ============================================
+   Component Utilities
+   ============================================ */
+
+@layer components {
+  /* ========== Focus Ring ========== */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/80 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* ========== Interactive Card ========== */
+  .card-interactive {
+    @apply transition-all duration-200 hover:-translate-y-px hover:border-border hover:shadow-depth-2;
+  }
+
+  .app-panel {
+    @apply rounded-xl border border-border bg-card shadow-none;
+  }
+
+  .app-panel-strong {
+    @apply rounded-xl border border-border bg-card shadow-depth-2;
+  }
+
+  .data-table {
+    @apply w-full border-collapse text-sm;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .data-table thead {
+    @apply bg-muted/60 text-muted-foreground;
+  }
+
+  .data-table th {
+    @apply px-4 py-3 text-left text-xs font-medium;
+  }
+
+  .data-table td {
+    @apply px-4 py-3;
+  }
+
+  .data-table tbody tr {
+    @apply border-b border-border transition-colors duration-150 hover:bg-primary-muted/60;
+  }
+
+  /* ========== Status Badges ========== */
+  .badge-success {
+    @apply rounded-full border border-success/20 bg-success-muted text-success;
+  }
+
+  .badge-warning {
+    @apply rounded-full border border-warning/25 bg-warning-muted text-warning;
+  }
+
+  .badge-destructive {
+    @apply rounded-full border border-destructive/20 bg-destructive-muted text-destructive;
+  }
+
+  .badge-info {
+    @apply rounded-full border border-info/20 bg-info-muted text-info;
+  }
+
+  /* ========== Page Container ========== */
+  .page-container {
+    @apply space-y-8;
+  }
+
+  /* ========== Section Container ========== */
+  .section-container {
+    @apply space-y-5;
+  }
+
+  /* ========== Page Header ========== */
+  .page-header {
+    @apply flex flex-wrap items-start justify-between gap-4;
+  }
+
+  .page-title {
+    @apply text-xl font-semibold text-foreground md:text-2xl;
+  }
+
+  .page-description {
+    @apply mt-2 max-w-3xl text-sm leading-6 text-muted-foreground;
+  }
+
+  /* ========== Card Section Header ========== */
+  .section-title {
+    @apply text-base font-semibold;
+  }
+
+  .section-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* ========== Stat Value Sizes ========== */
+  .stat-value-sm {
+    @apply text-lg font-semibold tabular-nums;
+  }
+
+  .stat-value-md {
+    @apply text-xl font-semibold tabular-nums;
+  }
+
+  .stat-value-lg {
+    @apply text-2xl font-semibold tabular-nums;
+  }
+
+  /* ========== Trend Indicators ========== */
+  .trend-positive {
+    @apply text-success;
+  }
+
+  .trend-negative {
+    @apply text-destructive;
+  }
+
+  .trend-neutral {
+    @apply text-muted-foreground;
+  }
+
+  /* ========== Data Table Utilities ========== */
+  .table-header-cell {
+    @apply px-4 py-3 text-left text-xs font-medium text-muted-foreground;
+  }
+
+  .table-body-cell {
+    @apply px-4 py-3 text-sm;
+  }
+
+  /* ========== Empty State ========== */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-12 text-center;
+  }
+
+  .empty-state-icon {
+    @apply h-12 w-12 text-muted-foreground/40 mb-4;
+  }
+
+  .empty-state-title {
+    @apply text-base font-medium text-muted-foreground;
+  }
+
+  .empty-state-description {
+    @apply text-sm text-muted-foreground/70 mt-1;
+  }
+
+  /* ========== Loading State ========== */
+  .loading-container {
+    @apply flex items-center justify-center py-16;
+  }
+
+  .loading-spinner {
+    @apply h-8 w-8 animate-spin text-muted-foreground;
+  }
+
+  /* ========== Toolbar ========== */
+  .toolbar {
+    @apply flex items-center justify-between gap-4;
+  }
+
+  .toolbar-group {
+    @apply flex items-center gap-2;
+  }
+
+  /* ========== Filter Chip ========== */
+  .filter-chip {
+    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium
+           border transition-colors cursor-pointer
+           hover:bg-primary-muted hover:text-primary;
+  }
+
+  .filter-chip-active {
+    @apply border-primary bg-primary text-primary-foreground hover:bg-primary-hover;
+  }
+}
+
+/* ============================================
+   Third-party Overrides
+   ============================================ */
+
+/* AG Grid custom theme */
+.ag-theme-alpine,
+.ag-theme-alpine-dark {
+  --ag-font-family: var(--font-sans), system-ui, sans-serif;
+  --ag-font-size: 13px;
+  --ag-border-radius: var(--radius-lg);
+  --ag-background-color: hsl(var(--card));
+  --ag-header-background-color: hsl(var(--background-subtle));
+  --ag-odd-row-background-color: hsl(var(--muted) / 0.35);
+  --ag-row-hover-color: hsl(var(--primary-muted));
+  --ag-selected-row-background-color: hsl(var(--primary) / 0.08);
+  --ag-border-color: hsl(var(--border));
+  --ag-foreground-color: hsl(var(--foreground));
+  --ag-header-foreground-color: hsl(var(--muted-foreground));
+}
+
+/* ECharts tooltip fix */
+.echarts-tooltip {
+  z-index: 9999 !important;
+}
+
+/* ============================================
+   课程正文小节内的二级标题自动编号（1. 2. …）
+   计数器在小节容器 .lesson-body 上复位，跨其中多个 .prose-lesson 块共享，
+   所以被图表切成多段的正文，小标题编号仍连续；换一节重新从 1 开始。
+   一级编号（一、二、…）在组件里渲染，不走计数器。
+   ============================================ */
+.lesson-body {
+  counter-reset: lesson-sub;
+}
+.lesson-body .prose-lesson h3 {
+  counter-increment: lesson-sub;
+}
+.lesson-body .prose-lesson h3::before {
+  content: counter(lesson-sub) ". ";
+  color: hsl(var(--primary));
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   Print styles
+   ============================================ */
+
+@media print {
+  body {
+    @apply bg-white text-black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

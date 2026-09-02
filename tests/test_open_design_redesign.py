@@ -95,7 +95,7 @@ class OpenDesignRedesignTest(unittest.TestCase):
         theme_source = (ROOT / "workbench_theme.py").read_text(encoding="utf-8")
 
         self.assertIn("workbench-command-surface", theme_source)
-        self.assertIn("grid-template-columns: minmax(180px, 0.42fr) minmax(320px, 1fr)", theme_source)
+        self.assertIn("grid-template-columns: minmax(160px, 0.36fr) minmax(280px, 1fr)", theme_source)
         self.assertIn("grid-template-columns: 1fr", theme_source)
         self.assertNotIn('label input[type="radio"]', theme_source)
         self.assertNotIn("repeat(auto-fit", theme_source)
@@ -109,6 +109,22 @@ class OpenDesignRedesignTest(unittest.TestCase):
         self.assertNotIn("grid-template-columns: 280px minmax(0, 1fr)", theme_source)
         self.assertNotIn("max-height: max(420px, calc(100vh - 360px))", theme_source)
         self.assertNotIn(".workbench-page-switcher > .tab-wrapper {\n    background", theme_source)
+
+    def test_global_tool_switcher_is_compact_not_a_fixed_card(self):
+        app_source = (ROOT / "app_gradio.py").read_text(encoding="utf-8")
+        theme_source = (ROOT / "workbench_theme.py").read_text(encoding="utf-8")
+
+        self.assertGreaterEqual(app_source.count("show_label=False"), 2)
+        self.assertIn("grid-template-columns: auto minmax(0, 1fr)", theme_source)
+        self.assertIn("border-bottom: 1px solid var(--od-border)", theme_source)
+        self.assertNotIn("No summary card stack", theme_source)
+        self.assertNotIn("Vercel / Linear density", theme_source)
+        self.assertNotIn(
+            ".workbench-command-surface {\n"
+            "    background: var(--od-bg) !important;\n"
+            "    border: 1px solid var(--od-border) !important;",
+            theme_source,
+        )
 
     def test_project_has_agent_readable_design_md(self):
         design_path = ROOT / "DESIGN.md"

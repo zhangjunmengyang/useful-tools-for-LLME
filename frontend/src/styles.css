@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --canvas: 210 16% 94%;
+    --chrome: 210 18% 97%;
+    --paper: 40 33% 99%;
+    --ink: 210 24% 12%;
+    --mute: 210 10% 34%;
+    --line: 210 12% 82%;
+    --mark: 174 42% 32%;
+    --mark-ink: 174 50% 22%;
+    --mark-dim: 174 28% 92%;
+    --reading-measure: 40rem;
+    --rail: 20rem;
+    color-scheme: light;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: hsl(var(--canvas));
+    color: hsl(var(--ink));
+    font-family: "PingFang SC", "Noto Sans SC", "Hiragino Sans GB", ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01" 0;
+  }
+
+  ::selection {
+    background: hsl(var(--mark-dim));
+    color: hsl(var(--ink));
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--mark));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .lesson-prose {
+    color: hsl(var(--ink));
+    font-size: 1.05rem;
+    line-height: 1.75;
+  }
+
+  .lesson-prose > * + * {
+    margin-top: 1.05em;
+  }
+
+  .lesson-prose h1 {
+    margin: 0 0 0.6em;
+    font-size: 1.85rem;
+    font-weight: 640;
+    letter-spacing: -0.03em;
+    line-height: 1.25;
+  }
+
+  .lesson-prose h2 {
+    margin: 1.6em 0 0.5em;
+    font-size: 1.2rem;
+    font-weight: 640;
+    letter-spacing: -0.02em;
+  }
+
+  .lesson-prose h3 {
+    margin: 1.3em 0 0.4em;
+    font-size: 1.05rem;
+    font-weight: 620;
+  }
+
+  .lesson-prose p,
+  .lesson-prose li {
+    max-width: 65ch;
+  }
+
+  .lesson-prose ul,
+  .lesson-prose ol {
+    padding-left: 1.2em;
+  }
+
+  .lesson-prose li + li {
+    margin-top: 0.35em;
+  }
+
+  .lesson-prose a {
+    color: hsl(var(--mark-ink));
+    text-underline-offset: 3px;
+  }
+
+  .lesson-prose code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    background: hsl(var(--mark-dim));
+    padding: 0.1em 0.35em;
+  }
+
+  .lesson-prose pre {
+    overflow-x: auto;
+    padding: 1rem 1.1rem;
+    background: hsl(210 20% 16%);
+    color: hsl(40 20% 96%);
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .lesson-prose pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+
+  .lesson-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+
+  .lesson-prose th,
+  .lesson-prose td {
+    padding: 0.45rem 0.6rem 0.45rem 0;
+    border-bottom: 1px solid hsl(var(--line));
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .lesson-prose blockquote {
+    margin: 1.1em 0;
+    padding-left: 0.9rem;
+    border-left: 2px solid hsl(var(--mark));
+    color: hsl(var(--mute));
+  }
+
+  .lesson-prose img {
+    max-width: 100%;
+  }
+}

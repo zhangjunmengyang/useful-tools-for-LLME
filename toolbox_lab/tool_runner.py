@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from html import escape
 from typing import Any
 
 import gradio as gr
@@ -88,25 +89,68 @@ def _format_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, indent=2)
 
 
+def _render_tool_details_html(tool_id: str | None) -> str:
+    """渲染当前工具的可扫读说明。"""
+    if not tool_id:
+        return """
+        <section class="tool-runner-overview">
+          <div>
+            <p class="tool-runner-eyebrow">Selected Tool</p>
+            <h2>No tool selected</h2>
+            <p>Adjust the filters above to choose an available research tool.</p>
+          </div>
+        </section>
+        """
+
+    spec = get_registry().get_spec(tool_id)
+    concepts = spec.concepts or []
+    concept_chips = "\n".join(
+        f'<span class="tool-runner-chip">{escape(concept)}</span>'
+        for concept in concepts
+    )
+    model_badge = (
+        "Model download required"
+        if spec.requires_model_download
+        else "No model download"
+    )
+
+    return f"""
+    <section class="tool-runner-overview">
+      <div class="tool-runner-overview-main">
+        <p class="tool-runner-eyebrow">Selected Tool</p>
+        <h2>{escape(spec.label)}</h2>
+        <p>{escape(spec.description)}</p>
+      </div>
+      <div class="tool-runner-meta-grid">
+        <div>
+          <span>Tool ID</span>
+          <code>{escape(spec.id)}</code>
+        </div>
+        <div>
+          <span>Lab</span>
+          <strong>{escape(spec.lab)}</strong>
+        </div>
+        <div>
+          <span>Runtime</span>
+          <strong>{escape(model_badge)}</strong>
+        </div>
+      </div>
+      <div class="tool-runner-chip-row" aria-label="Tool concepts">
+        {concept_chips or '<span class="tool-runner-chip">No concepts</span>'}
+      </div>
+    </section>
+    """
+
+
 def get_tool_details(tool_id: str) -> tuple[str, str, str, str]:
     """返回工具说明和默认配置。"""
     if not tool_id:
-        return "No tool selected.", "{}", "{}", ""
+        return _render_tool_details_html(None), "{}", "{}", ""
 
     spec = get_registry().get_spec(tool_id)
-    markdown = f"""
-### {spec.label}
-
-{spec.description}
-
-- Tool ID: `{spec.id}`
-- Lab: {spec.lab}
-- Requires model download: `{spec.requires_model_download}`
-- Concepts: {", ".join(spec.concepts) if spec.concepts else "-"}
-"""
     cli_command = f"python -m workbench_tools run {spec.id} --config config.json --output-dir research"
     return (
-        markdown,
+        _render_tool_details_html(tool_id),
         _format_json(DEFAULT_CONFIGS.get(tool_id, {})),
         _format_json(spec.input_schema),
         cli_command,
@@ -117,7 +161,11 @@ def update_tool_choices(lab_filter: str, concept_filter: str) -> tuple[Any, str,
     """根据过滤条件刷新工具列表。"""
     choices = _tool_choices(lab_filter, concept_filter)
     selected = choices[0][1] if choices else None
-    details, config, schema, command = get_tool_details(selected) if selected else ("No matching tool.", "{}", "{}", "")
+    details, config, schema, command = (
+        get_tool_details(selected)
+        if selected
+        else ("No matching tool.", "{}", "{}", "")
+    )
     return (
         gr.update(choices=choices, value=selected),
         details,
@@ -165,68 +213,96 @@ def render():
     default_tool = _default_tool_id()
     details, default_config, default_schema, default_command = get_tool_details(default_tool)
 
-    gr.HTML(
-        """
-        <div class="workbench-page-hero">
-          <h1>Research Tool Runner</h1>
-          <p>Run reusable LLM research tools, inspect structured outputs, and export Markdown/JSON artifacts.</p>
-        </div>
-        """
-    )
+    with gr.Column(elem_classes=["workbench-tool-runner"]):
+        gr.HTML(
+            """
+            <div class="workbench-page-hero">
+              <h1>Research Tool Runner</h1>
+              <p>Run reusable LLM research tools, inspect structured outputs, and export Markdown/JSON artifacts.</p>
+            </div>
+            """
+        )
 
-    with gr.Row(elem_classes=["workbench-tool-shell"]):
-        with gr.Column(scale=1, elem_classes=["workbench-control-panel"]):
-            lab_filter = gr.Dropdown(
-                label="Lab Filter",
-                choices=_lab_choices(),
-                value="All",
-            )
-            concept_filter = gr.Dropdown(
-                label="Concept Filter",
-                choices=_concept_choices(),
-                value="All",
-            )
-            tool_selector = gr.Dropdown(
-                label="Tool",
-                choices=_tool_choices(),
-                value=default_tool,
-                filterable=True,
-            )
-            config_input = gr.Code(
-                label="Input Config",
-                value=default_config,
-                language="json",
-                lines=14,
-            )
-            export_toggle = gr.Checkbox(
-                label="Export Markdown and JSON",
-                value=True,
-            )
-            output_dir = gr.Textbox(
-                label="Output Directory",
-                value="research",
-                placeholder="research",
-            )
-            run_button = gr.Button("Run Tool", variant="primary")
+        with gr.Column(elem_classes=["workbench-tool-runner-toolbar"]):
+            with gr.Row(elem_classes=["tool-runner-toolbar-row"]):
+                lab_filter = gr.Dropdown(
+                    label="Lab Filter",
+                    choices=_lab_choices(),
+                    value="All",
+                )
+                concept_filter = gr.Dropdown(
+                    label="Concept Filter",
+                    choices=_concept_choices(),
+                    value="All",
+                )
+                tool_selector = gr.Dropdown(
+                    label="Tool",
+                    choices=_tool_choices(),
+                    value=default_tool,
+                    filterable=True,
+                )
 
-        with gr.Column(scale=2, elem_classes=["workbench-output-panel"]):
-            tool_details = gr.Markdown(value=details)
-            input_schema = gr.Code(
-                label="Input Schema",
-                value=default_schema,
-                language="json",
-                lines=10,
-            )
-            cli_command = gr.Textbox(
-                label="CLI Command",
-                value=default_command,
-                interactive=False,
-            )
-            gr.Markdown("### Tool Catalog")
-            catalog_table = gr.Markdown(value=get_tool_catalog_markdown())
-            status = gr.Textbox(label="Status", interactive=False)
-            result_json = gr.Code(label="Tool Run JSON", language="json", lines=20)
-            artifact_paths = gr.Markdown(label="Artifacts")
+        with gr.Row(elem_classes=["workbench-tool-shell", "workbench-tool-runner-grid"]):
+            with gr.Column(
+                scale=1,
+                elem_classes=["workbench-control-panel", "tool-runner-config-panel"],
+            ):
+                gr.Markdown("### Configure Run")
+                gr.Markdown("Edit the JSON payload, choose export behavior, then run the selected tool.")
+                config_input = gr.Code(
+                    label="Input Config",
+                    value=default_config,
+                    language="json",
+                    lines=18,
+                )
+                export_toggle = gr.Checkbox(
+                    label="Export Markdown and JSON",
+                    value=True,
+                )
+                output_dir = gr.Textbox(
+                    label="Output Directory",
+                    value="research",
+                    placeholder="research",
+                )
+                run_button = gr.Button(
+                    "Run Tool",
+                    variant="primary",
+                    elem_classes=["tool-runner-run-button"],
+                )
+
+            with gr.Column(
+                scale=2,
+                elem_classes=["workbench-output-panel", "tool-runner-results-panel"],
+            ):
+                tool_details = gr.HTML(value=details)
+
+                with gr.Accordion("Implementation Details", open=False):
+                    input_schema = gr.Code(
+                        label="Input Schema",
+                        value=default_schema,
+                        language="json",
+                        lines=12,
+                    )
+                    cli_command = gr.Textbox(
+                        label="CLI Command",
+                        value=default_command,
+                        interactive=False,
+                    )
+
+                gr.Markdown("### Run Output")
+                status = gr.Textbox(label="Status", interactive=False)
+                with gr.Tabs(elem_classes=["tool-runner-result-tabs"]):
+                    with gr.Tab("Tool Run JSON"):
+                        result_json = gr.Code(
+                            label="Tool Run JSON",
+                            language="json",
+                            lines=18,
+                        )
+                    with gr.Tab("Artifacts"):
+                        artifact_paths = gr.Markdown(label="Artifacts")
+
+                with gr.Accordion("Tool Catalog", open=False):
+                    catalog_table = gr.Markdown(value=get_tool_catalog_markdown())
 
     lab_filter.change(
         fn=update_tool_choices,

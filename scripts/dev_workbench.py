@@ -24,8 +24,8 @@ def build_commands(
     root: Path,
     *,
     host: str = "127.0.0.1",
-    api_port: int = 8001,
-    frontend_port: int = 5173,
+    api_port: int = 8766,
+    frontend_port: int = 8765,
 ) -> list[WorkbenchCommand]:
     """构建 API 和前端开发服务器命令。"""
     return [
@@ -76,8 +76,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Repository root. Defaults to this script's parent repository.",
     )
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--api-port", type=int, default=8001)
-    parser.add_argument("--frontend-port", type=int, default=5173)
+    parser.add_argument("--api-port", type=int, default=8766)
+    parser.add_argument("--frontend-port", type=int, default=8765)
     parser.add_argument(
         "--print",
         action="store_true",

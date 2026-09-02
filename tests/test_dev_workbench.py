@@ -24,11 +24,14 @@ class DevWorkbenchTest(unittest.TestCase):
         self.assertEqual(api_command.cwd, root)
         self.assertIn("uvicorn", api_command.command)
         self.assertIn("workbench_api.app:app", api_command.command)
-        self.assertIn("8001", api_command.command)
+        self.assertIn("8766", api_command.command)
+        self.assertNotIn("8000", api_command.command)
+        self.assertNotIn("8001", api_command.command)
         self.assertEqual(frontend_command.name, "frontend")
         self.assertEqual(frontend_command.cwd, root / "frontend")
         self.assertEqual(frontend_command.command[:3], ["npm", "run", "dev"])
-        self.assertIn("5173", frontend_command.command)
+        self.assertIn("8765", frontend_command.command)
+        self.assertNotIn("5173", frontend_command.command)
 
     def test_main_print_mode_does_not_launch_processes(self):
         with patch("scripts.dev_workbench.subprocess.Popen") as popen, patch(

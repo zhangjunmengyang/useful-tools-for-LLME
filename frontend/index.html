@@ -1,10 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>LLM Mechanics Explorer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&family=Source+Serif+Pro:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      try {
+        if (localStorage.getItem('app-color-scheme') === 'dark') {
+          document.documentElement.classList.add('dark')
+          document.documentElement.style.colorScheme = 'dark'
+        }
+        var lang = localStorage.getItem('app-language')
+        if (lang !== 'zh' && lang !== 'en') {
+          lang = (navigator.language || '').toLowerCase().indexOf('en') === 0 ? 'en' : 'zh'
+        }
+        document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN'
+        document.title = lang === 'en' ? 'Learn Bench' : '学习台'
+      } catch (e) {
+        /* 隐私模式下 localStorage 会抛，按浅色渲染即可 */
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

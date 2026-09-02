@@ -1,0 +1,37 @@
+{
+  "id": "llm",
+  "title": "大模型机制",
+  "title_en": "How language models work",
+  "summary": "一条短主线：文本怎么进模型，位置怎么编码，生成时内存怎么涨，少改参数怎么微调。工具嵌在课里，用来核对机制，不是另一套产品。",
+  "summary_en": "A short track: how text enters the model, how position is written in, why memory grows while decoding, and what LoRA actually changes. Tools sit in the lesson so you can check the mechanism.",
+  "units": [
+    {
+      "id": "input",
+      "title": "文本如何进入模型",
+      "title_en": "How text enters the model",
+      "question": "同一句话为什么会变成不同长度的整数序列？",
+      "question_en": "Why can the same sentence become integer sequences of different lengths?"
+    },
+    {
+      "id": "body",
+      "title": "模型身体里在转什么",
+      "title_en": "What moves inside the block",
+      "question": "位置和激活函数各自解决哪一件事？",
+      "question_en": "What do position encodings and activations each fix?"
+    },
+    {
+      "id": "generate",
+      "title": "生成时发生了什么",
+      "title_en": "What happens while generating",
+      "question": "下一个 token 怎么抽，缓存为什么随长度涨？",
+      "question_en": "How is the next token drawn, and why does the cache grow with length?"
+    },
+    {
+      "id": "adapt",
+      "title": "少改参数怎么跟上",
+      "title_en": "Adapt without rewriting the weights",
+      "question": "LoRA 改的是哪几层，省下的是参数还是计算？",
+      "question_en": "Which layers does LoRA touch, and what does it actually save?"
+    }
+  ]
+}

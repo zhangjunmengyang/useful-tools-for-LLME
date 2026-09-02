@@ -61,6 +61,7 @@ The app opens with one compact command surface:
 
 - `render_command_header`: one short title row plus compact metadata.
 - `workbench-command-surface`: the only top-level navigation container.
+- It must render as a slim switcher strip under the app header, not a fixed card or explanatory hero.
 - `Task Area`: compact dropdown filter, not a segmented tab group.
 - `Tool`: searchable dropdown for the selected task area.
 - `workbench-page-router`: hidden Gradio tabs used only as the routing mechanism.
@@ -78,7 +79,7 @@ Avoid:
 Keep the app dense and work-focused:
 
 - Header height should stay compact.
-- The command surface should sit close to the header and content.
+- The command surface should sit close to the header and content, with no card border or large instructional copy.
 - Page hero strips should be short, not card-like.
 - Tool pages use `workbench-tool-shell`.
 - Inputs live in `workbench-control-panel`.
