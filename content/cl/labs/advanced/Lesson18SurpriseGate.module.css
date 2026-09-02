@@ -1,0 +1,75 @@
+.stream {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.stream button {
+  display: grid;
+  gap: 6px;
+  min-height: 52px;
+  border: 1px solid var(--xlab-rule-2, #cad4ce);
+  border-radius: 8px;
+  padding: 7px;
+  color: var(--xlab-ink-2, #46534c);
+  background: var(--xlab-surface-3, white);
+  font: inherit;
+  cursor: pointer;
+}
+
+.stream button[aria-pressed="true"] {
+  border-color: var(--xlab-accent, #1b7a53);
+  background: var(--xlab-accent-soft, #e9f8ef);
+}
+
+.stream button[data-write="true"] {
+  box-shadow: inset 0 0 0 2px var(--xlab-accent, #1b7a53);
+}
+
+.stream b {
+  font-size: 12px;
+}
+
+.bar {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  background: var(--xlab-surface-2, #edf1ee);
+  border-radius: 999px;
+}
+
+.bar i {
+  display: block;
+  width: var(--fill);
+  height: 100%;
+  background: #225ecb;
+  transition: width 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.board {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--xlab-rule, #e5ebe7);
+}
+
+.board strong {
+  font-size: 12px;
+}
+
+.board p {
+  margin: 6px 0 0;
+  color: var(--xlab-muted, #68736d);
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .stream {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar i {
+    transition: none;
+  }
+}

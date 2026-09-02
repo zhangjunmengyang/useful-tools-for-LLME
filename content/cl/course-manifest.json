@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "lessonCount": 20,
+  "sectionCount": 435,
+  "paperCount": 91,
+  "totalCharacterCount": 648533,
+  "totalBodyCharacterCount": 648002,
+  "totalByteCount": 1075467,
+  "sourceDigest": "0ce12a3f926cc704329dd7bbb8d6632688040172b289d38b2478cb8896fb55f8",
+  "files": [
+    {
+      "sourceFile": "01_baseline_reproduction.md",
+      "id": "01",
+      "title": "第 01 课：建立可追溯的 MiniMind-O 基线",
+      "sha256": "a9d7b39ae3b92eea61e96187cf6884286da89b9640403fd0603f47aea10f020b",
+      "characterCount": 21737,
+      "byteCount": 38078,
+      "lineCount": 652,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "02_multimodal_connector.md",
+      "id": "02",
+      "title": "第 02 课：比较三种多模态 Connector",
+      "sha256": "d636f9cb90e48b14023dafb1137725e9e57644ea59850f87d6d7476ae15f32a3",
+      "characterCount": 21064,
+      "byteCount": 35984,
+      "lineCount": 646,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "03_audio_codec.md",
+      "id": "03",
+      "title": "第 03 课：理解并比较音频 Codec",
+      "sha256": "929c34b321e4a70292406ef41127e8ebd1e3ed29e2c22505239d53ae6fd0c460",
+      "characterCount": 22477,
+      "byteCount": 37858,
+      "lineCount": 693,
+      "sectionCount": 21
+    },
+    {
+      "sourceFile": "04_multicodebook_talker.md",
+      "id": "04",
+      "title": "第 04 课：比较 Talker 的多码本生成拓扑",
+      "sha256": "f89e6fecd6d8b7680a9f5b187bb0c12c1f85dc5a2c936820499d3374044f7c43",
+      "characterCount": 35012,
+      "byteCount": 58362,
+      "lineCount": 1294,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "05_streaming_listener.md",
+      "id": "05",
+      "title": "第 05 课：实现因果流式 Listener",
+      "sha256": "92242b06d3a46116d7d17d82ccf270888a2c51b7a312a96c01099fc864dc6012",
+      "characterCount": 25441,
+      "byteCount": 38644,
+      "lineCount": 807,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "06_turn_policy.md",
+      "id": "06",
+      "title": "第 06 课：用四动作策略判断话轮",
+      "sha256": "08babd7385f1286597ed8afed4e1678fcf0264c68eaeda4d69f1b4a2d6547ccc",
+      "characterCount": 25496,
+      "byteCount": 43513,
+      "lineCount": 790,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "07_full_duplex_routing.md",
+      "id": "07",
+      "title": "第 07 课：实现全双工路由与调度",
+      "sha256": "e54235638a24fd16bee0f3d519ffa4256984083131bc2d28bb3a25cd5a2b7063",
+      "characterCount": 33846,
+      "byteCount": 53662,
+      "lineCount": 1148,
+      "sectionCount": 21
+    },
+    {
+      "sourceFile": "08_dynamic_vision.md",
+      "id": "08",
+      "title": "第 08 课：动态分辨率、多图身份与 M-RoPE",
+      "sha256": "f6da501fa480e76784fe90fc79a90bc47745950952ecab8c3d9a8a80fe5ec6f1",
+      "characterCount": 27002,
+      "byteCount": 45595,
+      "lineCount": 807,
+      "sectionCount": 22
+    },
+    {
+      "sourceFile": "09_native_video.md",
+      "id": "09",
+      "title": "第 09 课：建立原生视频时间轴",
+      "sha256": "851a2bdc1c5b84aa91ec73c33b78f92ef56b4dcb5471d29140ccc49cf843f2fa",
+      "characterCount": 26648,
+      "byteCount": 46711,
+      "lineCount": 805,
+      "sectionCount": 22
+    },
+    {
+      "sourceFile": "10_video_token_reduction.md",
+      "id": "10",
+      "title": "第 10 课：视频 Token 压缩与质量延迟权衡",
+      "sha256": "7fe59c0b4263d87a08f83fc591b6cd60205171cd45de5969583ad3d2acc11ef9",
+      "characterCount": 22771,
+      "byteCount": 37195,
+      "lineCount": 542,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "11_tiny_moe.md",
+      "id": "11",
+      "title": "第 11 课：实现稀疏专家 Thinker",
+      "sha256": "3db5a6594e69a83a5d4434e67935f90f6482d0481c46b7f01b1274db1475f462",
+      "characterCount": 24030,
+      "byteCount": 39681,
+      "lineCount": 575,
+      "sectionCount": 21
+    },
+    {
+      "sourceFile": "12_mamba_attention_hybrid.md",
+      "id": "12",
+      "title": "第 12 课：比较 Mamba-2 与 Attention 混合架构",
+      "sha256": "6d4a2b93854afbffd6d3fc46e0a19300372839efc44d8696f7e78fceaae83a73",
+      "characterCount": 36843,
+      "byteCount": 59244,
+      "lineCount": 860,
+      "sectionCount": 22
+    },
+    {
+      "sourceFile": "13_distributed_8gpu.md",
+      "id": "13",
+      "title": "第 13 课：实现可验证的八卡分布式训练",
+      "sha256": "877814475bad740f00e68b477ecc2b2bc5c31f8d7888224fd7b4a454183504f1",
+      "characterCount": 28397,
+      "byteCount": 44898,
+      "lineCount": 717,
+      "sectionCount": 23
+    },
+    {
+      "sourceFile": "14_long_context_curriculum.md",
+      "id": "14",
+      "title": "第 14 课：渐进式扩展到 128K 上下文",
+      "sha256": "f3b67e48ac60c27bb7e32d005b4f33e976eb68ac817bb8f4f4a6dd5ad1316be6",
+      "characterCount": 37201,
+      "byteCount": 65034,
+      "lineCount": 874,
+      "sectionCount": 21
+    },
+    {
+      "sourceFile": "15_joint_multimodal_sft.md",
+      "id": "15",
+      "title": "第 15 课：多模态联合 SFT",
+      "sha256": "d215d8b3dd07fd8e2b89899971eb0194176af0dd55c7d35c655bf0b45b7c3632",
+      "characterCount": 42790,
+      "byteCount": 68620,
+      "lineCount": 1207,
+      "sectionCount": 24
+    },
+    {
+      "sourceFile": "16_multimodal_preference_optimization.md",
+      "id": "16",
+      "title": "第 16 课：多模态 DPO 与 mDPO",
+      "sha256": "f2be5462ff0d798e0cd29e5b1f4ee720d4ba0d9dab2af946a337869650eeaf38",
+      "characterCount": 38811,
+      "byteCount": 64874,
+      "lineCount": 1137,
+      "sectionCount": 25
+    },
+    {
+      "sourceFile": "17_grpo_rlvr.md",
+      "id": "17",
+      "title": "第 17 课：多模态 GRPO 与 RLVR",
+      "sha256": "0f41af59d6ed3bed201861931abc4dd7b0bd67ef01511da3abf55715dc84a7c0",
+      "characterCount": 34867,
+      "byteCount": 64582,
+      "lineCount": 919,
+      "sectionCount": 26
+    },
+    {
+      "sourceFile": "18_nemotron_finetuning.md",
+      "id": "18",
+      "title": "第 18 课：复现 Nemotron Omni LoRA 微调",
+      "sha256": "e69389a37f34b83de3c64c17c8ab1cd1461b44d05894a0966138051e00e79071",
+      "characterCount": 36775,
+      "byteCount": 66323,
+      "lineCount": 1002,
+      "sectionCount": 26
+    },
+    {
+      "sourceFile": "19_capstone_thinker_talker.md",
+      "id": "19",
+      "title": "第 19 课：集成 Nemotron Thinker 与 MiniMind Talker",
+      "sha256": "232332ea0b7e5213c7edc91cc11f6a577de8f61dd0ac3effa9fce6ed656ed8e5",
+      "characterCount": 61913,
+      "byteCount": 95149,
+      "lineCount": 1729,
+      "sectionCount": 23
+    },
+    {
+      "sourceFile": "20_unified_understanding_generation.md",
+      "id": "20",
+      "title": "第 20 课：统一视觉理解与图像生成（选修）",
+      "sha256": "c0d31f87dc2e3de25f6ecf1407b5ce2c2f0b8f87aa6fa56d90f4f48b052c9eb7",
+      "characterCount": 45412,
+      "byteCount": 71460,
+      "lineCount": 1229,
+      "sectionCount": 25
+    }
+  ]
+}

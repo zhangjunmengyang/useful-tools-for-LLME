@@ -1,0 +1,41 @@
+{
+  "id": "24",
+  "slug": "vlm-to-vla",
+  "shortTitle": "动作接入 VLM",
+  "unit": "vla",
+  "essentialQuestion": "VLM 写出“抓住杯子”时机械臂为何不动，动作怎样进入同一套 next-token？",
+  "hook": "同一张桌面图可以只生成文字、吐出离散动作 token，或把文字映射成技能。切断视觉或改错指令，三条通路的动作会不会一起变，能把“会说”和“会控臂”拆开。",
+  "outcomes": [
+    "写出 7 维末端动作的均匀分箱、词表偏移和与文本共享的 next-token 交叉熵",
+    "分清只出文字、离散动作 token、文字映射技能三条通路，并能指出各自失败时手臂停在哪一层",
+    "用视觉捷径探针解释：场景唯一决定任务时错指令可以不改动作；多目标同场景时必须改",
+    "证明只训练独立语言头时动作 token 行梯度为 0，而联合 softmax 会经配分函数漏梯度"
+  ],
+  "misconception": {
+    "myth": "只要视觉语言模型会写 pick up the cup，再在外面挂一个强化学习控制器，就算做成了 VLA。",
+    "truth": "会写那句话只证明文字通路通了。VLA 要把动作放进同一套条件生成；外挂控制器既不共享词表，也不接受与文本相同的 next-token 损失。"
+  },
+  "prerequisites": ["22", "建议 23"],
+  "labId": "lab-24-action-token",
+  "labExportName": "Lesson24ActionTokenLab",
+  "readingTime": 70,
+  "difficulty": "进阶",
+  "hardware": {
+    "minimum": "无 GPU：读完全文并跑 CPU 分箱与梯度实验",
+    "recommended": "1×24GB 仅用于打开公开 VLM 权重做定性对照，不是本课验收条件",
+    "notes": "复现 RT-2-PaLI-X-55B 需要论文中的多 TPU 云端服务；原文写 55B 控制频率为 1–3 Hz。CPU 实验不证明真机成功率。"
+  },
+  "learningMode": ["机制推导", "浏览器教具", "CPU 数值核对"],
+  "practice": {
+    "purpose": "核对 7 维均匀分箱边界、词表偏移，以及语言头与动作 token 的梯度隔离",
+    "proves": [
+      "低端点映射到 bin 0、高端点映射到 bin B-1，区间左闭右开",
+      "动作 token 占据 [V, V+7B) 且维与维不重叠",
+      "只训独立语言头时动作 token 行梯度为 0",
+      "联合 softmax 的语言交叉熵仍会给动作行非零梯度"
+    ],
+    "doesNotProve": "不证明真机抓取成功率，也不证明 256 bin 或 55B 骨干在本机可训练",
+    "sourceFile": "lesson_24.py"
+  },
+  "firstH2": "动作如何成为下一种 token"
+}

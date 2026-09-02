@@ -1,0 +1,26 @@
+.rivers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rivers span {
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--xlab-rule, #dce4df);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.rivers span[data-on="true"] {
+  color: var(--xlab-accent-ink, #125e3c);
+  background: var(--xlab-accent-soft, #e9f8ef);
+}
+
+.rivers span[data-on="false"] {
+  color: var(--xlab-muted, #68736d);
+  background: var(--xlab-surface-3, #edf1ee);
+  text-decoration: line-through;
+}

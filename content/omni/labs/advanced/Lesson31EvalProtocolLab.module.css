@@ -1,0 +1,343 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.72fr) minmax(0, 2fr);
+  overflow: hidden;
+  border: 1px solid var(--xlab-rule, #d7dfd8);
+  border-radius: 0.8rem;
+  background: var(--xlab-surface, #fff);
+}
+
+.controls {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  padding: 1.15rem;
+  border-right: 1px solid var(--xlab-rule, #dfe5df);
+  background: var(--xlab-surface-2, #f5f7f4);
+}
+
+.controls h3 {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.controls label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.controls label > span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--xlab-muted, #5e685f);
+  font-size: 0.76rem;
+}
+
+.controls output {
+  color: var(--xlab-accent-ink, #1a4f35);
+  font: 650 0.75rem/1 var(--font-geist-mono, monospace);
+}
+
+.controls input[type="range"] {
+  width: 100%;
+  accent-color: var(--xlab-accent, #176f48);
+}
+
+.note {
+  margin: 0;
+  color: var(--xlab-muted, #5e685f);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.stage {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1.05rem;
+}
+
+.desks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.desk {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid var(--xlab-rule, #d9e1da);
+  border-radius: 0.55rem;
+  background: var(--xlab-surface-2, #fbfcfb);
+}
+
+.desk header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+.desk header b {
+  font-size: 0.78rem;
+}
+
+.desk header span {
+  color: var(--xlab-muted, #5e685f);
+  font: 0.62rem/1 var(--font-geist-mono, monospace);
+}
+
+.table {
+  position: relative;
+  overflow: hidden;
+  height: 7.2rem;
+  border-radius: 0.4rem;
+  background:
+    linear-gradient(#edf3ea, #e4ebe3);
+  border: 1px solid var(--xlab-rule, #d7dfd8);
+}
+
+.arm {
+  position: absolute;
+  top: 8%;
+  right: 18%;
+  width: 0.42rem;
+  height: 42%;
+  border-radius: 0.2rem;
+  background: var(--xlab-accent, #176f48);
+}
+
+.arm::after {
+  content: "";
+  position: absolute;
+  bottom: -0.28rem;
+  left: -0.28rem;
+  width: 0.95rem;
+  height: 0.42rem;
+  border-radius: 0.12rem;
+  background: var(--xlab-accent-ink, #1a4f35);
+}
+
+.target,
+.distract,
+.goal {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  font: 650 0.58rem/1 var(--font-geist-mono, monospace);
+}
+
+.target {
+  width: 1.45rem;
+  height: 1.45rem;
+  margin: -0.72rem 0 0 -0.72rem;
+  border-radius: 50%;
+  background: #d7ecff;
+  color: #1d4b73;
+  border: 1px solid #7aa7c9;
+}
+
+.distract {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin: -0.6rem 0 0 -0.6rem;
+  border-radius: 0.22rem;
+  background: #f3e2c8;
+  color: #7a4e18;
+  border: 1px solid #d7b07a;
+}
+
+.goal {
+  right: 10%;
+  bottom: 12%;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 1px dashed var(--xlab-accent, #176f48);
+  color: var(--xlab-accent-ink, #1a4f35);
+  background: var(--xlab-accent-soft, #edf7f0);
+}
+
+.desk dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  gap: 0.2rem;
+}
+
+.desk dt {
+  color: var(--xlab-muted, #6b756e);
+  font-size: 0.62rem;
+}
+
+.desk dd {
+  margin: 0.12rem 0 0;
+  font: 650 0.74rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.barTrack {
+  position: relative;
+  height: 0.55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--xlab-surface, #e7ece7);
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  background: var(--xlab-accent, #176f48);
+}
+
+.ci {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-left: 2px solid var(--xlab-accent-ink, #1a4f35);
+  border-right: 2px solid var(--xlab-accent-ink, #1a4f35);
+  background: transparent;
+}
+
+.banner {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--xlab-warning, #c9843a);
+  border-radius: 0.45rem;
+  background: #fff7ec;
+  color: var(--xlab-warning, #8a4e18);
+  font-size: 0.74rem;
+}
+
+.predict {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--xlab-rule, #dce1dd);
+  border-radius: 0.65rem;
+}
+
+.predict fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.predict legend {
+  width: 100%;
+  margin-bottom: 0.4rem;
+  font-weight: 620;
+}
+
+.predict fieldset label {
+  cursor: pointer;
+}
+
+.predict fieldset input,
+.ack input {
+  position: absolute;
+  opacity: 0;
+}
+
+.predict fieldset span {
+  display: block;
+  padding: 0.38rem 0.65rem;
+  border: 1px solid var(--xlab-rule-2, #d6dcd7);
+  border-radius: 0.35rem;
+  color: var(--xlab-ink-2, #526057);
+  font-size: 0.74rem;
+}
+
+.predict input:checked + span,
+.ack input:checked + span {
+  border-color: var(--xlab-accent, #1a714b);
+  background: var(--xlab-accent-soft, #edf7f0);
+  color: var(--xlab-accent-ink, #15583b);
+}
+
+.ack {
+  cursor: pointer;
+}
+
+.ack span {
+  display: inline-block;
+  padding: 0.38rem 0.65rem;
+  border: 1px solid var(--xlab-rule-2, #d6dcd7);
+  border-radius: 0.35rem;
+  color: var(--xlab-ink-2, #526057);
+  font-size: 0.74rem;
+}
+
+.predict input:focus-visible + span,
+.ack input:focus-visible + span,
+.actions button:focus-visible {
+  outline: 3px solid var(--xlab-focus-ring, #a3ceb3);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.45rem;
+}
+
+.actions button {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 0.4rem;
+  font: 650 0.75rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.reset {
+  border: 1px solid var(--xlab-rule-2, #d5dcd6);
+  background: var(--xlab-surface-2, white);
+  color: var(--xlab-ink-2, #47534b);
+}
+
+.run {
+  border: 1px solid var(--xlab-accent, #17653f);
+  background: var(--xlab-accent, #176d45);
+  color: var(--xlab-on-ink, white);
+}
+
+.run:disabled {
+  border-color: var(--xlab-disabled, #c9ceca);
+  background: var(--xlab-disabled, #c9ceca);
+  cursor: not-allowed;
+}
+
+.feedback {
+  margin: 0.6rem 0 0;
+  color: var(--xlab-warning, #8a4e18);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 920px) {
+  .desks {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    border-right: 0;
+    border-bottom: 1px solid var(--xlab-rule, #dfe5df);
+  }
+
+  .desk dl {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,38 @@
+.plane {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 0 auto;
+  border: 1px solid var(--xlab-rule, #dce4df);
+  border-radius: 12px;
+  background: var(--xlab-surface-3, #f7faf8);
+}
+
+.plane line {
+  stroke: var(--xlab-rule-2, #c9d5cd);
+  stroke-width: 0.4;
+}
+
+.old {
+  fill: var(--xlab-accent-soft, #e9f8ef);
+  stroke: none;
+}
+
+.ref {
+  fill: var(--xlab-ink, #17221d);
+}
+
+.data {
+  fill: none;
+  stroke: var(--xlab-ink, #17221d);
+  stroke-width: 0.8;
+}
+
+.sft {
+  fill: #225ecb;
+}
+
+.rl {
+  fill: var(--xlab-accent, #1b7a53);
+}

@@ -1,0 +1,45 @@
+{
+  "id": "58",
+  "slug": "medical-vlm",
+  "shortTitle": "医学图文拆配方",
+  "unit": "domain-research",
+  "essentialQuestion": "第 22 课的自然图像 VLM 配方，为什么不能原样搬到医学图文上？报告字段、多图检查和无框病灶断言分别要改哪一条协议？",
+  "hook": "关掉“禁止无框断言”之后，一张什么都没有的示意胸片仍会写出肺炎。那不是临床判断，是语言先验穿过了错误的损失掩码。",
+  "outcomes": [
+    "对照第 22 课写出 LLaVA-Med 的两阶段：600K 生物医学概念对齐与 60K 指令微调各自冻什么、训什么",
+    "把医学报告的 INDICATION / COMPARISON / FINDINGS / IMPRESSION 拆成与自然 caption 不同的 loss mask",
+    "定义无框肯定计数 U，并在空图上证明关掉门控后 U≥1",
+    "把封闭集准确率和开放集 recall 分列，拒绝用 caption 指标代替病灶协议"
+  ],
+  "misconception": {
+    "myth": "医学图文只是换一批图和更长的 caption，LLaVA 的冻视觉、训投影、再训 LLM 原样复用即可。",
+    "truth": "顺序可以借用，数据和验收不能借用。报告字段不能整段当 caption 算损失；空图上的无框阳性必须单独计数。本课只讲训练与评测协议，不构成临床建议。"
+  },
+  "prerequisites": [
+    "第 22 课：冻视觉、只训投影、再动 LLM 的自然图像配方",
+    "第 23 课：答对不等于看对位置；本课把该纪律改写成病灶框",
+    "第 01 课：assistant-only loss mask 与 golden case"
+  ],
+  "labId": "lab-58-medical-unboxed",
+  "labExportName": "Lesson58MedicalLab",
+  "readingTime": 80,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文，跑浏览器胸片门控实验和 CPU 无框断言 / mask 夹具",
+    "recommended": "复现 LLaVA-Med 公开配方需要 8×A100；论文表 5 记录 batch 128 时第一阶段 1 epoch 约 6.8 小时、60K 指令 3 epoch 约 8.0 小时",
+    "notes": "本课不提供临床建议。CPU 实验和浏览器 Lab 是教学夹具，不能写成影像诊断准确率，也不能标成复现了 LLaVA-Med 的 VQA 分数"
+  },
+  "learningMode": ["阅读", "浏览器实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "证明医学报告字段的监督集合与自然 caption 不同，并计数空图上的无框肯定",
+    "proves": [
+      "医学 mask 不含 indication / comparison，自然 mask 只含 caption",
+      "把自然配方套到报告上会把 indication 误纳入损失",
+      "空图关闭无框门控时 U_count=1，打开后门控为 0",
+      "开放集 recall=1 不能推出无框计数为 0"
+    ],
+    "doesNotProve": "不证明任何真实医学模型的诊断能力，也不报告真实胸片上的肺炎检出率",
+    "sourceFile": "lesson_58.py"
+  },
+  "firstH2": "医学图文为什么不能沿用自然图像配方"
+}

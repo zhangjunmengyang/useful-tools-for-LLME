@@ -1,0 +1,98 @@
+/* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4 · macrostructure: Workbench · design-system: design.md */
+
+.frame {
+  --lab-ink: var(--color-ink);
+  --lab-muted: var(--color-muted);
+  --lab-line: var(--color-rule);
+  --lab-green: var(--color-success);
+  --lab-soft: var(--color-success-soft);
+  width: 100%;
+  color: var(--lab-ink);
+  font: 400 0.95rem/1.55 var(--font-body);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-sm);
+  align-items: start;
+  margin-bottom: var(--space-md);
+}
+
+.labels {
+  display: flex;
+  gap: var(--space-2xs);
+  margin: 0 0 var(--space-2xs);
+}
+
+.labels span {
+  padding: var(--space-3xs) var(--space-2xs);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-input);
+  color: var(--color-muted);
+  font: 600 0.68rem/1.35 var(--font-outlier);
+  letter-spacing: 0.04em;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.description {
+  max-width: 64rem;
+  margin: var(--space-2xs) 0 0;
+  color: var(--lab-muted);
+}
+
+.gate {
+  display: grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr);
+  gap: var(--space-xs);
+  align-items: center;
+  margin-top: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-input);
+  background: var(--color-paper-2);
+}
+
+.gatePassed {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.gateMark {
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-paper-3);
+  color: var(--color-neutral);
+  font: 700 0.8rem/1 var(--font-outlier);
+}
+
+.gatePassed .gateMark {
+  background: var(--color-success);
+  color: var(--color-accent-ink);
+}
+
+.gate strong {
+  font-size: 0.85rem;
+}
+
+.gate p {
+  margin: var(--space-3xs) 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 620px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-xs);
+  }
+}

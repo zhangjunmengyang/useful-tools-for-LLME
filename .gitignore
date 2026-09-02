@@ -2,3 +2,4 @@ __pycache__/
 .superpowers/
 .venv/
 research/
+content/*/experiments/artifacts/

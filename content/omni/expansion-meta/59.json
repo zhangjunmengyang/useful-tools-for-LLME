@@ -1,0 +1,45 @@
+{
+  "id": "59",
+  "slug": "music-sound",
+  "shortTitle": "音乐和环境声",
+  "unit": "domain-research",
+  "essentialQuestion": "同一套 8 路语音码本上，为什么语音句可以仍可懂，鼓点网格却塌掉？事件边界 F1 和语音 WER 为什么不能共用一个分数？",
+  "hook": "80 ms 一帧的语音 RVQ 听写可以 WER 为 0，20 ms 间距的鼓点 flam 会被并进同一格。可懂不是音高，也不是 onset。",
+  "outcomes": [
+    "说明音乐要保住的是音高与节拍网格，环境声要保住的是事件边界，二者都不是语音可懂度。",
+    "用手算证明 12.5 Hz 帧把 20 ms flam 并进同一格：Recall = 1/2，F1 = 2/3，而语音 WER 仍为 0。",
+    "写出 WER 与事件 F1 的标签契约：词序列对毫秒时间戳，不得合成 (1-WER+F1)/2。",
+    "对照 MusicGen 的 32 kHz / 50 Hz tokenizer 和 AudioLDM 的连续 latent，指出它们不是「再接一路 Mimi」。"
+  ],
+  "misconception": {
+    "myth": "8 路 RVQ 已经能重建语音，接上音乐和环境声只是另一路同样的 codec；用一个音频分数就能验收。",
+    "truth": "语音 codec 的帧率和残差是按音节与共振峰训的。同一网格会让鼓点并帧、让谐波糊掉。WER 与事件 F1 使用不同标签，共用分会把网格塌缩藏过去。"
+  },
+  "prerequisites": [
+    "第 03 课：知道 RVQ、码率和重建不等于可预测。",
+    "第 04 课：知道 delay schedule，本课不重做。",
+    "第 43 课：知道转写层和指令层要分账，本课把分账从文本 mask 转到音频域标签。"
+  ],
+  "labId": "lab-59-music-sound",
+  "labExportName": "Lesson59SoundLab",
+  "readingTime": 70,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 试公开 EnCodec / MusicGen / AudioLDM 权重的三条探针；复现论文规模需要多卡与许可音乐或 AudioCaps",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对 WER 与事件 F1 的标签家族、80 ms 并帧和非法共用分。"
+  },
+  "learningMode": ["阅读", "交互实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "在固定 1280 ms 夹具上核对：语音用词序列算 WER，鼓点用毫秒 onset 算 F1，两类标签不可互换。",
+    "proves": [
+      "词标签与 onset 标签元素类型不同、长度不同。",
+      "80 ms 语音网格上 WER = 0 且鼓点 F1 = 2/3 < 0.70。",
+      "(1-WER+F1)/2 = 5/6 会在网格已经塌掉时仍显示合格。",
+      "20 ms 网格能把 16 个 onset 全部拆开，F1 = 1。"
+    ],
+    "doesNotProve": "不证明 MusicCaps FAD、AudioCaps FD、MUSHRA 或真实 Mimi/EnCodec 重建分数。",
+    "sourceFile": "lesson_59.py"
+  },
+  "firstH2": "音乐和环境声为什么不是另一路语音 codec"
+}

@@ -1,0 +1,371 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.78fr) minmax(0, 2fr);
+  overflow: hidden;
+  border: 1px solid var(--xlab-rule, #d7dfd8);
+  border-radius: 0.8rem;
+  background: var(--xlab-surface, #fff);
+}
+
+.controls {
+  display: grid;
+  align-content: start;
+  gap: 0.95rem;
+  padding: 1.15rem;
+  border-right: 1px solid var(--xlab-rule, #dfe5df);
+  background: var(--xlab-surface-2, #f5f7f4);
+}
+
+.controls h3 {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.controls label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.controls label > span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--xlab-muted, #5e685f);
+  font-size: 0.76rem;
+}
+
+.controls output {
+  color: var(--xlab-accent-ink, #1a4f35);
+  font: 650 0.75rem/1 var(--font-geist-mono, monospace);
+}
+
+.controls input[type="range"] {
+  width: 100%;
+  accent-color: var(--xlab-accent, #176f48);
+}
+
+.controls fieldset {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.controls legend {
+  margin-bottom: 0.15rem;
+  color: var(--xlab-muted, #5e685f);
+  font-size: 0.72rem;
+}
+
+.controls fieldset label {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+}
+
+.note {
+  margin: 0;
+  color: var(--xlab-muted, #667068);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.stageList {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.stageRow {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--xlab-rule, #d9e1da);
+  border-radius: 0.4rem;
+  background: var(--xlab-surface, #fff);
+}
+
+.stageRow b {
+  font: 650 0.78rem/1 var(--font-geist-mono, monospace);
+}
+
+.stageRow span {
+  color: var(--xlab-muted, #5e685f);
+  font-size: 0.7rem;
+}
+
+.stageRow .mover {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.stageRow button {
+  min-width: 1.6rem;
+  min-height: 1.15rem;
+  padding: 0;
+  border: 1px solid var(--xlab-rule-2, #d5dcd6);
+  border-radius: 0.25rem;
+  background: var(--xlab-surface-2, #f7faf7);
+  color: var(--xlab-ink-2, #47534b);
+  font: 650 0.65rem/1 var(--font-geist-mono, monospace);
+  cursor: pointer;
+}
+
+.stageRow button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.stage {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1.15rem;
+}
+
+.formula {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--xlab-rule, #e1e5e2);
+  color: var(--xlab-muted, #667068);
+  font: 0.72rem/1.45 var(--font-geist-mono, monospace);
+}
+
+.formula strong {
+  color: var(--xlab-ink, #213a2c);
+}
+
+.lanes {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.lane {
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--xlab-rule, #d9e1da);
+  border-radius: 0.5rem;
+  background: var(--xlab-surface-2, #fbfcfb);
+}
+
+.lane header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  color: var(--xlab-muted, #5e685f);
+  font-size: 0.72rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+}
+
+.chip {
+  min-width: 2.1rem;
+  padding: 0.28rem 0.4rem;
+  border-radius: 0.3rem;
+  color: var(--xlab-ink, #213a2c);
+  font: 650 0.68rem/1.2 var(--font-geist-mono, monospace);
+  text-align: center;
+}
+
+.chipText {
+  border: 1px solid #b7cfc0;
+  background: #e7f4ec;
+}
+
+.chipImage {
+  border: 1px solid #d4c39a;
+  background: #f7efd8;
+}
+
+.chipInner {
+  border: 1px dashed #c9897a;
+  background: #f8e4de;
+  color: #7a3f32;
+}
+
+.hiddenValue {
+  color: var(--xlab-faint, #748078);
+  font: 0.78rem/1.4 var(--font-geist-mono, monospace);
+}
+
+.mask {
+  display: grid;
+  justify-content: start;
+  gap: 1px;
+  overflow: auto;
+  max-height: 14rem;
+  padding: 0.2rem;
+}
+
+.maskRow {
+  display: grid;
+  gap: 1px;
+}
+
+.cell {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 0.12rem;
+  background: var(--xlab-surface-3, #edf1ee);
+}
+
+.cellOn {
+  background: var(--xlab-accent, #176f48);
+}
+
+.cellLeak {
+  background: #b5473a;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--xlab-rule, #e0e5e0);
+}
+
+.metrics div {
+  padding: 0.65rem 0.5rem 0;
+}
+
+.metrics div + div {
+  border-left: 1px solid var(--xlab-rule, #e0e5e0);
+}
+
+.metrics dt {
+  color: var(--xlab-muted, #6b756e);
+  font-size: 0.68rem;
+}
+
+.metrics dd {
+  margin: 0.15rem 0 0;
+  font: 650 1rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.predict {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: end;
+  margin-top: 0.4rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--xlab-rule, #dce1dd);
+  border-radius: 0.65rem;
+}
+
+.predict fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.predict legend {
+  width: 100%;
+  margin-bottom: 0.4rem;
+  font-weight: 620;
+}
+
+.predict fieldset label {
+  cursor: pointer;
+}
+
+.predict fieldset input {
+  position: absolute;
+  opacity: 0;
+}
+
+.predict fieldset span {
+  display: block;
+  padding: 0.38rem 0.65rem;
+  border: 1px solid var(--xlab-rule-2, #d6dcd7);
+  border-radius: 0.35rem;
+  color: var(--xlab-ink-2, #526057);
+  font-size: 0.74rem;
+}
+
+.predict input:checked + span {
+  border-color: var(--xlab-accent, #1a714b);
+  background: var(--xlab-accent-soft, #edf7f0);
+  color: var(--xlab-accent-ink, #15583b);
+}
+
+.predict input:focus-visible + span,
+.actions button:focus-visible,
+.stageRow button:focus-visible {
+  outline: 3px solid var(--xlab-focus-ring, #a3ceb3);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.45rem;
+}
+
+.actions button {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 0.4rem;
+  font: 650 0.75rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.reset {
+  border: 1px solid var(--xlab-rule-2, #d5dcd6);
+  background: var(--xlab-surface-2, white);
+  color: var(--xlab-ink-2, #47534b);
+}
+
+.run {
+  border: 1px solid var(--xlab-accent, #17653f);
+  background: var(--xlab-accent, #176d45);
+  color: var(--xlab-on-ink, white);
+}
+
+.run:disabled {
+  border-color: var(--xlab-disabled, #c9ceca);
+  background: var(--xlab-disabled, #c9ceca);
+  cursor: not-allowed;
+}
+
+.feedback {
+  margin: 0.6rem 0 0;
+  color: var(--xlab-warning, #8a4e18);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    border-right: 0;
+    border-bottom: 1px solid var(--xlab-rule, #dfe5df);
+  }
+
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .predict {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

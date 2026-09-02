@@ -1,0 +1,612 @@
+{
+  "schemaVersion": 1,
+  "lessonCount": 60,
+  "sectionCount": 986,
+  "paperCount": 254,
+  "totalCharacterCount": 2254175,
+  "totalBodyCharacterCount": 2252677,
+  "totalByteCount": 4328589,
+  "sourceDigest": "d6f5993d134a9b1fd23fcd83150196967bf7b9073afaec01574bf4c28e0ef592",
+  "files": [
+    {
+      "sourceFile": "01_baseline_reproduction.md",
+      "id": "01",
+      "title": "第 01 课：建立可追溯的 MiniMind-O 基线",
+      "sha256": "a9d7b39ae3b92eea61e96187cf6884286da89b9640403fd0603f47aea10f020b",
+      "characterCount": 21737,
+      "byteCount": 38078,
+      "lineCount": 652,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "02_multimodal_connector.md",
+      "id": "02",
+      "title": "第 02 课：比较三种多模态 Connector",
+      "sha256": "d636f9cb90e48b14023dafb1137725e9e57644ea59850f87d6d7476ae15f32a3",
+      "characterCount": 21064,
+      "byteCount": 35984,
+      "lineCount": 646,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "03_audio_codec.md",
+      "id": "03",
+      "title": "第 03 课：理解并比较音频 Codec",
+      "sha256": "929c34b321e4a70292406ef41127e8ebd1e3ed29e2c22505239d53ae6fd0c460",
+      "characterCount": 22477,
+      "byteCount": 37858,
+      "lineCount": 693,
+      "sectionCount": 21
+    },
+    {
+      "sourceFile": "04_multicodebook_talker.md",
+      "id": "04",
+      "title": "第 04 课：比较 Talker 的多码本生成拓扑",
+      "sha256": "f89e6fecd6d8b7680a9f5b187bb0c12c1f85dc5a2c936820499d3374044f7c43",
+      "characterCount": 35012,
+      "byteCount": 58362,
+      "lineCount": 1294,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "05_streaming_listener.md",
+      "id": "05",
+      "title": "第 05 课：实现因果流式 Listener",
+      "sha256": "92242b06d3a46116d7d17d82ccf270888a2c51b7a312a96c01099fc864dc6012",
+      "characterCount": 25441,
+      "byteCount": 38644,
+      "lineCount": 807,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "06_turn_policy.md",
+      "id": "06",
+      "title": "第 06 课：用四动作策略判断话轮",
+      "sha256": "08babd7385f1286597ed8afed4e1678fcf0264c68eaeda4d69f1b4a2d6547ccc",
+      "characterCount": 25496,
+      "byteCount": 43513,
+      "lineCount": 790,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "07_full_duplex_routing.md",
+      "id": "07",
+      "title": "第 07 课：实现全双工路由与调度",
+      "sha256": "e54235638a24fd16bee0f3d519ffa4256984083131bc2d28bb3a25cd5a2b7063",
+      "characterCount": 33846,
+      "byteCount": 53662,
+      "lineCount": 1148,
+      "sectionCount": 21
+    },
+    {
+      "sourceFile": "08_dynamic_vision.md",
+      "id": "08",
+      "title": "第 08 课：动态分辨率、多图身份与 M-RoPE",
+      "sha256": "f6da501fa480e76784fe90fc79a90bc47745950952ecab8c3d9a8a80fe5ec6f1",
+      "characterCount": 27002,
+      "byteCount": 45595,
+      "lineCount": 807,
+      "sectionCount": 22
+    },
+    {
+      "sourceFile": "09_native_video.md",
+      "id": "09",
+      "title": "第 09 课：建立原生视频时间轴",
+      "sha256": "851a2bdc1c5b84aa91ec73c33b78f92ef56b4dcb5471d29140ccc49cf843f2fa",
+      "characterCount": 26648,
+      "byteCount": 46711,
+      "lineCount": 805,
+      "sectionCount": 22
+    },
+    {
+      "sourceFile": "10_video_token_reduction.md",
+      "id": "10",
+      "title": "第 10 课：视频 Token 压缩与质量延迟权衡",
+      "sha256": "7fe59c0b4263d87a08f83fc591b6cd60205171cd45de5969583ad3d2acc11ef9",
+      "characterCount": 22771,
+      "byteCount": 37195,
+      "lineCount": 542,
+      "sectionCount": 20
+    },
+    {
+      "sourceFile": "11_tiny_moe.md",
+      "id": "11",
+      "title": "第 11 课：实现稀疏专家 Thinker",
+      "sha256": "3db5a6594e69a83a5d4434e67935f90f6482d0481c46b7f01b1274db1475f462",
+      "characterCount": 24030,
+      "byteCount": 39681,
+      "lineCount": 575,
+      "sectionCount": 21
+    },
+    {
+      "sourceFile": "12_mamba_attention_hybrid.md",
+      "id": "12",
+      "title": "第 12 课：比较 Mamba-2 与 Attention 混合架构",
+      "sha256": "6d4a2b93854afbffd6d3fc46e0a19300372839efc44d8696f7e78fceaae83a73",
+      "characterCount": 36843,
+      "byteCount": 59244,
+      "lineCount": 860,
+      "sectionCount": 22
+    },
+    {
+      "sourceFile": "13_distributed_8gpu.md",
+      "id": "13",
+      "title": "第 13 课：实现可验证的八卡分布式训练",
+      "sha256": "877814475bad740f00e68b477ecc2b2bc5c31f8d7888224fd7b4a454183504f1",
+      "characterCount": 28397,
+      "byteCount": 44898,
+      "lineCount": 717,
+      "sectionCount": 23
+    },
+    {
+      "sourceFile": "14_long_context_curriculum.md",
+      "id": "14",
+      "title": "第 14 课：渐进式扩展到 128K 上下文",
+      "sha256": "f3b67e48ac60c27bb7e32d005b4f33e976eb68ac817bb8f4f4a6dd5ad1316be6",
+      "characterCount": 37201,
+      "byteCount": 65034,
+      "lineCount": 874,
+      "sectionCount": 21
+    },
+    {
+      "sourceFile": "15_joint_multimodal_sft.md",
+      "id": "15",
+      "title": "第 15 课：多模态联合 SFT",
+      "sha256": "d215d8b3dd07fd8e2b89899971eb0194176af0dd55c7d35c655bf0b45b7c3632",
+      "characterCount": 42790,
+      "byteCount": 68620,
+      "lineCount": 1207,
+      "sectionCount": 24
+    },
+    {
+      "sourceFile": "16_multimodal_preference_optimization.md",
+      "id": "16",
+      "title": "第 16 课：多模态 DPO 与 mDPO",
+      "sha256": "f2be5462ff0d798e0cd29e5b1f4ee720d4ba0d9dab2af946a337869650eeaf38",
+      "characterCount": 38811,
+      "byteCount": 64874,
+      "lineCount": 1137,
+      "sectionCount": 25
+    },
+    {
+      "sourceFile": "17_grpo_rlvr.md",
+      "id": "17",
+      "title": "第 17 课：多模态 GRPO 与 RLVR",
+      "sha256": "0f41af59d6ed3bed201861931abc4dd7b0bd67ef01511da3abf55715dc84a7c0",
+      "characterCount": 34867,
+      "byteCount": 64582,
+      "lineCount": 919,
+      "sectionCount": 26
+    },
+    {
+      "sourceFile": "18_nemotron_finetuning.md",
+      "id": "18",
+      "title": "第 18 课：复现 Nemotron Omni LoRA 微调",
+      "sha256": "e69389a37f34b83de3c64c17c8ab1cd1461b44d05894a0966138051e00e79071",
+      "characterCount": 36775,
+      "byteCount": 66323,
+      "lineCount": 1002,
+      "sectionCount": 26
+    },
+    {
+      "sourceFile": "19_capstone_thinker_talker.md",
+      "id": "19",
+      "title": "第 19 课：集成 Nemotron Thinker 与 MiniMind Talker",
+      "sha256": "232332ea0b7e5213c7edc91cc11f6a577de8f61dd0ac3effa9fce6ed656ed8e5",
+      "characterCount": 61913,
+      "byteCount": 95149,
+      "lineCount": 1729,
+      "sectionCount": 23
+    },
+    {
+      "sourceFile": "20_unified_understanding_generation.md",
+      "id": "20",
+      "title": "第 20 课：统一视觉理解与图像生成（选修）",
+      "sha256": "c0d31f87dc2e3de25f6ecf1407b5ce2c2f0b8f87aa6fa56d90f4f48b052c9eb7",
+      "characterCount": 45412,
+      "byteCount": 71460,
+      "lineCount": 1229,
+      "sectionCount": 25
+    },
+    {
+      "sourceFile": "21_clip_siglip_contrastive.md",
+      "id": "21",
+      "title": "第 21 课：用对比学习建立图文共享空间",
+      "sha256": "8fda9ab7433c7cc0329282015ca9d9fdd34825d4685d5ff40eee24489a978727",
+      "characterCount": 39213,
+      "byteCount": 80314,
+      "lineCount": 597,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "22_standard_vlm_recipe.md",
+      "id": "22",
+      "title": "第 22 课：复现视觉语言模型的标准训练配方",
+      "sha256": "25f3579d2d53acedf4271fa8f37c29063bbfe2c06d267878e9b630e4058b91e4",
+      "characterCount": 39832,
+      "byteCount": 80740,
+      "lineCount": 791,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "23_grounding_ocr_spatial.md",
+      "id": "23",
+      "title": "第 23 课：检验指代、OCR 与空间幻觉",
+      "sha256": "9c22a832b420a433ef52fe405a2b9cec994f368180e6d191fe2eff5e27836a04",
+      "characterCount": 40121,
+      "byteCount": 81990,
+      "lineCount": 681,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "24_vlm_to_vla.md",
+      "id": "24",
+      "title": "第 24 课：把动作接进视觉语言模型",
+      "sha256": "304ee097a03634525ced20763e1833e3dd2486746479f5ac61d6daf0cb8398b2",
+      "characterCount": 37554,
+      "byteCount": 78266,
+      "lineCount": 634,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "25_action_tokenization.md",
+      "id": "25",
+      "title": "第 25 课：比较离散、连续与压缩动作表示",
+      "sha256": "0e424ee90420bcfd87124428913904ab5cc4400e2ea69a5b1dbd96dc0ed3f059",
+      "characterCount": 38356,
+      "byteCount": 79101,
+      "lineCount": 634,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "26_robot_data_mixture.md",
+      "id": "26",
+      "title": "第 26 课：混合异构机器人数据并控制机体捷径",
+      "sha256": "93c94e59f3c346092d87e339eb3010b28da3d6200a49fd3f4e46f823ba8f36bd",
+      "characterCount": 36155,
+      "byteCount": 76989,
+      "lineCount": 599,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "27_autoregressive_vla.md",
+      "id": "27",
+      "title": "第 27 课：实现并诊断自回归 VLA",
+      "sha256": "f1807d1fe28f6cfac4175e0dc6f5ac8a21f5b4a968ecea2ac8064081d0af995d",
+      "characterCount": 42379,
+      "byteCount": 83755,
+      "lineCount": 578,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "28_flow_matching_vla.md",
+      "id": "28",
+      "title": "第 28 课：用流匹配生成连续动作块",
+      "sha256": "ee1857e76d438123545d26bd4de54d82223c85df7933b822fc34aba6e4e436b0",
+      "characterCount": 36131,
+      "byteCount": 76296,
+      "lineCount": 701,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "29_dual_system_vla.md",
+      "id": "29",
+      "title": "第 29 课：拆开快慢双系统 VLA",
+      "sha256": "765e4326d0d9c46472600ee08ee3fd7e0cddc2e38f0a972a8a5437185f69b8df",
+      "characterCount": 40641,
+      "byteCount": 81724,
+      "lineCount": 651,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "30_closed_loop_control.md",
+      "id": "30",
+      "title": "第 30 课：在闭环里权衡频率、分块和延迟",
+      "sha256": "5459f54af4799166bfbc865eb2d887cc3af125987f683265d2fecd9a4b117e56",
+      "characterCount": 42399,
+      "byteCount": 83564,
+      "lineCount": 757,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "31_vla_evaluation.md",
+      "id": "31",
+      "title": "第 31 课：设计可拆层的 VLA 评测",
+      "sha256": "999e864fb3107e32ad73d2b08c66ca4437bc2f014c8f31daae11afef0f8b57e5",
+      "characterCount": 43932,
+      "byteCount": 85972,
+      "lineCount": 741,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "32_gui_agent_grounding.md",
+      "id": "32",
+      "title": "第 32 课：统一 GUI 操作与机器人动作",
+      "sha256": "e861e53e0037870ac98fde374fab4724e6623ff2b3dd64d0acb431e03795e190",
+      "characterCount": 41117,
+      "byteCount": 82270,
+      "lineCount": 612,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "33_world_model_latent.md",
+      "id": "33",
+      "title": "第 33 课：世界模型预测的是像素还是表征",
+      "sha256": "e9afd7f86e3f803902deb4bfdba0ce3c44891e8281e790a2413ca12718668404",
+      "characterCount": 38072,
+      "byteCount": 78991,
+      "lineCount": 549,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "34_world_model_platform.md",
+      "id": "34",
+      "title": "第 34 课：世界模型当数据引擎还是当控制器",
+      "sha256": "26f57981a603f893f7f67815dc0401feaa04b97018307627fd58eac043dfdf78",
+      "characterCount": 33947,
+      "byteCount": 74570,
+      "lineCount": 456,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "35_spatial_depth_vla.md",
+      "id": "35",
+      "title": "第 35 课：把深度接进抓取动作",
+      "sha256": "a2b958a585bb204d471c7a3cd6dba6229ad9d224cfc28df4a9b8f8f17a59270e",
+      "characterCount": 37555,
+      "byteCount": 78342,
+      "lineCount": 691,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "36_navigation_action_space.md",
+      "id": "36",
+      "title": "第 36 课：把导航底盘和手臂动作分成两套词表",
+      "sha256": "539d92fb2b3e761b9992e5686fb4c47c556642cf09768990c233f860a22bdb8b",
+      "characterCount": 39520,
+      "byteCount": 80499,
+      "lineCount": 695,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "37_dexterous_humanoid.md",
+      "id": "37",
+      "title": "第 37 课：比较高维动作在固定预算下的损失",
+      "sha256": "08992dd908a7e0a0d7499b5f1ccd37ea666c7b2a13a876ce921bf084c4d6c24a",
+      "characterCount": 41528,
+      "byteCount": 82670,
+      "lineCount": 707,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "38_vla_rlvr.md",
+      "id": "38",
+      "title": "第 38 课：给 VLA 接上可验证强化学习",
+      "sha256": "7622e484ef129986141b03f5f32fc056ec2cef0358884cef4059d4b290dba3bc",
+      "characterCount": 39174,
+      "byteCount": 80383,
+      "lineCount": 579,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "39_long_horizon_memory.md",
+      "id": "39",
+      "title": "第 39 课：用子目标栈处理长程失败",
+      "sha256": "207f37ac0f7e609b9e676ab8f8ed18dc5bdbca49954b45dd7a359e3f79f6dd5d",
+      "characterCount": 37005,
+      "byteCount": 78324,
+      "lineCount": 673,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "40_force_safety_cutoff.md",
+      "id": "40",
+      "title": "第 40 课：在力超限时切断动作块",
+      "sha256": "12477e0a307e3d3fe1eba74978e45737d3be4be57a8d9e4780419f3dd6e71875",
+      "characterCount": 37162,
+      "byteCount": 78096,
+      "lineCount": 641,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "41_discrete_any_to_any.md",
+      "id": "41",
+      "title": "第 41 课：用离散 token 统一图像与文本",
+      "sha256": "cecdc0181d8565d02e8b8b15e7140a567f52d63a8b8a488c95a7eb3b54f6d237",
+      "characterCount": 43026,
+      "byteCount": 84180,
+      "lineCount": 693,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "42_interleaved_schedule.md",
+      "id": "42",
+      "title": "第 42 课：为字、图、声排出交错生成日程",
+      "sha256": "297869551f76a8744c2cc8772db07923ec7ae620201d0d78b995636171c921d7",
+      "characterCount": 39412,
+      "byteCount": 80474,
+      "lineCount": 579,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "43_audio_language_understand.md",
+      "id": "43",
+      "title": "第 43 课：分开语音转写和语音指令跟随",
+      "sha256": "0cd150402968504fc87aeb263b8ee727407ed18c2a28532d2f78d6260292b5fc",
+      "characterCount": 41178,
+      "byteCount": 81978,
+      "lineCount": 682,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "44_document_layout.md",
+      "id": "44",
+      "title": "第 44 课：把文档版面从单图 OCR 里拆出来",
+      "sha256": "688cb1cdf7a057533c3af5be5740724afa62685559a2ced5ea1b8e96617e7914",
+      "characterCount": 37288,
+      "byteCount": 78756,
+      "lineCount": 624,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "45_multimodal_retrieve.md",
+      "id": "45",
+      "title": "第 45 课：为长视频选择检索层",
+      "sha256": "193841ff3ba28e1d9141ba1558753ec873d263af66b0f24a71066bcc1729a276",
+      "characterCount": 35991,
+      "byteCount": 76844,
+      "lineCount": 472,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "46_omni_serving.md",
+      "id": "46",
+      "title": "第 46 课：用 stage graph 调度多模态推理",
+      "sha256": "ca7f431540a5fabe40b5fa8da774df2fc7f2bbbe8d1ee21c54bd3bd9a2e42bd6",
+      "characterCount": 47435,
+      "byteCount": 88997,
+      "lineCount": 667,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "47_eval_taxonomy.md",
+      "id": "47",
+      "title": "第 47 课：把六类评测数字分桶记账",
+      "sha256": "63cc889805251eebbd5a6fa227872030d7986b3fc6076e23ff29b29c71d18ded",
+      "characterCount": 43719,
+      "byteCount": 85767,
+      "lineCount": 718,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "48_speech_action_runtime.md",
+      "id": "48",
+      "title": "第 48 课：把语音打断和手臂重规划接到一张状态表",
+      "sha256": "7467739081e38fe93ccc19b84e5cafe1ea39665a0e6ad729ee140260b7942ccc",
+      "characterCount": 44526,
+      "byteCount": 85494,
+      "lineCount": 790,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "49_video_generation.md",
+      "id": "49",
+      "title": "第 49 课：把视频生成和视频理解拆开记账",
+      "sha256": "b3a8f08a542716b7a081668aed25ea5ba33f1c645b902a4be572d3a6937bf6f2",
+      "characterCount": 46615,
+      "byteCount": 88377,
+      "lineCount": 697,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "50_3d_generation.md",
+      "id": "50",
+      "title": "第 50 课：把三维资产生成接到统一 latent",
+      "sha256": "6212ff61c7a8a76cce7fa3a2503de39055312b0e7b883f04cd3c787a07a98888",
+      "characterCount": 42974,
+      "byteCount": 84090,
+      "lineCount": 686,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "51_multimodal_cot.md",
+      "id": "51",
+      "title": "第 51 课：给视觉语言模型加上分步推理",
+      "sha256": "ca214ee7678fece7877ae5df26ea4cbacec41a759ee0f4aa3f62abb8265dc105",
+      "characterCount": 39366,
+      "byteCount": 80662,
+      "lineCount": 613,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "52_multimodal_tools.md",
+      "id": "52",
+      "title": "第 52 课：让多模态模型在看见图之后调用工具",
+      "sha256": "7bfec52683a71e8b834a42d8855cdc74df633187c24c32338158e86ed80cddf6",
+      "characterCount": 40029,
+      "byteCount": 81641,
+      "lineCount": 557,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "53_cross_session_memory.md",
+      "id": "53",
+      "title": "第 53 课：给多模态智能体加上跨会话记忆",
+      "sha256": "f6ab79f970c29d913dddc7c94c022dc43aca6da8b6040d13e2dbae9627599503",
+      "characterCount": 38503,
+      "byteCount": 79664,
+      "lineCount": 578,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "54_synthetic_data.md",
+      "id": "54",
+      "title": "第 54 课：用合成数据补分布而不是只加条数",
+      "sha256": "206a035794a26d5e963f9f2d13a3a5bad0a801ee4306b59b89fb46ac153bcc85",
+      "characterCount": 38574,
+      "byteCount": 79641,
+      "lineCount": 630,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "55_ondevice_quant.md",
+      "id": "55",
+      "title": "第 55 课：测量端侧量化对各模态 token 的损伤",
+      "sha256": "cd411b5f64de9d3e69e2803e4887fd9af24eec84c11eac545a3b052196e71134",
+      "characterCount": 42525,
+      "byteCount": 84175,
+      "lineCount": 669,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "56_generation_reward.md",
+      "id": "56",
+      "title": "第 56 课：用偏好模型给生成打分",
+      "sha256": "3f12a5d04e448ea31debf20216a30fd2b33d5f76ff3635315249edc6444c4b95",
+      "characterCount": 40170,
+      "byteCount": 81610,
+      "lineCount": 630,
+      "sectionCount": 13
+    },
+    {
+      "sourceFile": "57_data_provenance.md",
+      "id": "57",
+      "title": "第 57 课：给训练图像留下可核查出处",
+      "sha256": "fb9da5b4902b7bde044e93f2c6673269e8ddafa111b3083dd2d5e143f302ac57",
+      "characterCount": 35842,
+      "byteCount": 76777,
+      "lineCount": 544,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "58_medical_vlm.md",
+      "id": "58",
+      "title": "第 58 课：把医学图文从自然图像配方里拆出来",
+      "sha256": "07b958c9d96604f0bb8385642c33f158a70d58bb442bb1de8fc776fcd23283da",
+      "characterCount": 39121,
+      "byteCount": 80113,
+      "lineCount": 805,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "59_music_sound.md",
+      "id": "59",
+      "title": "第 59 课：把音乐和环境声从语音 codec 里拆出来",
+      "sha256": "f866d05f137b8f87c417d1d4d5c5d6a9609618a090ea8babe9f053e5ff66bef7",
+      "characterCount": 41631,
+      "byteCount": 83333,
+      "lineCount": 627,
+      "sectionCount": 14
+    },
+    {
+      "sourceFile": "60_living_protocol.md",
+      "id": "60",
+      "title": "第 60 课：把新论文接到可执行的验收口径",
+      "sha256": "06cabb2955c29accbf3a11d26a0593b22a37845bdd0c2adb90cfd9c8d4ab1129",
+      "characterCount": 45924,
+      "byteCount": 87693,
+      "lineCount": 784,
+      "sectionCount": 14
+    }
+  ]
+}

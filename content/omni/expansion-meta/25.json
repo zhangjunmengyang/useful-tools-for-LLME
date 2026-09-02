@@ -1,0 +1,40 @@
+{
+  "id": "25",
+  "slug": "action-tokenization",
+  "shortTitle": "动作表示对照",
+  "unit": "vla",
+  "essentialQuestion": "均匀分箱、连续回归、动作分块和 DCT 压缩各自保住什么、丢掉什么？",
+  "hook": "机械臂的 7 维连续动作要进语言模型，先得变成能逐步预测的编号，或者改成一次吐出的连续块。选错表示，高频接触会消失，开环窗口会拖过环境变化。",
+  "outcomes": [
+    "写出均匀分箱的量化误差上界，并说明 B=2 时高频来回为何会塌进同一箱",
+    "用 H/f 计算动作分块的开环时长，并对照自回归 7 步与并行 1 步的串行深度",
+    "解释 FAST 的 DCT 加量化如何抑制高频抖动，且只引用论文 Table I 的压缩比",
+    "对照 OpenVLA 的 256-bin 交叉熵与 OpenVLA-OFT 的并行 L1，列出重建、词表和吞吐的取舍"
+  ],
+  "misconception": {
+    "myth": "动作 token 分得越细、词表越大，控臂一定越准，也一定越适合接进 VLM。",
+    "truth": "箱数只限制量化误差上界；高频来回在粗箱里会消失，而自回归逐步吐编号会把控制频率卡在数 Hz。连续 L1 和 DCT 压缩改的是可预测性与串行深度，不是把箱子加厚。"
+  },
+  "prerequisites": ["22", "24"],
+  "labId": "lab-25-action-repr",
+  "labExportName": "Lesson25ActionReprLab",
+  "readingTime": 70,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文，跑浏览器互动实验和 CPU 机制实验",
+    "recommended": "1×24GB 用于阅读公开权重的推理形状；不要求复现预训练",
+    "notes": "OpenVLA 预训练约为 64 张 A100、14 天、21500 A100-hours。本课主路径不训练 7B VLA，CPU 数字不能写成真机成功率。"
+  },
+  "learningMode": ["阅读", "互动实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "在固定 7 维示教上核对分箱误差上界、B=2 高频塌缩、H/f 线性开环，以及 DCT 保留系数的 token 数。",
+    "proves": [
+      "均匀分箱最大误差不超过箱宽一半",
+      "开环时长随分块长度线性增加",
+      "连续 L1 重建误差为 0 且并行串行深度为 1"
+    ],
+    "doesNotProve": "不证明任何真实机械臂成功率，也不复现 FAST 或 OpenVLA 的训练。",
+    "sourceFile": "lesson_25.py"
+  },
+  "firstH2": "连续动作怎样变成可预测的编号"
+}

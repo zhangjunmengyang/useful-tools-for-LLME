@@ -1,0 +1,43 @@
+{
+  "id": "21",
+  "slug": "clip-siglip-contrastive",
+  "shortTitle": "图文对比空间",
+  "unit": "vl-foundation",
+  "essentialQuestion": "冻结的视觉编码器为什么能给语言模型当眼睛？没有分类标签时，对比损失具体拉近什么、推开什么？",
+  "hook": "MiniMind-O 里的 SigLIP2 是冻住的。冻之前，它把图和字推进同一张余弦表。本课把那张表拆开手算。",
+  "outcomes": [
+    "写出对称 InfoNCE，并说明温度过小会把 softmax 逼近 one-hot、过大则分不开正负对",
+    "写出 SigLIP 的 pairwise sigmoid 损失，说明它不需要对 batch 做 softmax",
+    "解释同 batch 负样本、双塔编码，以及 LiT 锁图像塔、训文字塔的做法",
+    "在 4×4 矩阵上验证：打乱配对后损失不下降，温度从 0.01 调到 0.2 时正对概率峰值下降"
+  ],
+  "misconception": {
+    "myth": "CLIP 分数高就等于下游看图问答强；batch 小一点只是训得慢。",
+    "truth": "对比分数测的是共享空间里的检索，不是 VQA。InfoNCE 的负样本来自同 batch，batch 太小会改变任务本身。"
+  },
+  "prerequisites": [
+    "会写 Python，知道 softmax 和交叉熵",
+    "不必先学 MiniMind-O 第 01–20 课"
+  ],
+  "labId": "lab-21-contrastive",
+  "labExportName": "Lesson21ContrastiveLab",
+  "readingTime": 55,
+  "difficulty": "入门",
+  "hardware": {
+    "minimum": "CPU，完成本课手算实验与浏览器互动实验",
+    "recommended": "可选 1 张消费级 GPU，加载公开 CLIP 小模型做检索演示，不训练",
+    "notes": "复现 CLIP 论文规模需要约 256 块 TPUv3 训练约 10 天；ALIGN 用 1024 块 TPUv3。本课主路径不训练大模型。"
+  },
+  "learningMode": ["阅读", "交互实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "在固定 4×4 相似度矩阵上核对 InfoNCE、sigmoid 损失、温度缩放和打乱对照",
+    "proves": [
+      "打乱配对后 InfoNCE 与 sigmoid 损失都不低于对齐矩阵",
+      "温度从 0.01 升到 0.2 时正对 softmax 峰值下降",
+      "InfoNCE 对全局平移不变，sigmoid 损失会变"
+    ],
+    "doesNotProve": "不证明真实 CLIP/SigLIP 的 ImageNet 成功率，也不代替大规模训练",
+    "sourceFile": "lesson_21.py"
+  },
+  "firstH2": "图和字怎样被拉进同一空间"
+}

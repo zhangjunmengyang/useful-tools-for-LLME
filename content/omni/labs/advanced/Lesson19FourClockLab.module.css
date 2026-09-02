@@ -1,0 +1,391 @@
+.cockpit {
+  overflow: hidden;
+  border: 1px solid #283743;
+  border-radius: 0.8rem;
+  background: #101820;
+  color: #edf5fa;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #2c3a45;
+  background: #14212a;
+}
+
+.toolbar > div:first-child {
+  display: flex;
+  gap: 0.55rem;
+  align-items: baseline;
+}
+
+.toolbar span,
+.toolbar label {
+  color: #8298a8;
+  font: 0.62rem/1 var(--font-geist-mono, monospace);
+}
+
+.toolbar strong {
+  color: #f6b85c;
+  font: 700 0.82rem/1 var(--font-geist-mono, monospace);
+}
+
+.status {
+  display: flex;
+  gap: 0.38rem;
+  align-items: center;
+  color: #a8b9c4;
+  font: 650 0.61rem/1 var(--font-geist-mono, monospace);
+}
+
+.status i {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 50%;
+  background: #667680;
+}
+
+.status i[data-live="true"] {
+  background: #55d68b;
+  box-shadow: 0 0 0 4px rgba(85, 214, 139, 0.12);
+}
+
+.toolbar label {
+  display: flex;
+  justify-content: end;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.toolbar select {
+  min-width: 10rem;
+  min-height: 2rem;
+  border: 1px solid #3b4c58;
+  border-radius: 0.3rem;
+  background: #0f171d;
+  color: #e5edf2;
+  font-size: 0.67rem;
+}
+
+.timeline {
+  position: relative;
+  display: grid;
+  gap: 0.5rem;
+  padding: 2.1rem 1rem 1rem;
+}
+
+.timeAxis {
+  position: absolute;
+  top: 0.65rem;
+  right: 6rem;
+  left: 7.6rem;
+  height: 1rem;
+}
+
+.timeAxis span {
+  position: absolute;
+  color: #667d8c;
+  font: 0.52rem/1 var(--font-geist-mono, monospace);
+  transform: translateX(-50%);
+}
+
+.lane {
+  display: grid;
+  grid-template-columns: 6.3rem minmax(0, 1fr) 4.8rem;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.lane > span,
+.lane > b {
+  font: 0.62rem/1 var(--font-geist-mono, monospace);
+}
+
+.lane > span {
+  color: #9babb6;
+}
+
+.lane > b {
+  overflow: hidden;
+  color: #cfdae1;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lane > div {
+  position: relative;
+  height: 1.9rem;
+  overflow: hidden;
+  border: 1px solid #273945;
+  border-radius: 0.28rem;
+  background: #14222b;
+}
+
+.lane i {
+  position: absolute;
+  top: 0.28rem;
+  bottom: 0.28rem;
+  border-radius: 0.18rem;
+}
+
+.asr {
+  background: #3f8bb1;
+}
+
+.thinker {
+  background: #7a68b2;
+}
+
+.talker {
+  background: #c17b48;
+}
+
+.playback {
+  background: #4d9c70;
+}
+
+.trackOverlay {
+  position: absolute;
+  z-index: 3;
+  top: 1.8rem;
+  right: 6.45rem;
+  bottom: 0.8rem;
+  left: 7.95rem;
+  pointer-events: none;
+}
+
+.cursor,
+.interruptLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  pointer-events: none;
+}
+
+.cursor {
+  border-left: 1px solid #f5cf83;
+}
+
+.interruptLine {
+  border-left: 1px dashed #e66e59;
+}
+
+.interruptLine span {
+  position: absolute;
+  top: -1.15rem;
+  left: 0;
+  color: #f28670;
+  font: 650 0.52rem/1 var(--font-geist-mono, monospace);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.knobs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid #293a45;
+}
+
+.knob {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem 0.9rem;
+  border-right: 1px solid #293a45;
+  border-bottom: 1px solid #293a45;
+}
+
+.knob:nth-child(3n) {
+  border-right: 0;
+}
+
+.knob > span {
+  color: #879ba8;
+  font-size: 0.63rem;
+}
+
+.knob > div {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.knob input {
+  min-width: 0;
+  width: 100%;
+  accent-color: #e09b4d;
+}
+
+.knob output {
+  min-width: 4.2rem;
+  color: #f0bd75;
+  font: 650 0.62rem/1 var(--font-geist-mono, monospace);
+  text-align: right;
+}
+
+.diagnostics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: #14212a;
+}
+
+.diagnostics > div {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.diagnostics > div + div {
+  border-left: 1px solid #2b3b46;
+}
+
+.diagnostics span,
+.diagnostics small {
+  color: #8094a1;
+  font-size: 0.6rem;
+}
+
+.diagnostics b {
+  color: #eaf1f5;
+  font: 650 0.72rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.challenge {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #d7dde1;
+  border-radius: 0.65rem;
+}
+
+.challenge fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.challenge legend {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  font-weight: 620;
+}
+
+.challenge label {
+  display: flex;
+  gap: 0.32rem;
+  align-items: center;
+  color: #59656d;
+  font-size: 0.72rem;
+}
+
+.challenge input {
+  accent-color: #d77b36;
+}
+
+.challenge > div {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.4rem;
+}
+
+.challenge button {
+  min-height: 2.3rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #cfd7dc;
+  border-radius: 0.38rem;
+  background: white;
+  color: #45535d;
+  font: 650 0.73rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.challenge .run {
+  border-color: #b9652d;
+  background: #c66c30;
+  color: white;
+}
+
+.challenge .run:disabled {
+  border-color: #c6cdd1;
+  background: #c6cdd1;
+  cursor: not-allowed;
+}
+
+.challenge button:focus-visible,
+.toolbar select:focus-visible {
+  outline: 3px solid #efbd88;
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .toolbar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .toolbar label {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+  }
+
+  .knobs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .knob:nth-child(3n) {
+    border-right: 1px solid #293a45;
+  }
+
+  .knob:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .diagnostics {
+    grid-template-columns: 1fr;
+  }
+
+  .diagnostics > div + div {
+    border-top: 1px solid #2b3b46;
+    border-left: 0;
+  }
+
+  .challenge {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .lane {
+    grid-template-columns: 5.3rem minmax(0, 1fr);
+  }
+
+  .lane > b {
+    display: none;
+  }
+
+  .timeAxis {
+    right: 1rem;
+    left: 6.9rem;
+  }
+
+  .trackOverlay {
+    right: 0.65rem;
+    left: 6.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    transition: none;
+  }
+}

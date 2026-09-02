@@ -1,0 +1,51 @@
+{
+  "id": "56",
+  "slug": "generation-reward",
+  "shortTitle": "生成偏好打分",
+  "unit": "data-deploy",
+  "essentialQuestion": "图像或视频生成的偏好奖励与像素 L2 何时会给出相反的排序，为什么不能只用重建误差验收生成质量？",
+  "hook": "一张过平滑的图 L2 更低，一张锐利但像素错位的图人更喜欢。FID 还能和人类排序负相关。生成账本必须单列偏好序。",
+  "outcomes": [
+    "写出像素 L2 / FID 与 Bradley–Terry 偏好奖励的差别，并说明 MMSE 均值为什么发糊",
+    "用 ImageReward、PickScore、HPSv2 的公开表说明自动指标何时跟上人类、何时和 FID 反向",
+    "计算两组排序的 Kendall τ，并在 L2 序与偏好序相反时拒绝“L2 更低就是更好”",
+    "在浏览器里先预测再揭晓，造出过平滑 L2 更低、偏好分也更低的一对"
+  ],
+  "misconception": {
+    "myth": "生成质量就是重建误差：L2 更低、FID 更低、PSNR 更高，图就更好，人也一定更喜欢。",
+    "truth": "MSE 最优是后验均值，会把多种锐利可能平均成糊图。人偏好硬边、对齐和少畸变。L2 序与偏好序可以完全相反。"
+  },
+  "prerequisites": [
+    "第 16 课：偏好对、Bradley–Terry 与 DPO 隐式奖励，针对的是回答文本",
+    "第 20 课：flow matching 在 VAE latent 上回归速度，重建目标是连续 L2",
+    "第 21 课：CLIP 余弦可当图文相似度，但不能直接当人类偏好",
+    "第 49 课规格：生成帧差和理解 CE 必须分账，本课接管生成这一侧用什么尺子"
+  ],
+  "labId": "lab-56-generation-reward",
+  "labExportName": "Lesson56GenRewardLab",
+  "readingTime": 80,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文、跑浏览器两图对打教具与 CPU Kendall 夹具。",
+    "recommended": "若要复现 ImageReward / PickScore / HPSv2 推理：单卡可加载对应公开权重；ReFL 或 Diffusion-DPO 微调需要能加载 SD / SDXL 的训练卡。本课不要求加载这些权重。",
+    "notes": "教具和 CPU 实验证明 L2 与偏好可以反向，不证明真实 ImageReward 分数，也不能写成 FID 或人类 MOS。"
+  },
+  "learningMode": [
+    "先预测再揭晓",
+    "两序对打",
+    "CPU Kendall 夹具",
+    "文献对照"
+  ],
+  "practice": {
+    "purpose": "用四张固定像素图证明：过平滑 L2 最低但偏好最低，平移图相反，Kendall τ-a = -1。",
+    "proves": [
+      "L2 序与教学偏好序可以完全相反",
+      "过平滑赢像素误差、输 Bradley–Terry",
+      "恒等图 L2 为 0，自比较 τ 为 +1",
+      "灰均值可以比平移图更近像素，但仍不被偏好"
+    ],
+    "doesNotProve": "不证明 ImageReward、PickScore 或任何视频奖励模型的真实准确率，也不能把夹具分数写成 FID 或 MOS。",
+    "sourceFile": "lesson_56.py"
+  },
+  "firstH2": "生成质量为什么不能只用重建误差"
+}

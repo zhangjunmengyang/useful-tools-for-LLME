@@ -1,0 +1,41 @@
+{
+  "id": "26",
+  "slug": "robot-data-mixture",
+  "shortTitle": "异构数据混合",
+  "unit": "vla",
+  "essentialQuestion": "几十种机体、相机和动作空间拼在一起时，怎样混合才不会让大域淹没小域、让模型靠机体 ID 走捷径？",
+  "hook": "按原始条数采样，厨房里那台数据最多的手臂会占满 batch。把语言遮掉，准确率若几乎不动，模型多半在认桌布颜色和机体外形，而不是听指令。",
+  "outcomes": [
+    "写出域采样 p_d ∝ n_d^α，并计算 α=1、α=0 和每域上限下的 batch 组成与有效域数",
+    "说明末端位姿与关节、绝对/相对/速度、相机外参为何不能直接叠进同一张量",
+    "用打乱指令和打乱机体标签两套负对照，区分真语言条件与机体 ID 泄漏",
+    "对照 OXE / Octo / OpenVLA 公开的数据规模、混合物和过滤规则，列出可执行的缩小版配比实验"
+  ],
+  "misconception": {
+    "myth": "把 Open X-Embodiment 的 tfrecord 拼起来随机抽 batch，模型就会自动变成跨机体通才。",
+    "truth": "按条数采样时最大域会占满梯度。动作坐标系、夹爪开合约定和相机外参仍是各写各的；机体 ID 或桌布颜色一旦能预测任务，语言监督就变成摆设。"
+  },
+  "prerequisites": ["24", "建议 25"],
+  "labId": "lab-26-mixture",
+  "labExportName": "Lesson26MixtureLab",
+  "readingTime": 65,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文，跑浏览器互动实验和 CPU 机制实验",
+    "recommended": "1×24GB 仅用于打开公开数据加载器看字段，不要求复现预训练",
+    "notes": "OpenVLA 预训练为 64 张 A100、14 天、21500 A100-hours。Octo-Base 为 TPU v4-128、batch 2048、30 万步、约 14 小时。本课主路径不训练这些模型，CPU 数字不能写成真机成功率。"
+  },
+  "learningMode": ["阅读", "互动实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "在四域计数 (10000, 1000, 200, 100) 上核对温度混合、每域上限，以及指令打乱与机体 ID 泄漏夹具。",
+    "proves": [
+      "α=1 时最大域占比超过 75%",
+      "每域条数上限会抬高最小域采样频率",
+      "指令打乱会打掉无泄漏时的语言政策",
+      "机体 ID 泄漏政策在打乱指令后仍保持高准确率，打乱机体标签后下降"
+    ],
+    "doesNotProve": "不证明任何真实机械臂成功率，也不复现 OXE、Octo 或 OpenVLA 的预训练。",
+    "sourceFile": "lesson_26.py"
+  },
+  "firstH2": "异构机器人数据为什么不能直接倒进同一个 batch"
+}

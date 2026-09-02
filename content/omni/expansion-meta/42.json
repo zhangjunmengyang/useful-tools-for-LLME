@@ -1,0 +1,44 @@
+{
+  "id": "42",
+  "slug": "interleaved-schedule",
+  "shortTitle": "交错生成日程",
+  "unit": "native-unified",
+  "essentialQuestion": "一段回复里先出字、再出图、再出声音时，KV 缓存和采样器为什么不是同一张图？图像内步怎样才不会污染文本的因果位置？",
+  "hook": "同一句回答可以是字-图-字，也可以是字-字-图。调换的是阶段日程，不是把三种模态倒进同一条 next-token。",
+  "outcomes": [
+    "画出阶段日程：每个阶段的模态、提交长度、内步数和写入策略。",
+    "写出按模态分段的注意力可见性，并指出图像内步不得出现在文本 KV 的因果位置。",
+    "对照 Transfusion、Show-o2、BAGEL、Janus / Janus-Pro 的分流：AR+扩散、omni-attention+流匹配、噪声 VAE 隔离、理解/生成分编码。",
+    "在字-图-字教具上验证：工作区策略泄漏为零；调换日程后输出顺序改变。"
+  ],
+  "misconception": {
+    "myth": "统一模型只有一条 KV，图像去噪的每一步都该写成下一个文本 token。",
+    "truth": "共享的是已提交前缀。图像采样器在工作区里迭代，只有干净块或离散 id 进入文本可读的因果位置；调换日程会改变写出顺序。"
+  },
+  "prerequisites": [
+    "第 20 课：知道文本 CE 与图像 flow / 扩散可以接在同一骨干上，且 Janus 理解/生成编码可以分家。",
+    "第 41 课规格：离散图像 token 与文本共用 next-token；本课不重做那条 CE。"
+  ],
+  "labId": "lab-42-interleaved-schedule",
+  "labExportName": "Lesson42ScheduleLab",
+  "readingTime": 75,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 试很小的字-图交错前向；复现论文规模需要多节点 A100 / H100",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对日程表、mask 和泄漏计数。"
+  },
+  "learningMode": ["日程编排", "mask 泄漏对照", "先预测再揭晓"],
+  "practice": {
+    "purpose": "用手算核对字-图-字日程的提交序列与注意力 mask，确认内步不进入文本 KV。",
+    "proves": [
+      "工作区策略下图像内步不在已提交 KV 里，文本查询对内步的可见性为 0。",
+      "把内步写入 KV 后，后续文本会读到这些位置。",
+      "调换日程后提交顺序和图像提交下标都改变。",
+      "Transfusion 式图内双向 mask 与 Janus 式全因果 mask 不是同一张表。"
+    ],
+    "doesNotProve": "不证明真实 FID / GenEval，也不证明端侧交错生成的时延。",
+    "sourceFile": "lesson_42.py"
+  },
+  "firstH2": "一段回复里字、图、声音按什么日程输出"
+}

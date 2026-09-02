@@ -1,0 +1,48 @@
+{
+  "id": "40",
+  "slug": "force-safety-cutoff",
+  "shortTitle": "力超限切断动作块",
+  "unit": "vla-post",
+  "essentialQuestion": "动作块执行中接触力超限时，为什么不能像语音 PAUSE 那样丢掉缓冲再重说，而必须停在当前姿态并丢掉剩余步？",
+  "hook": "说错一句话可以停嘴重说。倒热水时力已经超限，杯子不会退回超限前的位置。未执行的 chunk 可以丢，已经发生的接触不能 undo。",
+  "outcomes": [
+    "写出切断规则：chunk 步 i 若 ||F_i|| > F_max，丢掉 i+1 以后的剩余步，进入 SAFE_HOLD。",
+    "对照第 07 课 PAUSE：未播放 PCM 可丢可重说；接触力、洒出的水和移位的杯子不能回放。",
+    "在倒水教具里调力阈值，验证超限后末端停住、剩余步为 0、物体位置不能回到超限前。",
+    "区分运行时力门限、危险示范过滤、SafeVLA 的训练期约束，以及 SAFE 失败检测器：四者解决不同层的问题。"
+  ],
+  "misconception": {
+    "myth": "力超限时发一个 PAUSE 或 REPLAN，世界就会像音频缓冲一样回到超限前。",
+    "truth": "PAUSE 只能停住还没发生的输出。已经测到的接触改变了物体位姿；SAFE_HOLD 必须保持当前姿态，剩余步清零，物体不得回绕。"
+  },
+  "prerequisites": [
+    "第 07 课：CONTINUE / PAUSE / REPLAN 与 pending PCM。本课只借用状态机，不实现音频路由。",
+    "第 30 课：动作分块、剩余步和过期丢弃。本课在剩余步上加力门限。"
+  ],
+  "labId": "lab-40-force-cutoff",
+  "labExportName": "Lesson40ForceCutoffLab",
+  "readingTime": 65,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文、跑浏览器倒水教具与 CPU 切断回放。",
+    "recommended": "真机核对需要带力/力矩传感的手臂；复现 SafeVLA 规模对齐需要多卡与 AI2-THOR 仿真。",
+    "notes": "教具和 CPU 实验证明切断协议可复核，不证明 ISO/TS 15066 合规，也不证明真机倒水成功率。"
+  },
+  "learningMode": [
+    "力门限切断",
+    "SAFE_HOLD 姿态保持",
+    "语音 PAUSE 对照",
+    "文献对照"
+  ],
+  "practice": {
+    "purpose": "用确定性 chunk 回放证明超限后剩余步为 0，SAFE_HOLD 不推进末端，物体不能退回超限前。",
+    "proves": [
+      "||F_i|| > F_max 时丢掉 i+1 以后的步，剩余步计数为 0。",
+      "SAFE_HOLD 与人类接管期间末端坐标不变。",
+      "杯子位移在超限步已经发生，回放不得把它写回超限前。"
+    ],
+    "doesNotProve": "不证明任何真实机械臂、LIBERO 或 ISO 力限制认证的成功率。",
+    "sourceFile": "lesson_40.py"
+  },
+  "firstH2": "力超限为什么不能像语音那样重说一遍"
+}

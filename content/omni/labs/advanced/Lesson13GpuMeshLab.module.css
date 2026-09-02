@@ -1,0 +1,359 @@
+.cockpit {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(13rem, 0.72fr);
+  border: 1px solid #d9dedc;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  background: #101713;
+  color: #edf4ef;
+}
+
+.meshPanel {
+  min-width: 0;
+  padding: 1.1rem;
+}
+
+.meshHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.meshHeader h3,
+.workload h3 {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.meshHeader p {
+  margin: 0.2rem 0 0;
+  font: 650 0.75rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.valid {
+  color: #76d49b;
+}
+
+.invalid {
+  color: #ff9e85;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 0.35rem;
+}
+
+.presets button,
+.dimensionTabs button {
+  padding: 0.36rem 0.52rem;
+  border: 1px solid #35423b;
+  border-radius: 0.3rem;
+  background: #1a241f;
+  color: #acb8b0;
+  font: 600 0.65rem/1 var(--font-geist-mono, monospace);
+  cursor: pointer;
+}
+
+.factorControls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.factorControls label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem;
+  border: 1px solid #344139;
+  border-radius: 0.4rem;
+  background: #151e19;
+}
+
+.factorControls span {
+  color: #87d2a5;
+  font: 650 0.69rem/1 var(--font-geist-mono, monospace);
+}
+
+.factorControls select {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #f3f7f4;
+  font: 650 0.8rem/1 var(--font-geist-mono, monospace);
+}
+
+.dimensionTabs {
+  display: flex;
+  gap: 0.35rem;
+  margin: 1rem 0 0.65rem;
+}
+
+.dimensionTabs button[aria-selected="true"] {
+  border-color: #4d9d6c;
+  background: #214d33;
+  color: #ddf6e6;
+}
+
+.gpuGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.gpu {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid hsl(var(--group-hue) 35% 42%);
+  border-radius: 0.42rem;
+  background: hsl(var(--group-hue) 28% 18%);
+}
+
+.gpu span {
+  color: #eff6f1;
+  font: 650 0.72rem/1 var(--font-geist-mono, monospace);
+}
+
+.gpu b,
+.gpu small {
+  overflow: hidden;
+  color: #b8c4bc;
+  font: 0.62rem/1.3 var(--font-geist-mono, monospace);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gpu small {
+  color: #82948a;
+}
+
+.emptyMesh {
+  display: grid;
+  min-height: 9.4rem;
+  place-items: center;
+  border: 1px dashed #49534d;
+  border-radius: 0.45rem;
+  color: #9da9a1;
+  text-align: center;
+}
+
+.workload {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  padding: 1.1rem;
+  border-left: 1px solid #354039;
+  background: #18211c;
+}
+
+.workload label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.workload label > span {
+  display: flex;
+  justify-content: space-between;
+  color: #aebbb2;
+  font-size: 0.69rem;
+}
+
+.workload output {
+  color: #81d4a3;
+  font-family: var(--font-geist-mono, monospace);
+}
+
+.workload input {
+  width: 100%;
+  accent-color: #51b778;
+}
+
+.workload select {
+  min-height: 2rem;
+  border: 1px solid #3d4a42;
+  border-radius: 0.35rem;
+  background: #111914;
+  color: #e8efea;
+}
+
+.assumption {
+  margin: 0.25rem 0 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid #354039;
+  color: #8d9c92;
+  font: 0.63rem/1.5 var(--font-geist-mono, monospace);
+}
+
+.traffic {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 0.75rem;
+  border: 1px solid #d8dfda;
+  border-radius: 0.65rem;
+  overflow: hidden;
+}
+
+.traffic > div {
+  padding: 0.85rem;
+}
+
+.traffic > div + div {
+  border-left: 1px solid #dde3df;
+}
+
+.traffic header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.traffic header b {
+  font: 700 0.72rem/1 var(--font-geist-mono, monospace);
+}
+
+.traffic header span {
+  color: #707b74;
+  font: 0.58rem/1.2 var(--font-geist-mono, monospace);
+  text-align: right;
+}
+
+.trafficBar {
+  height: 0.38rem;
+  margin: 0.6rem 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8ece9;
+}
+
+.trafficBar i {
+  display: block;
+  height: 100%;
+  background: #248250;
+  transition: width 300ms ease;
+}
+
+.traffic strong {
+  font: 650 0.76rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.challenge {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #d8ded9;
+  border-radius: 0.65rem;
+}
+
+.challenge fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.challenge legend {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  font-weight: 620;
+}
+
+.challenge label {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  color: #56625a;
+  font: 650 0.73rem/1 var(--font-geist-mono, monospace);
+}
+
+.challenge input {
+  accent-color: #1c7849;
+}
+
+.challenge > div {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.4rem;
+}
+
+.challenge button {
+  min-height: 2.3rem;
+  padding: 0.45rem 0.72rem;
+  border: 1px solid #d0d8d2;
+  border-radius: 0.38rem;
+  background: white;
+  color: #47534b;
+  font: 650 0.73rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.challenge .run {
+  border-color: #166a40;
+  background: #176f45;
+  color: white;
+}
+
+.challenge .run:disabled {
+  border-color: #c6ccc8;
+  background: #c6ccc8;
+  cursor: not-allowed;
+}
+
+.feedback {
+  margin: 0.55rem 0 0;
+  color: #87501d;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 800px) {
+  .cockpit {
+    grid-template-columns: 1fr;
+  }
+
+  .workload {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid #354039;
+    border-left: 0;
+  }
+
+  .workload h3,
+  .assumption {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .gpuGrid,
+  .traffic {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .traffic > div + div {
+    border-left: 0;
+  }
+
+  .traffic > div:nth-child(2) {
+    border-left: 1px solid #dde3df;
+  }
+
+  .traffic > div:nth-child(3) {
+    grid-column: 1 / -1;
+    border-top: 1px solid #dde3df;
+  }
+
+  .challenge {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

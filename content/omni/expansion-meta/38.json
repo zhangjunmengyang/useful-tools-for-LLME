@@ -1,0 +1,43 @@
+{
+  "id": "38",
+  "slug": "vla-rlvr",
+  "shortTitle": "VLA可验证强化学习",
+  "unit": "vla-post",
+  "essentialQuestion": "示教里没有的失败，怎样写成第 17 课那种可验证奖励，并让组内相对优势在全失败批次上仍然有意义？",
+  "hook": "四条都没抓住时，稀疏成功的组内优势全是零。接触距离还能排出谁更接近，政策才知道往哪边改。",
+  "outcomes": [
+    "把抓取成功写成确定性谓词，并把接触、接近、力超限写成可复核的 dense 奖励，不重推 GRPO。",
+    "手算 Â_i = r_i − r̄；指出全失败或全成功组方差为零，标准化形式同样得不到更新。",
+    "对照 ConRFT 的离线 BC+Q 与在线强化、SimpleVLA-RL 的 0/1 GRPO、VLA-RFT 的世界模型 verified reward，以及 SafeVLA 的代价约束。",
+    "在失败批次上先预测再揭晓：稀疏优势全零，dense 仍有非零更新。"
+  ],
+  "misconception": {
+    "myth": "接上 GRPO 就等于会从失败里学习；成功率奖励在还抓不住时也有梯度。",
+    "truth": "组内相对优势只比较同组分数。全是 0 或全是 1 时方差为零，更新为零。失败轨迹要有可验证的接触或过程分，才能排序。"
+  },
+  "prerequisites": [
+    "第 17 课：会写组内相对优势，知道零方差组没有更新。",
+    "第 27 课或第 28 课：知道动作如何成为 token 或连续块，本课只改奖励。"
+  ],
+  "labId": "lab-38-vla-rlvr",
+  "labExportName": "Lesson38VlaRlLab",
+  "readingTime": 75,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 试小规模仿真 rollout；复现 ConRFT 真机或 SimpleVLA-RL 论文规模需要机械臂或并行仿真",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对奖励、优势和零方差更新。"
+  },
+  "learningMode": ["稀疏对 dense", "零方差组", "先预测再揭晓"],
+  "practice": {
+    "purpose": "用手算核对失败组上稀疏优势全零、接触 dense 仍可排序并产生非零更新。",
+    "proves": [
+      "全失败稀疏组方差为零，标量权重不变。",
+      "dense 在四条失败轨迹上排序为擦边、压溃、悬停、空抓。",
+      "混入一条成功后，稀疏才能分出正负优势。"
+    ],
+    "doesNotProve": "不证明真机抓取成功率，也不证明 LIBERO / 真机 RFT 数字。",
+    "sourceFile": "lesson_38.py"
+  },
+  "firstH2": "模仿学不会的试错怎样变成可验证奖励"
+}

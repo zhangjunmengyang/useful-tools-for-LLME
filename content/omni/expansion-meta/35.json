@@ -1,0 +1,43 @@
+{
+  "id": "35",
+  "slug": "spatial-depth-vla",
+  "shortTitle": "深度接入抓取",
+  "unit": "spatial-body",
+  "essentialQuestion": "二维图像缺深度时，抓取会在哪一步失败？如何把 (u,v,z) 写成相机系点和可分箱的空间动作？",
+  "hook": "夹爪和杯子在图像上重合，只说明它们共线。缺深度时闭合发生在射线上错误的尺度，RGB 判定为成功，三维接触为假。",
+  "outcomes": [
+    "写出针孔反投影，说明同一 (u,v) 对应整条射线，z 只决定尺度。",
+    "构造无深度取均值时 RGB 命中为真、接触带判定为假的夹具，并与真实深度对照。",
+    "对照 PerAct 体素、Act3D 特征场、SpatialVLA 的 Ego3D 与自适应动作网格、PointVLA 的点云旁路，说清深度从哪进来、改哪一段。",
+    "把平移动作写成极坐标格子，并指出 3 个空间 token 与 7 维独立分箱的差别。"
+  ],
+  "misconception": {
+    "myth": "图像上夹爪对准了杯子，就等于抓住了；VLA 看 RGB 就够。",
+    "truth": "对准只证明共线。接触发生在三维点上。无深度时用均值或训练桌面高度取 z，会在错误深度闭合。"
+  },
+  "prerequisites": [
+    "第 24 课：动作如何进入 token。",
+    "第 25 课：分箱、连续表示和动作块。"
+  ],
+  "labId": "lab-35-depth-grasp",
+  "labExportName": "Lesson35DepthGraspLab",
+  "readingTime": 70,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 反投影实验",
+    "recommended": "1×24GB 仅用于打开 SpatialVLA / PointVLA 公开权重做定性对照，不是本课验收条件",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对 (u,v,z) 反投影和接触带，不证明真机抓取成功率。"
+  },
+  "learningMode": ["反投影夹具", "接触带对照", "空间动作网格"],
+  "practice": {
+    "purpose": "用手算核对 (u,v,z) 反投影、无深度取均值导致接触失败，以及极坐标与体素索引。",
+    "proves": [
+      "同一像素用均值深度反投影时 RGB 误差为 0，接触带判定为假。",
+      "换真实深度后 RGB 命中与三维接触同时为真。",
+      "相机系点可写成极坐标并往返；体素索引能分开两种深度。"
+    ],
+    "doesNotProve": "不证明 SimplerEnv / LIBERO / 真机抓取成功率，也不证明 ZoeDepth 估计在本机可运行。",
+    "sourceFile": "lesson_35.py"
+  },
+  "firstH2": "缺了深度的抓取会在哪一步失败"
+}

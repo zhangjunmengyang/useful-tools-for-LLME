@@ -1,0 +1,7 @@
+.ok {
+  color: var(--xlab-success, #155e3d);
+}
+
+.fail {
+  color: var(--xlab-warning, #875e16);
+}

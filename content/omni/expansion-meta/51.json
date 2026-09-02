@@ -1,0 +1,44 @@
+{
+  "id": "51",
+  "slug": "multimodal-cot",
+  "shortTitle": "视觉分步推理",
+  "unit": "reason-agent",
+  "essentialQuestion": "直接出答案会跳过看见了什么。分步推理的奖励对象，为什么必须是过程有没有引用视觉证据，而不能只看最终数字对不对？",
+  "hook": "红色杯子有两只，模型写「2」完全正确，推理栏却一个格子都没点。关掉必须引用之后，答案对、引用格为空。",
+  "outcomes": [
+    "把一次生成拆成推理 token 集合与答案 token 集合，并证明两个位置集合不相交",
+    "写出过程奖励：推理 span 未引用真值格子则为 0，即使最终数字正确",
+    "对照第 17 课的答案奖励与第 38 课的接触奖励，说明本课只改奖励对象",
+    "在计数教具里先预测再揭晓：关掉必须引用后答案对、引用格为空"
+  ],
+  "misconception": {
+    "myth": "只要最终数字对，分步推理就算看见图了；强化学习奖对答案就等于奖了视觉证据。",
+    "truth": "答案可以从语言共现来。过程奖励只认推理 span 里的格子引用。引用为空时过程分为 0。"
+  },
+  "prerequisites": [
+    "第 17 课：会写可验证奖励和组内相对优势",
+    "第 23 课：能把文字对和格子命中拆开",
+    "第 38 课：知道同一套组内结构可以只改 r 的定义"
+  ],
+  "labId": "lab-51-multimodal-cot",
+  "labExportName": "Lesson51CotLab",
+  "readingTime": 70,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文、跑浏览器计数教具与 CPU 机制实验",
+    "recommended": "复现 LLaVA-CoT 为单节点 8×H100 全参微调；Vision-R1 冷启动用 Llama-Factory 做 2 个 epoch，强化学习在 Verl 上跑两阶段 PTST",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对 token 分账与过程奖励，不代表 MathVista 或 MMStar 成功率。Vision-R1 强化学习的精确卡时其附录未写成可引用的 GPU·小时。"
+  },
+  "learningMode": ["阶段标签", "过程奖励", "先预测再揭晓", "CPU 复核"],
+  "practice": {
+    "purpose": "在固定计数夹具上拆开推理 token 与答案 token，并证明无视觉引用时过程奖励为 0。",
+    "proves": [
+      "推理与答案的位置集合不相交",
+      "引用格为空或只点到干扰格时过程奖励为 0",
+      "关掉必须引用后答案仍可对，合取奖励为 0"
+    ],
+    "doesNotProve": "不证明 LLaVA-CoT 或 Vision-R1 的真实基准分数，也不证明长思维链一定忠实。",
+    "sourceFile": "lesson_51.py"
+  },
+  "firstH2": "看见图以后为什么还要分步写推理"
+}

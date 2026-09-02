@@ -1,0 +1,95 @@
+diff --git a/dataset/omni_dataset.py b/dataset/omni_dataset.py
+index af334c2..2345c4c 100644
+--- a/dataset/omni_dataset.py
++++ b/dataset/omni_dataset.py
+@@ -38,7 +38,8 @@ class OmniDataset(Dataset):
+                  audio_pad_token=2049,  # <|audio_pad|>
+                  audio_spk_token=2051,  # <|audio_spk|>
+                  audio_vocab_size=2112,  # 2048 mimi codes + 64 special tokens
+-                 scheduled_sampling=0.05,
++                 scheduled_sampling=0.05, add_system_ratio=0.2,
++                 empty_think_ratio=0.2,
+                  image_token_len=64):
+         super().__init__()
+         tables = [pa.Table.from_batches(pq.ParquetFile(p.strip()).iter_batches()) for p in data_path.split(',')]
+@@ -56,6 +57,13 @@ class OmniDataset(Dataset):
+         self.think_end_ids = tokenizer.encode('</think>\n\n', add_special_tokens=False)
+         self.bos_id = tokenizer(f'{tokenizer.bos_token}assistant\n', add_special_tokens=False).input_ids
+         self.eos_id = tokenizer(f'{tokenizer.eos_token}\n', add_special_tokens=False).input_ids
++        for name, value in {
++            "scheduled_sampling": scheduled_sampling,
++            "add_system_ratio": add_system_ratio,
++            "empty_think_ratio": empty_think_ratio,
++        }.items():
++            if not 0.0 <= value <= 1.0: raise ValueError(f"{name} must be in [0, 1], got {value}")
++        self.add_system_ratio, self.empty_think_ratio = add_system_ratio, empty_think_ratio
+
+     def __len__(self):
+         return len(self.table)
+@@ -173,7 +181,7 @@ class OmniDataset(Dataset):
+         return fbank
+
+     def create_chat_prompt(self, conversations, audio_features_length=0):
+-        conversations = pre_processing_chat(conversations)
++        conversations = pre_processing_chat(conversations, add_system_ratio=self.add_system_ratio)
+         messages = []
+         is_last_user = lambda i: i == max(j for j, t in enumerate(conversations) if t['role'] == 'user')
+         for idx, turn in enumerate(conversations):
+@@ -195,7 +203,7 @@ class OmniDataset(Dataset):
+                 else: content = content.replace('<image>', '').strip() + '\n\n' + '<image>'
+             messages.append({"role": role, "content": content})
+         prompt = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
+-        return post_processing_chat(prompt)
++        return post_processing_chat(prompt, empty_think_ratio=self.empty_think_ratio)
+
+
+     def generate_text_labels(self, input_ids):
+diff --git a/trainer/train_sft_omni.py b/trainer/train_sft_omni.py
+index 9b46ee3..0baf9c1 100644
+--- a/trainer/train_sft_omni.py
++++ b/trainer/train_sft_omni.py
+@@ -181,6 +181,11 @@ if __name__ == "__main__":
+     parser.add_argument("--use_wandb", action="store_true", help="是否使用wandb")
+     parser.add_argument("--wandb_project", type=str, default="MiniMind-O-SFT", help="wandb项目名")
+     parser.add_argument("--use_compile", default=0, type=int, choices=[0, 1], help="是否使用torch.compile加速（0=否，1=是）")
++    parser.add_argument("--seed", type=int, default=42, help="全局随机种子")
++    parser.add_argument("--shuffle", type=int, default=1, choices=[0, 1], help="是否打乱训练样本")
++    parser.add_argument("--scheduled_sampling", type=float, default=0.05, help="目标历史污染概率")
++    parser.add_argument("--add_system_ratio", type=float, default=0.2, help="随机增加system prompt的概率")
++    parser.add_argument("--empty_think_ratio", type=float, default=0.2, help="保留空think块的概率")
+     args = parser.parse_args()
+
+     # ========== 1. 初始化环境和随机种子 ==========
+@@ -188,6 +193,6 @@ if __name__ == "__main__":
+     if dist.is_initialized():
+         args.device = f"cuda:{local_rank}"
+-    setup_seed(42 + (dist.get_rank() if dist.is_initialized() else 0))
++    setup_seed(args.seed + (dist.get_rank() if dist.is_initialized() else 0))
+
+     # ========== 2. 配置目录、模型参数、检查ckp ==========
+     os.makedirs(args.save_dir, exist_ok=True)
+@@ -226,10 +231,13 @@ if __name__ == "__main__":
+         audio_processor=model.audio_processor,
+         vision_processor=model.vision_processor,
+         max_length=args.max_seq_len,
++        scheduled_sampling=args.scheduled_sampling,
++        add_system_ratio=args.add_system_ratio,
++        empty_think_ratio=args.empty_think_ratio,
+         image_token_len=model.config.image_token_len
+     )
+
+-    train_sampler = DistributedSampler(train_ds) if dist.is_initialized() else None
++    train_sampler = DistributedSampler(train_ds, shuffle=bool(args.shuffle), seed=args.seed) if dist.is_initialized() else None
+     scaler = torch.cuda.amp.GradScaler(enabled=(args.dtype == 'float16'))
+     optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate)
+
+@@ -249,7 +257,8 @@ if __name__ == "__main__":
+     # ========== 8. 开始训练 ==========
+     for epoch in range(start_epoch, args.epochs):
+         train_sampler and train_sampler.set_epoch(epoch)
+-        setup_seed(42 + epoch); indices = torch.randperm(len(train_ds)).tolist()
++        setup_seed(args.seed + epoch)
++        indices = torch.randperm(len(train_ds)).tolist() if args.shuffle else list(range(len(train_ds)))
+         skip = start_step if (epoch == start_epoch and start_step > 0) else 0
+         batch_sampler = SkipBatchSampler(train_sampler or indices, args.batch_size, skip)
+         loader = DataLoader(train_ds, batch_sampler=batch_sampler, collate_fn=omni_collate_fn, num_workers=args.num_workers, pin_memory=True)

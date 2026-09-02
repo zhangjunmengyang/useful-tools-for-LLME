@@ -1,0 +1,278 @@
+.comparator {
+  overflow: hidden;
+  border: 1px solid var(--xlab-rule, #d9dce3);
+  border-radius: 0.8rem;
+  background: var(--xlab-surface, #fff);
+}
+
+.modeTabs {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--xlab-rule, #e0e3e8);
+  background: var(--xlab-surface-2, #f5f6f9);
+}
+
+.modeTabs button {
+  padding: 0.42rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--xlab-muted, #687080);
+  font: 650 0.72rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.modeTabs button[aria-pressed="true"] {
+  border-color: var(--xlab-rule-2, #cdd3dd);
+  background: var(--xlab-surface-3, white);
+  color: var(--xlab-ink, #3f4960);
+  box-shadow: 0 1px 3px rgba(41, 48, 65, 0.09);
+}
+
+.logprobGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+  padding: 1rem;
+}
+
+.logprob {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.logprob span {
+  color: var(--xlab-muted, #697182);
+  font: 0.67rem/1 var(--font-geist-mono, monospace);
+}
+
+.logprob input {
+  min-width: 0;
+  min-height: 2.4rem;
+  box-sizing: border-box;
+  border: 1px solid var(--xlab-rule-2, #d5d9e1);
+  border-radius: 0.38rem;
+  background: var(--xlab-surface-2, #fafbfc);
+  color: var(--xlab-ink, #323b51);
+  font: 650 0.8rem/1 var(--font-geist-mono, monospace);
+}
+
+.hyperparams {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 0.8rem 1rem 1rem;
+  border-top: 1px solid var(--xlab-rule, #e3e5ea);
+  background: var(--xlab-surface-2, #fafbfc);
+}
+
+.hyperparams label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.hyperparams label > span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--xlab-muted, #646d7d);
+  font-size: 0.7rem;
+}
+
+.hyperparams output {
+  color: var(--xlab-accent-ink, #5b4f8a);
+  font-family: var(--font-geist-mono, monospace);
+}
+
+.hyperparams input {
+  width: 100%;
+  accent-color: var(--xlab-accent, #7061a1);
+}
+
+.derivation {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 0.8rem;
+  overflow: hidden;
+  border: 1px solid var(--xlab-rule, #dcdfe5);
+  border-radius: 0.65rem;
+}
+
+.derivation > div {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.85rem;
+  background: var(--xlab-surface, white);
+}
+
+.derivation > div + div {
+  border-left: 1px solid var(--xlab-rule, #e0e3e8);
+}
+
+.derivation .activeStep {
+  background: var(--xlab-accent-soft, #f1eef9);
+}
+
+.derivation span {
+  color: var(--xlab-muted, #737b88);
+  font-size: 0.65rem;
+}
+
+.derivation strong {
+  overflow-wrap: anywhere;
+  color: var(--xlab-ink, #394257);
+  font: 650 0.7rem/1.45 var(--font-geist-mono, monospace);
+}
+
+.meter {
+  margin-top: 0.8rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--xlab-rule, #dadde4);
+  border-radius: 0.65rem;
+}
+
+.meter header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.55rem;
+  color: var(--xlab-muted, #616a7a);
+  font-size: 0.72rem;
+}
+
+.meter header strong {
+  color: var(--xlab-accent-ink, #4c406f);
+  font-family: var(--font-geist-mono, monospace);
+}
+
+.meter > div {
+  position: relative;
+  height: 0.65rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--xlab-surface-3, #e8e9ed);
+}
+
+.meter i {
+  display: block;
+  height: 100%;
+  background: #225ecb;
+  transition: width 300ms ease;
+}
+
+.meter > div > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--xlab-ink, rgba(31, 33, 40, 0.5));
+}
+
+.meter p {
+  margin: 0.55rem 0 0;
+  color: var(--xlab-muted, #7b818c);
+  font-size: 0.65rem;
+}
+
+.challenge {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--xlab-rule, #daddE4);
+  border-radius: 0.65rem;
+}
+
+.challenge fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.challenge legend {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  font-weight: 620;
+}
+
+.challenge label {
+  display: flex;
+  gap: 0.32rem;
+  align-items: center;
+  color: var(--xlab-muted, #606879);
+  font-size: 0.74rem;
+}
+
+.challenge input {
+  accent-color: var(--xlab-accent, #695a96);
+}
+
+.challenge > div {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.4rem;
+}
+
+.challenge button {
+  min-height: 2.3rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--xlab-rule-2, #d2d6de);
+  border-radius: 0.38rem;
+  background: var(--xlab-surface-2, white);
+  color: var(--xlab-ink-2, #4d5668);
+  font: 650 0.73rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.challenge .run {
+  border-color: var(--xlab-accent, #5c4d89);
+  background: var(--xlab-accent, #675791);
+  color: var(--xlab-on-ink, white);
+}
+
+.challenge .run:disabled {
+  border-color: var(--xlab-disabled, #c7cad0);
+  background: var(--xlab-disabled, #c7cad0);
+  cursor: not-allowed;
+}
+
+.logprob input:focus-visible,
+.challenge button:focus-visible,
+.modeTabs button:focus-visible {
+  outline: 3px solid var(--xlab-focus-ring, #c7bce4);
+  outline-offset: 2px;
+}
+
+@media (max-width: 740px) {
+  .logprobGrid,
+  .derivation {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .derivation > div:nth-child(3) {
+    border-top: 1px solid var(--xlab-rule, #e0e3e8);
+    border-left: 0;
+  }
+
+  .derivation > div:nth-child(4) {
+    border-top: 1px solid var(--xlab-rule, #e0e3e8);
+  }
+
+  .challenge {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .hyperparams {
+    grid-template-columns: 1fr;
+  }
+}

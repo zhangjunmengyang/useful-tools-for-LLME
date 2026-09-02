@@ -1,0 +1,41 @@
+{
+  "id": "31",
+  "slug": "vla-evaluation",
+  "shortTitle": "可拆层 VLA 评测",
+  "unit": "vla",
+  "essentialQuestion": "LIBERO 四套件平均、SIMPLER 视觉 gap、CALVIN 长程、真机 N=25，这四类数字为什么不能横着比？",
+  "hook": "同一政策在固定初始态上很高，换随机摆放和 distractor 就掉下去。掉的是捷径，不是“模型突然变笨”。N=25、成功率 0.8 的区间有三十个百分点宽。",
+  "outcomes": [
+    "把 LIBERO 四套件、SIMPLER 视觉域、CALVIN 长程链和真机小样本拆成不可横比的四类数字，并写明是否 fine-tune。",
+    "为一次评测写出协议卡：套件桶、初始态种子、相机/纹理、指令改写、成功谓词。",
+    "亲手计算二项成功率的 Wilson 与正态近似区间；N=25、成功率 0.8 时 Wilson 约为 [0.609, 0.911]。",
+    "在三种协议上先预测排序再揭晓：固定初始态最高、加 distractor 最低，并拒绝把单一数字标成 SOTA。"
+  ],
+  "misconception": {
+    "myth": "仿真平均成功率高，就等于真机能力强；一个百分数可以当 SOTA。",
+    "truth": "成功率绑定协议。套件、初始态、视觉域、语言、成功定义和样本量任一改变，数字就不是同一个量。SIMPLER 连相对排序相关都要单独测，更不能把 LIBERO 平均写成真机能力。"
+  },
+  "prerequisites": ["27", "28"],
+  "labId": "lab-31-eval-protocol",
+  "labExportName": "Lesson31EvalProtocolLab",
+  "readingTime": 70,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU：阅读全文、跑浏览器三种协议实验和 CPU 区间实验",
+    "recommended": "若要复现论文规模仿真评测：单卡即可跑 LIBERO / SIMPLER 推理；真机评测需要对应机械臂与固定相机外参",
+    "notes": "CPU 实验与浏览器 Lab 是教学模拟，不能写成 LIBERO、SIMPLER 或真机成功率。"
+  },
+  "learningMode": ["协议拆桶", "置信区间手算", "三种协议教学模拟", "sim-to-real 声明"],
+  "practice": {
+    "purpose": "对给定成功/失败序列计算点估计、正态近似区间和 Wilson 区间，并检查 N 太小时区间覆盖 0.5。",
+    "proves": [
+      "N=25、k=20 的 Wilson 区间与手算 [0.609, 0.911] 一致",
+      "N=5、k=4 的 Wilson 区间覆盖 0.5",
+      "四套件宏平均会掩盖 Long 的掉点",
+      "接触成功与放置/保持成功可以在同一轨迹上不一致"
+    ],
+    "doesNotProve": "不证明任何真实 VLA 的仿真或真机成功率，也不能把夹具数字标成 SOTA。",
+    "sourceFile": "lesson_31.py"
+  },
+  "firstH2": "仿真成功率为何不能直接当成真机能力"
+}

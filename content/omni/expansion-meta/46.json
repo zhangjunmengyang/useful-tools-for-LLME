@@ -1,0 +1,44 @@
+{
+  "id": "46",
+  "slug": "omni-serving",
+  "shortTitle": "多模态推理调度",
+  "unit": "omni-ops",
+  "essentialQuestion": "理解、语言生成、flow 采样和动作专家为什么不能捕获进同一条 CUDA graph，stage graph 怎样按阶段组批并隔离 KV？",
+  "hook": "三条请求（纯文本、带图、带动作专家）若强行合成一条静态 GPU 图，padding 会吞掉有效 token，或者动作专家读到别人的 KV 页。",
+  "outcomes": [
+    "能画出理解编码、语言 decode、flow / 动作专家三条不同的 batch 维，并说明 CUDA graph 锁住了哪一类形状。",
+    "能对两条变长视觉请求写出 padding mask，使无效 patch 不进入有效 token 计数和注意力分母。",
+    "能区分合法的跨模态条件传递和错误的 KV 页别名。",
+    "能按 vLLM-Omni 的 stage graph 把 Qwen-Omni 式 Thinker–Talker–Vocoder 拆开调度，并对照第 13 课的训练并行。"
+  ],
+  "misconception": {
+    "myth": "把整个 Omni 模型捕获成一条 CUDA graph 就能同时加速理解和生成。",
+    "truth": "CUDA graph 要求静态形状与静态控制流。理解、AR decode 和 flow 的循环次数、张量秩都不同；合图只能靠 padding 或共用 KV，两者都会算错账单。"
+  },
+  "prerequisites": [
+    "第 13 课：知道 FSDP / EP / CP 是训练并行，本课不重做数值对账。",
+    "建议第 20 课：见过理解路径和 flow 生成路径为什么目标不同。",
+    "建议第 08 课：见过变长视觉 token；建议第 28 课：见过动作专家的时间步循环。"
+  ],
+  "labId": "lab-46-serve-graph",
+  "labExportName": "Lesson46ServeGraphLab",
+  "readingTime": 70,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "复现 vLLM-Omni 论文数字需要双卡 80GB 与 Qwen-Omni 权重；本课不提供",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对 padding mask 与有效 token 计数，不报告真实 JCT。"
+  },
+  "learningMode": ["CUDA graph 合图", "padding mask", "KV 隔离", "stage 组批"],
+  "practice": {
+    "purpose": "用手算两条变长视觉请求的 padding mask，确认无效位置不进入有效 token 计数和注意力分母。",
+    "proves": [
+      "有效 token 数等于各请求真实视觉加文本长度之和，不等于 padded 形状。",
+      "错误 mask 会把无效 key 的注意力质量变成正数。",
+      "把纯文本和动作专家垫进同一静态图会继续降低有效比，并让动作页与 AR 页重叠。"
+    ],
+    "doesNotProve": "不测量真实 GPU 吞吐，也不复现 vLLM-Omni 的 91.4% JCT 降幅。",
+    "sourceFile": "lesson_46.py"
+  },
+  "firstH2": "理解和生成为什么不能挤进同一条 CUDA graph"
+}

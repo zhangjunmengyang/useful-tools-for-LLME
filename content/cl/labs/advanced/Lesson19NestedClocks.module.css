@@ -1,0 +1,68 @@
+.clocks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.clock {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.clock[data-on="false"] {
+  opacity: 0.38;
+}
+
+.face {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border: 1px solid var(--xlab-rule-2, #cad4ce);
+  border-radius: 50%;
+  background: var(--xlab-surface-3, white);
+}
+
+.hand {
+  position: absolute;
+  display: block;
+  top: 12px;
+  left: 50%;
+  width: 2px;
+  height: 24px;
+  margin-left: -1px;
+  background: var(--xlab-accent, #1b7a53);
+  transform-origin: 50% 24px;
+  transform: rotate(var(--angle));
+  transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.clock small {
+  color: var(--xlab-muted, #68736d);
+  font-size: 11px;
+  text-align: center;
+}
+
+.meters {
+  display: grid;
+  gap: 10px;
+}
+
+.meters > div {
+  display: grid;
+  grid-template-columns: 5.5rem 3rem minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.meters strong {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hand {
+    transition: none;
+  }
+}

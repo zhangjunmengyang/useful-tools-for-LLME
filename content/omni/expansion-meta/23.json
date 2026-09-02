@@ -1,0 +1,44 @@
+{
+  "id": "23",
+  "slug": "grounding-ocr-spatial",
+  "shortTitle": "指代 OCR 空间探针",
+  "unit": "vl-foundation",
+  "essentialQuestion": "选择题答对，是否等于模型用对了像素？幻觉、错数、读错字、左右颠倒分别该用什么探针。",
+  "hook": "同色两只杯子，模型说「红色」完全正确，注意力却落在另一只杯子上。答对了不等于看见了位置。",
+  "outcomes": [
+    "用 IoU 和注意力质量分数定义 grounding 命中，并证明它可以和 VQA 准确率脱钩",
+    "按随机、热门、对抗三种负采样搭 POPE 式是否存在探针，只在负例上算幻觉率",
+    "把 OCR 当成字形区域上的定位，而不是生成一段碰巧含字的配文",
+    "用左右、计数和 Set-of-Mark 编号把空间关系从语言先验里拆出来"
+  ],
+  "misconception": {
+    "myth": "VQA 或多项选择准确率高，说明模型已经看对了物体位置。",
+    "truth": "文字答案可以来自语言共现或同色干扰物。没有框、点或注意力命中，不能声称模型看见了位置。"
+  },
+  "prerequisites": [
+    "第 21 课图文对比学习的共享空间",
+    "第 22 课视觉语言模型的标准解冻顺序",
+    "第 08 课动态分辨率与二维位置编码的评测口径"
+  ],
+  "labId": "lab-23-grounding-ocr-spatial",
+  "labExportName": "Lesson23GroundingLab",
+  "readingTime": 60,
+  "difficulty": "进阶",
+  "hardware": {
+    "minimum": "无 GPU：读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 可对开源 2B 级 VLM 做指代与 POPE 探针；多卡仅在复现 Kosmos-2 / Grounding DINO 原训练时需要",
+    "notes": "CPU 实验证明 IoU、注意力命中和幻觉率可手算复核，不代表真实模型成功率。Kosmos-2 原文训练使用 256 张 V100、约 60k step。"
+  },
+  "learningMode": ["机制拆解", "探针设计", "CPU 复核"],
+  "practice": {
+    "purpose": "在固定框与 8×8 注意力夹具上计算 IoU 命中、注意力质量分数和 POPE 幻觉率。",
+    "proves": [
+      "IoU 与注意力命中的公式可独立复核",
+      "存在「VQA 答案对、对被问物体命中失败」的夹具",
+      "幻觉率只在物体不存在的负例上计算，且不等于 Yes 比例"
+    ],
+    "doesNotProve": "不证明任何真实 VLM 的幻觉率或 RefCOCO 准确率。",
+    "sourceFile": "lesson_23.py"
+  },
+  "firstH2": "答对了不等于看见了位置"
+}

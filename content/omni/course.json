@@ -1,0 +1,104 @@
+{
+  "id": "omni",
+  "title": "Omni",
+  "title_en": "Omni",
+  "summary": "从 MiniMind-O 到现代全模态系统：文本、语音、图像和动作怎么接在同一条链路上。",
+  "summary_en": "From MiniMind-O to modern omni systems: how text, speech, images, and actions share one stack.",
+  "units": [
+    {
+      "id": "mechanism",
+      "title": "基础结构与可信复现",
+      "question": "小型 Omni 如何连接文本、语音和离散声码，并验证每一步的输入与输出？"
+    },
+    {
+      "id": "realtime",
+      "title": "实时语音与全双工",
+      "question": "系统如何在用户仍在说话时持续监听、判断话轮并处理打断？"
+    },
+    {
+      "id": "vision",
+      "title": "图像、视频与视觉预算",
+      "question": "小模型如何处理高分辨率图像和视频时序，同时控制视觉 token 数量？"
+    },
+    {
+      "id": "backbone",
+      "title": "现代骨干与八卡系统",
+      "question": "如何公平测量 MoE、Mamba、长上下文和分布式并行带来的质量与效率变化？"
+    },
+    {
+      "id": "alignment",
+      "title": "联合训练与后训练",
+      "question": "如何安排多模态数据和训练目标，使各项能力同时提高并控制遗忘？"
+    },
+    {
+      "id": "frontier",
+      "title": "系统集成与前沿统一",
+      "question": "如何组合开放组件，并验证多模态理解、语音生成和图像生成的实际能力边界？"
+    },
+    {
+      "id": "vl-foundation",
+      "title": "图文对齐与视觉地基",
+      "question": "冻结视觉编码器从哪来，标准 VLM 怎么训，以及答对了是否等于看见了位置？"
+    },
+    {
+      "id": "vla",
+      "title": "视觉–语言–动作",
+      "question": "动作如何成为下一种模态，并在数据、表示、闭环和评测上被拆开验证？"
+    },
+    {
+      "id": "embodied-agent",
+      "title": "屏幕与跨身体智能",
+      "question": "屏幕点击和机械臂动作能否共用一套空间接地？"
+    },
+    {
+      "id": "world-model",
+      "title": "世界模型",
+      "question": "预测像素还是预测表征，世界模型当数据引擎还是当控制器？"
+    },
+    {
+      "id": "spatial-body",
+      "title": "深度、导航与全身",
+      "question": "缺深度、换底盘、升高动作维数时，同等预算丢掉什么？"
+    },
+    {
+      "id": "vla-post",
+      "title": "试错、记忆与切断",
+      "question": "可验证奖励、子目标栈和力超限切断如何接到已有的双工状态机？"
+    },
+    {
+      "id": "native-unified",
+      "title": "离散统一与输出日程",
+      "question": "图像离散 token 如何与文本共用 next-token，一段回复里字、图、声如何排期？"
+    },
+    {
+      "id": "omni-ops",
+      "title": "听、读、检索、上线与评测",
+      "question": "音频理解、文档版面、长视频检索、推理调度和六类评测如何分开记账？"
+    },
+    {
+      "id": "embodied-omni",
+      "title": "听说动手运行时",
+      "question": "语音打断和手臂重规划能否共用一张状态表，又不把已发生的接触当成可回放缓冲？"
+    },
+    {
+      "id": "gen-native",
+      "title": "视频与三维生成",
+      "question": "生成下一帧和看懂这一段、生成网格和高斯，各自的损失和评测能否分开？"
+    },
+    {
+      "id": "reason-agent",
+      "title": "分步推理、工具与跨会话记忆",
+      "question": "看见图以后何时该写推理、调用工具，跨会话该存像素还是存摘要？"
+    },
+    {
+      "id": "data-deploy",
+      "title": "合成数据、端侧与出处",
+      "question": "合成补的是分布还是条数，量化先伤哪类 token，生成能否只用 L2，图进训练集要留下什么？"
+    },
+    {
+      "id": "domain-research",
+      "title": "领域约束与课的活法",
+      "question": "医学图文和非语音音频为何不能套自然图像或语音 codec，新论文如何接到验收口径？"
+    }
+  ]
+}

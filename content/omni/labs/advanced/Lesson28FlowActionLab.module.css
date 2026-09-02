@@ -1,0 +1,272 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.78fr) minmax(0, 2fr);
+  overflow: hidden;
+  border: 1px solid var(--xlab-rule, #d7dde0);
+  border-radius: 0.8rem;
+  background: var(--xlab-surface, #fff);
+}
+
+.controls {
+  display: grid;
+  align-content: start;
+  gap: 0.95rem;
+  padding: 1.1rem;
+  border-right: 1px solid var(--xlab-rule, #dce2e5);
+  background: var(--xlab-surface-2, #f5f8f9);
+}
+
+.controls h3 {
+  margin: 0 0 0.1rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.controls p {
+  margin: 0;
+  color: var(--xlab-muted, #65727a);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.controls label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.controls label > span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--xlab-muted, #5e6b73);
+  font-size: 0.74rem;
+}
+
+.controls output {
+  color: var(--xlab-accent-ink, #245269);
+  font: 650 0.74rem/1 var(--font-geist-mono, monospace);
+}
+
+.controls input[type="range"] {
+  width: 100%;
+  accent-color: var(--xlab-accent, #347b99);
+}
+
+.check {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  color: var(--xlab-ink-2, #3e4e56);
+  font-size: 0.74rem;
+}
+
+.check input {
+  accent-color: var(--xlab-accent, #347b99);
+}
+
+.stage {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.scene {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--xlab-rule-2, #d2dadd);
+  border-radius: 0.5rem;
+  background: #142029;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  margin: 0;
+  color: var(--xlab-muted, #66727a);
+  font: 0.66rem/1.4 var(--font-geist-mono, monospace);
+}
+
+.legend i {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.18rem;
+  margin-right: 0.28rem;
+  vertical-align: middle;
+  background: currentColor;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--xlab-rule, #e0e5e7);
+}
+
+.metrics div {
+  padding: 0.6rem 0.4rem 0;
+}
+
+.metrics div + div {
+  border-left: 1px solid var(--xlab-rule, #e0e5e7);
+}
+
+.metrics dt {
+  color: var(--xlab-muted, #6b756e);
+  font-size: 0.66rem;
+}
+
+.metrics dd {
+  margin: 0.15rem 0 0;
+  font: 650 0.92rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.hidden {
+  color: var(--xlab-faint, #8a969c);
+  font-weight: 500;
+}
+
+.formula {
+  color: var(--xlab-muted, #66727a);
+  font: 0.68rem/1.45 var(--font-geist-mono, monospace);
+}
+
+.predict {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: end;
+  margin-top: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--xlab-rule, #d6dde0);
+  border-radius: 0.65rem;
+}
+
+.predict fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.predict legend {
+  width: 100%;
+  margin-bottom: 0.4rem;
+  font-weight: 620;
+}
+
+.predict fieldset label {
+  cursor: pointer;
+}
+
+.predict fieldset input {
+  position: absolute;
+  opacity: 0;
+}
+
+.predict fieldset span {
+  display: block;
+  padding: 0.38rem 0.65rem;
+  border: 1px solid var(--xlab-rule-2, #cfd8dc);
+  border-radius: 0.35rem;
+  color: var(--xlab-ink-2, #45545c);
+  font-size: 0.73rem;
+}
+
+.predict input:checked + span {
+  border-color: var(--xlab-accent, #276d89);
+  background: var(--xlab-accent-soft, #edf5f8);
+  color: var(--xlab-accent-ink, #245269);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.45rem;
+}
+
+.actions button {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 0.4rem;
+  font: 650 0.75rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.reset {
+  border: 1px solid var(--xlab-rule-2, #cfd8dc);
+  background: var(--xlab-surface-2, white);
+  color: var(--xlab-ink-2, #45545c);
+}
+
+.run {
+  border: 1px solid var(--xlab-accent, #276d89);
+  background: var(--xlab-accent, #2c7591);
+  color: var(--xlab-on-ink, white);
+}
+
+.run:disabled {
+  border-color: var(--xlab-disabled, #c5cdd1);
+  background: var(--xlab-disabled, #c5cdd1);
+  cursor: not-allowed;
+}
+
+.feedback {
+  margin: 0.6rem 0 0;
+  color: var(--xlab-warning, #8a4e18);
+  font-size: 0.8rem;
+}
+
+.note {
+  margin: 0.45rem 0 0;
+  color: var(--xlab-muted, #66727a);
+  font-size: 0.72rem;
+}
+
+.predict fieldset input:focus-visible + span,
+.actions button:focus-visible,
+.controls input:focus-visible {
+  outline: 3px solid var(--xlab-focus-ring, #a9d5e5);
+  outline-offset: 2px;
+}
+
+@media (max-width: 780px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    border-right: 0;
+    border-bottom: 1px solid var(--xlab-rule, #dce2e5);
+  }
+
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .predict {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics div + div {
+    border-left: 0;
+    border-top: 1px solid var(--xlab-rule, #e0e5e7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene {
+    transition: none;
+  }
+}

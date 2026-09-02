@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 1,
+  "lessonCount": 32,
+  "sectionCount": 384,
+  "paperCount": 139,
+  "totalCharacterCount": 917204,
+  "totalBodyCharacterCount": 916398,
+  "totalByteCount": 1669836,
+  "sourceDigest": "2d521909a7f0c333b6bc5b0859bc93a9fd1f31296b1b6425da92021e1e9390a2",
+  "files": [
+    {
+      "sourceFile": "01_world_models_hands_on.md",
+      "id": "01",
+      "title": "第 01 课：跑通你的第一个世界模型",
+      "sha256": "e4af11f9a074b3aab7150ee1017d26fd04ab222ec9a878fa6b0e538e12548671",
+      "characterCount": 12199,
+      "byteCount": 25669,
+      "lineCount": 408,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "02_vae_visual_compression.md",
+      "id": "02",
+      "title": "第 02 课：用 32 个数表示一帧赛道",
+      "sha256": "e60cacc52efcbf543046ee06c8c4581c3e1bc906d14ab723ce35d48a5b9031ea",
+      "characterCount": 26117,
+      "byteCount": 48900,
+      "lineCount": 761,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "03_mdn_rnn_action_conditioned.md",
+      "id": "03",
+      "title": "第 03 课：让 M 按动作预测下一步",
+      "sha256": "12e3d5fe6bfa281a470b3b279e6ad8cfd4b114e71f9eaaf84d7a7a8a7f3596a5",
+      "characterCount": 26588,
+      "byteCount": 47656,
+      "lineCount": 757,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "04_controller_dream_training.md",
+      "id": "04",
+      "title": "第 04 课：训练控制器，并把训练搬进梦里",
+      "sha256": "496f8745730a460972acf0c0cff3a1a56914ee7ab345625ade4a2aa9c8c9f898",
+      "characterCount": 26026,
+      "byteCount": 48274,
+      "lineCount": 721,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "05_rssm_planet.md",
+      "id": "05",
+      "title": "第 05 课：RSSM 的确定状态与随机状态",
+      "sha256": "527a63ade8abb8bc687f0f8e03aed5554b7b37abc4af19250ec3f76de1b66fce",
+      "characterCount": 29898,
+      "byteCount": 52565,
+      "lineCount": 753,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "06_dreamerv3_imagination.md",
+      "id": "06",
+      "title": "第 06 课：DreamerV3 在想象中训练 actor-critic",
+      "sha256": "c372f8c6d344d62832353c18ac9c107cbec0c2490ebe28125b6477a1d23a6017",
+      "characterCount": 23565,
+      "byteCount": 45118,
+      "lineCount": 644,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "07_muzero_value_equivalence.md",
+      "id": "07",
+      "title": "第 07 课：MuZero 只预测决策所需的信息",
+      "sha256": "e221f2e9eb12c04eb3bf4760ec6f60990a1329ac2ef4eb503021b2ade28ad199",
+      "characterCount": 26838,
+      "byteCount": 52411,
+      "lineCount": 457,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "08_tdmpc2_decoder_free.md",
+      "id": "08",
+      "title": "第 08 课：TD-MPC2 不靠解码器怎么规划",
+      "sha256": "8c8dad1c12591689d15792e2ce46bf50a969fc04c16499d0bebfbb59feb5f333",
+      "characterCount": 24151,
+      "byteCount": 47538,
+      "lineCount": 685,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "09_iris_token_world_model.md",
+      "id": "09",
+      "title": "第 09 课：IRIS 把未来写成 token",
+      "sha256": "800938b97b40d7f7f14bec302ba5e68f0e05b475c3b3d0eccaaf8adbc83c03df",
+      "characterCount": 26160,
+      "byteCount": 51018,
+      "lineCount": 740,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "10_diamond_diffusion_world_model.md",
+      "id": "10",
+      "title": "第 10 课：DIAMOND 用扩散模型预测下一帧",
+      "sha256": "f09c02f9e87e6622e1a19aa548f951c85fd9b1aec0a1e85c0a38089e515868ee",
+      "characterCount": 20731,
+      "byteCount": 42749,
+      "lineCount": 636,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "11_genie_latent_actions.md",
+      "id": "11",
+      "title": "第 11 课：没有动作标签，Genie 怎么从视频中发现动作",
+      "sha256": "e2e3c82f499da89f12758dd950e0a17bf5c7367218945009332c7691a28b3461",
+      "characterCount": 24048,
+      "byteCount": 47601,
+      "lineCount": 653,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "12_frontier_landscape.md",
+      "id": "12",
+      "title": "第 12 课：哪些系统算世界模型",
+      "sha256": "50769809fae071e6da4ba26375346c3b2bbc91c438de3b42ea7969ef7e38db20",
+      "characterCount": 22637,
+      "byteCount": 47211,
+      "lineCount": 674,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "13_ijepa_from_scratch.md",
+      "id": "13",
+      "title": "第 13 课：I-JEPA 预测表征，不预测像素",
+      "sha256": "bbdb11e868d8d132af9f8c477af96519ca4a83ce52395708736d483e74a93fca",
+      "characterCount": 26304,
+      "byteCount": 48023,
+      "lineCount": 484,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "14_eb_jepa_action_conditioned.md",
+      "id": "14",
+      "title": "第 14 课：给 JEPA 接上动作",
+      "sha256": "22591fb3339e33a114740168ce8adb48f633f99bc847bf12b7792e5d4d4cfda5",
+      "characterCount": 24856,
+      "byteCount": 49929,
+      "lineCount": 706,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "15_vjepa2_in_practice.md",
+      "id": "15",
+      "title": "第 15 课：用 V-JEPA 2 的公开权重做评测",
+      "sha256": "987d7e9d5bf9d6ce9cce9265606afffbf612d98f5eab870a5250803552852d94",
+      "characterCount": 20911,
+      "byteCount": 41144,
+      "lineCount": 614,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "16_three_roads_debate.md",
+      "id": "16",
+      "title": "第 16 课：三条路线怎么选：重建、表征、物体槽",
+      "sha256": "d0e61782728ee8ff964d333dc8349e38a77b7e66a1e9e28cfc05d88d99c63cee",
+      "characterCount": 34002,
+      "byteCount": 68230,
+      "lineCount": 595,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "17_evaluating_world_models.md",
+      "id": "17",
+      "title": "第 17 课：把预测、生成与规划分开评测",
+      "sha256": "3d3024d33bd1b043be3e987d1cedd269e866749da5da59213f830b12de0595d9",
+      "characterCount": 40999,
+      "byteCount": 66734,
+      "lineCount": 1153,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "18_scaling_study.md",
+      "id": "18",
+      "title": "第 18 课：小模型的结论什么时候能外推",
+      "sha256": "867d2bc4489ba7376c5797bd8f09ef6021a97e390c316cb77cd4708372c96abd",
+      "characterCount": 22708,
+      "byteCount": 47628,
+      "lineCount": 646,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "19_surgery_experiments.md",
+      "id": "19",
+      "title": "第 19 课：替换一个模型组件",
+      "sha256": "ef1dc84f3cfb121fef70d752d5bf181a01d45c35fab176caaf4bce683aebdedb",
+      "characterCount": 24688,
+      "byteCount": 51876,
+      "lineCount": 654,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "20_spatial_3d_state.md",
+      "id": "20",
+      "title": "第 20 课：从多张照片得到一份持久的 3D 状态",
+      "sha256": "34f17015d5d70586e4a012942ef197e80ca55a0ed3449b6ce64a0e2b13b759d8",
+      "characterCount": 27574,
+      "byteCount": 53497,
+      "lineCount": 547,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "21_persistent_4d.md",
+      "id": "21",
+      "title": "第 21 课：边走边改的 4D 状态",
+      "sha256": "5d747d72d3ec0331cf0bbc88bf695b66832442db1531a6f89d982e08481c48da",
+      "characterCount": 29420,
+      "byteCount": 51103,
+      "lineCount": 908,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "22_foundation_video_wm.md",
+      "id": "22",
+      "title": "第 22 课：视频基础模型什么时候才算世界模型",
+      "sha256": "bfbed60c9f8650a22b1083414d136d1beed2da685120252c9a68825d209481d8",
+      "characterCount": 30312,
+      "byteCount": 50548,
+      "lineCount": 838,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "23_object_centric_wm.md",
+      "id": "23",
+      "title": "第 23 课：杯子和手不该塞进同一个向量",
+      "sha256": "816835609fad523d35a525f27091382a854589037ed3c60815cf8522bfa732be",
+      "characterCount": 37476,
+      "byteCount": 58739,
+      "lineCount": 1048,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "24_visual_foresight.md",
+      "id": "24",
+      "title": "第 24 课：看见未来再动手",
+      "sha256": "acd7f339b2eac8ebc9c2df8dd215b00d5ef09ac2c2df26f018da92de1bb46812",
+      "characterCount": 36954,
+      "byteCount": 62813,
+      "lineCount": 775,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "25_lerobot_imitation.md",
+      "id": "25",
+      "title": "第 25 课：先模仿专家动作，再谈世界模型",
+      "sha256": "1973b8c44d13858d80f5abe72d77a66771b236d1ff285f88bca8a9dc5196abf2",
+      "characterCount": 29030,
+      "byteCount": 51186,
+      "lineCount": 585,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "26_vla_vs_world_model.md",
+      "id": "26",
+      "title": "第 26 课：语言进、动作出之后，还要不要预测未来",
+      "sha256": "6de54f25970a6601027e87c64b056b6355a432eb172ee8bf306066d02bbfd881",
+      "characterCount": 26755,
+      "byteCount": 49452,
+      "lineCount": 527,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "27_sim_to_real.md",
+      "id": "27",
+      "title": "第 27 课：仿真里会了，真桌子上为什么还摔",
+      "sha256": "bb7dafcf2d8047113171fa6a6892f426fc404b1689febe81fcf7d55ff5bc2eb3",
+      "characterCount": 34777,
+      "byteCount": 57143,
+      "lineCount": 829,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "28_desk_pet_brief.md",
+      "id": "28",
+      "title": "第 28 课：把桌子写成有界 POMDP，立项一台桌宠",
+      "sha256": "0d1143f7700c77cf0bef34c44499fa1517ab4ba9b641acd59e7fdc8494b1c116",
+      "characterCount": 31362,
+      "byteCount": 62443,
+      "lineCount": 748,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "29_desk_perception.md",
+      "id": "29",
+      "title": "第 29 课：把桌子压成可查询的状态",
+      "sha256": "0c7c9dd6425fea116ff2f4c1ddfba89cc18e8b2f4953b4a7d5af18abc2fa2560",
+      "characterCount": 36915,
+      "byteCount": 58680,
+      "lineCount": 1093,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "30_desk_world_model.md",
+      "id": "30",
+      "title": "第 30 课：给自己的桌子训一个会听动作的世界模型",
+      "sha256": "bb69653cc506e403a24f055161c4f191c1836b8e86b91b10fd6d3f13c077591a",
+      "characterCount": 45341,
+      "byteCount": 68836,
+      "lineCount": 1048,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "31_interaction_memory.md",
+      "id": "31",
+      "title": "第 31 课：预测对面那个人下一秒会不会看过来",
+      "sha256": "61a7f8fb28573348952df7d560f2dac54a2e304e5187d5267f18cb74c9124db2",
+      "characterCount": 41260,
+      "byteCount": 61564,
+      "lineCount": 1020,
+      "sectionCount": 12
+    },
+    {
+      "sourceFile": "32_ship_desk_pet.md",
+      "id": "32",
+      "title": "第 32 课：装上身体，做出五件会先想再做的行为",
+      "sha256": "a2770eb680019e07282bfc74b093dcda33a6743d41b1f90d6e1b99a897da58db",
+      "characterCount": 26602,
+      "byteCount": 53558,
+      "lineCount": 565,
+      "sectionCount": 12
+    }
+  ]
+}

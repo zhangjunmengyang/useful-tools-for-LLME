@@ -1,0 +1,34 @@
+.drawers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.drawer {
+  min-height: 148px;
+  padding: 12px;
+  border: 1px solid var(--xlab-rule, #dce4df);
+  border-radius: 12px;
+  background: var(--xlab-surface-3, #f7faf8);
+}
+
+.drawer h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.drawer p {
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--xlab-surface, white);
+  color: var(--xlab-ink-2, #46534c);
+  font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .drawers {
+    grid-template-columns: 1fr;
+  }
+}

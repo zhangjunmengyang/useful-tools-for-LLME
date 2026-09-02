@@ -1,0 +1,175 @@
+import type { LessonDiagram } from "@/lib/lesson-diagrams/types";
+
+export const lesson60Diagram: LessonDiagram = {
+  lessonId: "60",
+  title: "新论文接到已有验收口径",
+  summary:
+    "一篇新表先填收编卡。缺 N 或缺套件直接拒收；把 LIBERO 写成真机标红。通过的格子再分规模或机制，接到第 01、31、47 课已有桶，不新开模型课。",
+  viewBox: "0 0 960 360",
+  nodes: [
+    {
+      id: "l60-paper",
+      label: ["新论文表"],
+      meta: "一行一个数字",
+      kind: "input",
+      x: 92,
+      y: 180,
+      width: 132,
+    },
+    {
+      id: "l60-card",
+      label: ["收编卡"],
+      meta: "十个必填字段",
+      kind: "transform",
+      x: 268,
+      y: 180,
+      width: 140,
+    },
+    {
+      id: "l60-fields",
+      label: ["字段检查"],
+      meta: "N / 套件 / 单位",
+      kind: "decision",
+      x: 468,
+      y: 78,
+      width: 150,
+    },
+    {
+      id: "l60-trap",
+      label: ["真机陷阱"],
+      meta: "LIBERO 标红",
+      kind: "decision",
+      x: 468,
+      y: 272,
+      width: 150,
+    },
+    {
+      id: "l60-kind",
+      label: ["规模或机制"],
+      meta: "缩小版方向",
+      kind: "state",
+      x: 668,
+      y: 78,
+      width: 150,
+    },
+    {
+      id: "l60-bucket",
+      label: ["课桶 01/31/47"],
+      meta: "沿用六类与套件",
+      kind: "state",
+      x: 668,
+      y: 272,
+      width: 150,
+    },
+    {
+      id: "l60-out",
+      label: ["准入或拒收"],
+      meta: "不新开模型课",
+      kind: "output",
+      x: 862,
+      y: 180,
+      width: 140,
+    },
+  ],
+  edges: [
+    {
+      id: "l60-e-paper-card",
+      from: "l60-paper",
+      to: "l60-card",
+      label: "一行一卡",
+      labelAt: { x: 176, y: 152 },
+    },
+    {
+      id: "l60-e-card-fields",
+      from: "l60-card",
+      to: "l60-fields",
+      label: "补字段",
+      via: [{ x: 268, y: 78 }],
+      labelAt: { x: 348, y: 52 },
+    },
+    {
+      id: "l60-e-card-trap",
+      from: "l60-card",
+      to: "l60-trap",
+      label: "查声称",
+      via: [{ x: 268, y: 272 }],
+      labelAt: { x: 348, y: 302 },
+    },
+    {
+      id: "l60-e-fields-kind",
+      from: "l60-fields",
+      to: "l60-kind",
+      label: "齐全才分流",
+      labelAt: { x: 568, y: 52 },
+    },
+    {
+      id: "l60-e-trap-bucket",
+      from: "l60-trap",
+      to: "l60-bucket",
+      label: "C5 不是真机",
+      labelAt: { x: 568, y: 302 },
+    },
+    {
+      id: "l60-e-kind-out",
+      from: "l60-kind",
+      to: "l60-out",
+      label: "机制可复现方向",
+      via: [{ x: 862, y: 78 }],
+      labelAt: { x: 790, y: 52 },
+    },
+    {
+      id: "l60-e-bucket-out",
+      from: "l60-bucket",
+      to: "l60-out",
+      label: "同类才比较",
+      via: [{ x: 862, y: 272 }],
+      labelAt: { x: 790, y: 302 },
+    },
+    {
+      id: "l60-e-fields-out",
+      from: "l60-fields",
+      to: "l60-out",
+      label: "缺字段拒收",
+      via: [{ x: 468, y: 180 }, { x: 780, y: 180 }],
+      labelAt: { x: 620, y: 158 },
+    },
+  ],
+  steps: [
+    {
+      title: "一行数字填一张收编卡",
+      description:
+        "论文身份、课桶、规模或机制、第 47 课类标签、基准、划分、N、单位、是否 fine-tune、缩小版能否复现方向，十项缺一则卡未完成。",
+      focus: ["l60-paper", "l60-card", "l60-e-paper-card"],
+    },
+    {
+      title: "缺 N 或缺套件直接拒收",
+      description:
+        "LIBERO 行还要套件键 Spatial / Object / Goal / Long 和第 31 课成功谓词。空 N 或空套件不得入账。",
+      focus: ["l60-fields", "l60-e-card-fields", "l60-e-fields-out"],
+    },
+    {
+      title: "把 LIBERO 写成真机必须标红",
+      description:
+        "OpenVLA Table 12 宏平均 76.5% 是仿真 fine-tune。拖进真机能力与第 47 课陷阱格同一条禁则。",
+      focus: ["l60-trap", "l60-bucket", "l60-e-card-trap", "l60-e-trap-bucket"],
+    },
+    {
+      title: "规模接到已有课，机制才谈缩小版方向",
+      description:
+        "7B 对 55B 的参数差是规模，缩小版复现不了 16.5 个点。并行解码与动作块是机制，Long 被抬起来的方向可以在夹具里复核。",
+      focus: ["l60-kind", "l60-e-fields-kind", "l60-e-kind-out"],
+    },
+    {
+      title: "准入后仍用 01 / 31 / 47 的尺子",
+      description:
+        "类内还要 golden case 分桶；C5 要 Wilson 只服务二项成功率；六类不能横着比。本课不新开模型课。",
+      focus: ["l60-out", "l60-e-bucket-out"],
+    },
+  ],
+  facts: [
+    "OpenVLA 在 LIBERO 四套件独立 fine-tune 后为 Spatial 84.7%、Object 88.4%、Goal 79.2%、Long 53.7%，宏平均 76.5%（Appendix E Table 12，每套件 500 trials × 3 seeds），类标签是 C5，不是真机。",
+    "OpenVLA-OFT 把同一张表从 76.5% 做到 97.1%（Table I），并写明并行解码、动作块、连续 L1；吞吐提高 26 倍。这是机制卡，缩小版只复核方向，不复核 97.1%。",
+    "SIMPLER Google Robot Visual Matching 平均 Pearson r=0.924（Table I），单位是排序相关。N=25、k=20 的 Wilson 95% 区间约为 [0.609, 0.911]，沿用第 31 课。",
+    "OpenVLA 7B 相对 RT-2-X 55B 在 29 项真机任务上绝对成功率高 16.5%。该句是规模加数据混合物，MiniMind-O 26M 不能把它写成自训复现。",
+  ],
+};

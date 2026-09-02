@@ -1,0 +1,45 @@
+{
+  "id": "60",
+  "slug": "living-protocol",
+  "shortTitle": "新论文收编卡",
+  "unit": "domain-research",
+  "essentialQuestion": "课会过时之后，一篇新论文怎样填收编卡、接到已有课桶，并且在缺 N、缺套件、把 LIBERO 写成真机时被拒收？",
+  "hook": "每月都会多一张 VLA 总表。本课不增加新模型，只增加一张卡：进哪一课、规模还是机制、缩小版能不能复现方向、缺哪条协议字段。",
+  "outcomes": [
+    "给一篇新论文的每一行数字填收编卡：课桶、规模或机制、第 47 课类标签、第 31 课套件、N、单位、是否 fine-tune、缩小版能否复现方向",
+    "拒绝缺 N、缺套件的 LIBERO 行，并拒绝把 LIBERO 宏平均写成真机能力",
+    "把规模声明接到已有课当对照，不新开模型课；只对机制声明判断缩小版能否复现同方向趋势",
+    "在虚构新 VLA 表上先预测哪几张卡会标红，再拖桶，并让 CPU 夹具与第 31、47 课标签保持兼容"
+  ],
+  "misconception": {
+    "myth": "新论文分数更高，就要新开一课、换一个骨干；LIBERO 平均可以先写进真机节撑场面，N 和套件以后再补。",
+    "truth": "收编只引入规则。缺字段不得入账。LIBERO 是 C5 仿真操作。参数变大是规模，接到第 27 课当对照，不是新模型课。"
+  },
+  "prerequisites": [
+    "第 01 课：golden case 分桶、禁止把官方评测写成自训复现",
+    "第 31 课：LIBERO 四套件、SIMPLER 的 r、Wilson 区间、真机小样本不能横着比",
+    "第 47 课：六类互斥标签，LIBERO 平均进不了真机能力"
+  ],
+  "labId": "lab-60-living-protocol",
+  "labExportName": "Lesson60ProtocolLab",
+  "readingTime": 70,
+  "difficulty": "进阶",
+  "hardware": {
+    "minimum": "无 GPU：读完全文、跑浏览器收编实验和 CPU 必填字段夹具",
+    "recommended": "若要对照论文规模评测：单卡可加载开源 VLA 跑 LIBERO 推理；真机评测另需机械臂。本课不要求这些。",
+    "notes": "本课不训新模型，不引入新骨干。CPU 实验与浏览器 Lab 是教学夹具，不能写成 LIBERO、SIMPLER 或真机成功率，也不能把虚构 NovaVLA 表当文献。"
+  },
+  "learningMode": ["收编卡", "分桶标红", "先预测再揭晓", "CPU 必填字段"],
+  "practice": {
+    "purpose": "证明收编卡缺 N 或缺套件被拒收，把 LIBERO 写成真机被拒收，且类标签、套件键与第 31、47 课兼容。",
+    "proves": [
+      "必填十个字段；C5 / LIBERO 行还要套件与成功谓词",
+      "缺 N、缺套件的准入结果是 reject_incomplete",
+      "LIBERO 声称 real_robot 被拒收",
+      "第 47 课六类仍互斥，第 31 课四套件键可接受，Wilson 与 N=25、k=20 手算一致"
+    ],
+    "doesNotProve": "不证明任何真实模型的仿真或真机能力，也不能把夹具或虚构表写成 SOTA。",
+    "sourceFile": "lesson_60.py"
+  },
+  "firstH2": "新论文怎样接到这门课的验收口径上"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "29",
+  "slug": "dual-system-vla",
+  "shortTitle": "快慢双系统 VLA",
+  "unit": "vla",
+  "essentialQuestion": "慢速 VLM 规划与高频动作专家之间到底传什么，两个时钟怎样同时跑？",
+  "hook": "7B 自回归模型既要读懂“把杯子放到架子第二层”，又要 100 Hz 出关节，算力账单对不上。拆开 System 2 / System 1 之后，暂停规划看手臂会不会还在执行最后一条子目标。",
+  "outcomes": [
+    "写出规划周期与控制周期的关系 ΔT2 = k ΔT1，并定义子目标年龄与过期。",
+    "对照 GR00T N1 的 Eagle VLM + DiT 与 π0.5 的先子任务后动作块，说明中间条件分别是 token 还是语义文本。",
+    "根据机理研究实际测过的六套模型，区分专家通路的动作程序与 VLM 通路的目标语义。",
+    "用双时钟实验证明：规划暂停过久任务失败，错误子目标改变末端轨迹。"
+  ],
+  "misconception": {
+    "myth": "快慢双系统等于两个独立模型，中间只传一句自然语言，System 1 暂停规划后会自己发明下一阶段。",
+    "truth": "GR00T N1 把 VLM token 交叉注意进 DiT 并联合训练；π0.5 用同一套权重先出子任务再出动作。System 1 每步只消费当前子目标，不会在 System 2 暂停时改写任务阶段。"
+  },
+  "prerequisites": ["27", "28"],
+  "labId": "lab-29-dual-clock",
+  "labExportName": "Lesson29DualClockLab",
+  "readingTime": 75,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU：阅读全文并运行 CPU 双时钟实验",
+    "recommended": "论文规模后训练：NVIDIA 博文给出的 1×RTX A6000 或 1×GeForce RTX 4090；N1 预训练约 50,000 H100 GPU hours；N1.5 预训练 1,000×H100、250k steps、global batch 16384",
+    "notes": "CPU 实验与浏览器 Lab 是教学模拟，不能写成真机或 LIBERO 成功率。"
+  },
+  "learningMode": ["阅读机制", "浏览器双时钟实验", "CPU 离散时间循环"],
+  "practice": {
+    "purpose": "用两个离散时间循环核对：控制环每步消费当前子目标，规划环不是每步都跑。",
+    "proves": [
+      "ΔT2 = k ΔT1 且规划时刻是 k 的倍数",
+      "System 2 暂停超过过期步数后任务失败",
+      "错误子目标改变末端轨迹"
+    ],
+    "doesNotProve": "不证明 GR00T 或 π0.5 的真机成功率，也不证明 VLM 表征可解释。",
+    "sourceFile": "lesson_29.py"
+  },
+  "firstH2": "快慢双系统如何同时规划和控臂"
+}

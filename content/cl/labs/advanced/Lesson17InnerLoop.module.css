@@ -1,0 +1,43 @@
+.seq {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.seq li {
+  min-width: 2rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--xlab-surface-3, #edf1ee);
+  color: var(--xlab-muted, #68736d);
+  font-size: 13px;
+  text-align: center;
+}
+
+.seq li[data-active="true"] {
+  color: var(--xlab-accent-ink, #125e3c);
+  background: var(--xlab-accent-soft, #dcf4e5);
+}
+
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.matrix th,
+.matrix td {
+  padding: 6px 4px;
+  text-align: center;
+  border-bottom: 1px solid var(--xlab-rule, #e5ebe7);
+}
+
+.matrix tr[data-changed="true"] td {
+  background: var(--xlab-accent-soft, #e9f8ef);
+  color: var(--xlab-accent-ink, #0f5a38);
+  font-weight: 650;
+}

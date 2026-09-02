@@ -1,0 +1,49 @@
+.bars {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  height: 148px;
+  margin-bottom: 12px;
+}
+
+.barCol {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 6px;
+  min-width: 0;
+}
+
+.barCol small {
+  color: var(--xlab-muted, #68736d);
+  font-size: 11px;
+  text-align: center;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  align-items: end;
+  height: 100%;
+}
+
+.pair span {
+  display: block;
+  height: var(--h);
+  border-radius: 6px 6px 0 0;
+  transition: height 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sgd {
+  background: #8b9690;
+}
+
+.cbp {
+  background: var(--xlab-accent, #1b7a53);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pair span {
+    transition: none;
+  }
+}

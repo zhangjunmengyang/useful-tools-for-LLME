@@ -1,0 +1,51 @@
+{
+  "id": "48",
+  "slug": "speech-action-runtime",
+  "shortTitle": "双时钟状态表",
+  "unit": "embodied-omni",
+  "essentialQuestion": "第 19 课 Thinker–Talker 加上第 29 课快慢 VLA 之后，CONTINUE / PAUSE / REPLAN 在音频时钟和控制时钟上能否共用一行状态，却必须分列记录两个 available_at？",
+  "hook": "助手还在说“我去拿桌上的杯子”，有人把杯子挪走。停嘴是音频 PAUSE，改抓取是手臂 REPLAN。一次点击若同时撤回已播声音和已经发生的接触，历史就被伪造了。",
+  "outcomes": [
+    "写出一行状态、两列时间戳：audio_available_at 与 action_available_at，并分别用音频帧和 H/f 定义过期。",
+    "把第 07 课的 CONTINUE / PAUSE / REPLAN 接到控制时钟上，同时说明音频 PAUSE 不等于第 40 课的力切断。",
+    "规定 REPLAN 同时取消未播 PCM 和未执行 chunk，且不得 undo 已播放音频或已发生接触。",
+    "在双时钟教具里用两次独立事件完成停嘴和重规划，并在 CPU 回放里证明旧 PCM 与旧剩余步不再执行。"
+  ],
+  "misconception": {
+    "myth": "语音打断和手臂重规划是同一按钮：停嘴就会自动撤回已播声音，也会把已经碰到的杯子退回原处。",
+    "truth": "它们可以共用一张状态表和同一组动词，但必须分列时钟。PAUSE 只冻结未播出队；REPLAN 只取消未来队列。已播 PCM 和已发生接触是历史，不能 undo。"
+  },
+  "prerequisites": [
+    "第 07 课：CONTINUE / PAUSE / REPLAN 与 available_at。",
+    "第 19 课：Thinker–Talker 与双工回放边界。",
+    "第 29 课：快慢双时钟与子目标过期。",
+    "第 30 课：开环窗口 H/f 与过期 chunk。",
+    "第 40 课规格：力超限后 SAFE_HOLD，接触不可回放。"
+  ],
+  "labId": "lab-48-duplex-body",
+  "labExportName": "Lesson48DuplexBodyLab",
+  "readingTime": 80,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文、跑浏览器双时钟教具与 CPU 状态表回放。",
+    "recommended": "对照 Qwen2.5-Omni / GR00T / π0 的公开权重需要对应论文里的推理卡；本课不要求加载这些权重。",
+    "notes": "产物是接口说明书加教学状态机，不是发布级双工机器人。教具和 CPU 实验证明协议可复核，不证明真机成功率，也不声称复现 GPT-4o 或 Helix。"
+  },
+  "learningMode": [
+    "双时钟状态表",
+    "先预测再揭晓",
+    "CPU 事件回放",
+    "文献对照"
+  ],
+  "practice": {
+    "purpose": "用一张状态表、两列时间戳证明：PAUSE 与 REPLAN 分事件，REPLAN 后旧 PCM 与旧剩余步都不执行，且不撤回历史。",
+    "proves": [
+      "音频过期用 320 ms 块，动作过期用 H/f，同一延迟可以只让一边过期。",
+      "音频 PAUSE 不丢手臂剩余步；力切断不停嘴。",
+      "REPLAN 取消未播 PCM 和未执行剩余步，已播 PCM 与接触仍在。"
+    ],
+    "doesNotProve": "不证明任何真机双工机器人、LIBERO 成功率，也不证明复现了 GPT-4o 或 Helix。",
+    "sourceFile": "lesson_48.py"
+  },
+  "firstH2": "语音打断和手臂重规划能否共用一张状态表"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "27",
+  "slug": "autoregressive-vla",
+  "shortTitle": "诊断自回归 VLA",
+  "unit": "vla",
+  "essentialQuestion": "把 7 维动作塞进 Llama 词表尾部逐步吐出之后，延迟从哪来，OFT 的并行 L1 和 chunk 各改了吞吐和哪一套 LIBERO 成功率？",
+  "hook": "LIBERO 平均成功率看起来很高，控制频率却只有数 Hz。先把串行 7 步和并行 1 步的延迟条拉开，再拆开四套件，不要只报一个平均数。",
+  "outcomes": [
+    "写出动作 token 如何覆盖 Llama 词表尾部，以及 teacher-forced CE 的 loss mask 盖在哪些位置。",
+    "手算串行步数 7 或 7H，并对照并行一次吐出 H×7 时延迟和吞吐怎么变。",
+    "解释 CE 在 bin 边界上的类别跳变，以及连续 L1 为什么对同一误差更平滑。",
+    "读 LIBERO 数字时强制拆 Spatial / Object / Goal / Long，拒绝把 97% 平均成功率写成通用操作已解决。"
+  ],
+  "misconception": {
+    "myth": "OpenVLA-OFT 在 LIBERO 上平均 97%，通用操作已经被解决了。",
+    "truth": "97.1% 来自论文表 I：四个套件各自微调、过滤失败示教、仿真 Franka、每套件 500 次试验。LIBERO-Long 仍低于另外三套，真机和其他机体不在这个平均数里。"
+  },
+  "prerequisites": [
+    "第 25 课：离散 bin、连续回归和动作 chunk 各自丢掉什么。",
+    "第 26 课：异构机器人数据不能按原始条数直接混。",
+    "会写因果语言模型的 next-token loss 和 assistant-only mask（第 01 课）。"
+  ],
+  "labId": "lab-27-openvla-serial-parallel",
+  "labExportName": "Lesson27OpenVlaLab",
+  "readingTime": 75,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文并跑 CPU 机制实验",
+    "recommended": "复现论文规模：OpenVLA 预训练约 64×A100、14 天；LoRA 微调约 1×A100、10–15 小时；OFT 微调约 8×A100/H100",
+    "notes": "CPU 实验和浏览器 Lab 都是教学夹具，不得写成 LIBERO 或真机成功率。"
+  },
+  "learningMode": ["词表与延迟对照", "CE / L1 mask 单测", "套件拆桶", "遮挡负对照"],
+  "practice": {
+    "purpose": "实现 bin 化动作的 teacher-forced CE 与并行 L1，核对张量形状和 loss 位置 mask。",
+    "proves": [
+      "CE 只在 7 个动作位置计 loss，prompt 与 padding 为 IGNORE",
+      "并行 L1 预测形状为 [B, H, 7]，padded 时间步被 mask 掉",
+      "同一 bin 边界上 CE 类别跳变，L1 仍按连续差计罚"
+    ],
+    "doesNotProve": "它不训练 OpenVLA，也不报告 LIBERO 或真机成功率。",
+    "sourceFile": "lesson_27.py"
+  },
+  "firstH2": "自回归 VLA 的词表和串行延迟"
+}

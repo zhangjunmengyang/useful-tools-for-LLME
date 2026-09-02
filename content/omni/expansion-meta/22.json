@@ -1,0 +1,44 @@
+{
+  "id": "22",
+  "slug": "standard-vlm-recipe",
+  "shortTitle": "标准 VLM 配方",
+  "unit": "vl-foundation",
+  "essentialQuestion": "冻视觉、只训投影、再解冻 LLM，这个顺序少一步会怎样？",
+  "hook": "一套开关决定模型是学会看图，还是把已经会的文字忘掉。",
+  "outcomes": [
+    "能按模块写出只训投影、投影加 LoRA、再解冻 ViT 的可训练参数量",
+    "能说明 LLaVA 两阶段、BLIP-2 双冻塔和 Flamingo 门控插入各自冻什么",
+    "能用图文对齐、指令跟随和旧文本探针判断解冻顺序是否合格",
+    "能把第 02 课的 connector 消融和本课的业界配方分开记账"
+  ],
+  "misconception": {
+    "myth": "视觉编码器越早一起训，图文对齐越好，也不会伤到原来的语言模型。",
+    "truth": "从已经对比对齐过的 ViT 出发时，过早解冻视觉塔会改写文本方向，旧文本能力先掉。"
+  },
+  "prerequisites": [
+    "会写 PyTorch 的 requires_grad 与参数组",
+    "知道因果语言模型的 next-token 损失",
+    "建议读过第 21 课的对比学习共享空间；可独立读"
+  ],
+  "labId": "lab-22-unfreeze-schedule",
+  "labExportName": "Lesson22RecipeLab",
+  "readingTime": 65,
+  "difficulty": "进阶",
+  "hardware": {
+    "minimum": "无 GPU：读完全文，跑 CPU 机制实验和浏览器开关实验",
+    "recommended": "复现 LLaVA-1.5 公开配方需要约 8×A100 一天；教学缩小版 1×24GB 可做冻结消融",
+    "notes": "CPU 实验证明梯度 mask 和参数计数，不报告真实 VQA 成功率"
+  },
+  "learningMode": ["阅读", "浏览器实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "按模块统计可训练参数，并验证只训投影时 ViT 与 LLM 梯度为零",
+    "proves": [
+      "阶段 1 可训练参数等于投影矩阵元素数",
+      "mask 之后 ViT 与 LLM 的反传梯度精确为零",
+      "LoRA 参数量等于 r(d_in+d_out)，且基座 LLM 梯度仍被挡住"
+    ],
+    "doesNotProve": "不证明某个真实 VLM 的 VQA 分数或遗忘幅度",
+    "sourceFile": "lesson_22.py"
+  },
+  "firstH2": "视觉语言模型的标准训练顺序"
+}

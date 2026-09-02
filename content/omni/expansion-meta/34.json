@@ -1,0 +1,44 @@
+{
+  "id": "34",
+  "slug": "world-model-platform",
+  "shortTitle": "数据引擎或控制器",
+  "unit": "world-model",
+  "essentialQuestion": "Cosmos 生成物理视频给别人训，和 V-JEPA 2 或 Cosmos 3 自己拿预测去控，评价标准为什么不是同一张表？",
+  "hook": "落下的方块一加动作，生成路会丢物体 ID，控制路会把重力符号弄反。两件事都发生在看起来很像物理的视频里。",
+  "outcomes": [
+    "把世界模型的两种用法拆开：数据引擎看保真和物理违规率，控制器看滚动执行误差。",
+    "写出跨帧物体 ID 计数器和自由下落 Δv_y 符号探针，并能指出 Cosmos 原文承认的物体永久性与重力失败。",
+    "对照 Cosmos 1 的 AR / diffusion、Cosmos 3 的 Mixture-of-Transformers，以及 Genie 从无标签视频学潜伏动作。",
+    "在教学模拟里先预测再揭晓，触发物体消失或重力方向错误，并拒绝把该数字写成真机成功率。"
+  ],
+  "misconception": {
+    "myth": "视频看起来像物理，就可以当仿真器去控臂，滚动成功率也能写成真机能力。",
+    "truth": "Cosmos 自己写明当前模型还不能当可靠物理仿真器。数据引擎和控制器要用不同门禁：丢掉物体 ID 或重力符号反了，生成路应拒收，控制路应报失败，两者都不能冒充真机成功率。"
+  },
+  "prerequisites": [
+    "第 33 课：能区分像素重建和表征预测。",
+    "第 09 课：知道视频是有时间轴的观察，不是一叠独立图片。"
+  ],
+  "labId": "lab-34-world-model-platform",
+  "labExportName": "Lesson34CosmosLab",
+  "readingTime": 75,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "复现 Cosmos / Genie 论文规模需要多机多卡与大规模视频；本课不提供该算力",
+    "notes": "浏览器实验是教学模拟，不是 Cosmos 或 Genie 的前向输出。CPU 实验只核对 ID 计数器和重力符号，不证明真机能力。"
+  },
+  "learningMode": ["数据引擎对照", "控制器探针", "物体 ID 计数器", "重力符号报警"],
+  "practice": {
+    "purpose": "用手算核对跨帧物体 ID 计数器和自由下落的重力符号探针。",
+    "proves": [
+      "干净滚动不丢物体 ID，Δv_y 与真重力同号。",
+      "人为丢掉 ID 后计数器大于 0。",
+      "把 g 取反后符号探针报警。",
+      "用翻转重力选出的动作，在真实世界里更偏离捕捉目标。"
+    ],
+    "doesNotProve": "不证明 Cosmos、Genie 或 V-JEPA 2 的真机成功率，也不能把夹具数字标成物理仿真器已可靠。",
+    "sourceFile": "lesson_34.py"
+  },
+  "firstH2": "世界模型当数据引擎还是当控制器"
+}

@@ -2,16 +2,16 @@
 
 一个多主题教程站。左侧切换主题，和量化深耕里换市场是同一类操作：换主题后，目录、课文和可玩的东西一起换。
 
-当前四个主题：
+当前四个主题都在本仓库 `content/<主题>/`，克隆这一个仓库就能读、能学：
 
-| 主题 | 从哪读正文 | 能做什么 |
+| 主题 | 正文 | 能做什么 |
 |---|---|---|
-| Omni | 旁边的 `learn-omni/learn-omni` | 读 / 学；玩是课里的实验段 |
-| 世界模型 | `learn-omni/learn-wm` 或 `learn-wm` | 读 / 学；玩是课里的实验段 |
-| 持续学习 | `learn-omni/learn-cl` 或 `learn-cl` | 读 / 学；玩是课里的实验段 |
-| LLM | 本仓库 `content/llm` | 读 / 学；玩是嵌在课里的 `/api/tools` 组件 |
+| Omni | `content/omni`（60 课） | 读 / 学；玩是课里的实验段，CPU 实验在 `content/omni/experiments` |
+| 世界模型 | `content/wm`（45 课） | 读 / 学；玩是课里的实验段，Lab 源码在 `content/wm/labs` |
+| 持续学习 | `content/cl`（24 课） | 读 / 学；玩是课里的实验段，CPU 实验在 `content/cl/experiments` |
+| LLM | `content/llm`（7 课） | 读 / 学；玩是嵌在课里的 `/api/tools` 组件 |
 
-Omni、世界模型、持续学习的课文仍放在原仓库，这里只读进来。LLM 是新写的短主线，不把 notebook 目录当成大纲。
+Omni、世界模型、持续学习的课文是中文。界面中英都能切。LLM 有中英两套正文。不需要旁边再放 `learn-omni`、`learn-wm`、`learn-cl`。
 
 ## 怎么跑
 
@@ -42,10 +42,9 @@ python -m uvicorn workbench_api.app:app --host 127.0.0.1 --port 8766
 
 ## 怎么加一个主题
 
-1. 在 `content/topics.json` 加一项。`kind` 是 `sibling_markdown`（读旁边仓库的 `web/content/lessons`）或 `local_markdown`（读本仓库一个目录）。
-2. 本地课要有 `content/<id>/course.json` 和 `content/<id>/lessons/*.md`。课文开头可用 YAML：`id`、`title`、`unit`、`play_tools`、`checkpoints`。
-3. 旁边仓库的课靠 `web/lib/course-data.ts` 取幕和标题，靠 markdown 正文做读 / 学 / 玩。
-4. 重启 API。切换器按 `topics.json` 的顺序显示。
+1. 在 `content/topics.json` 加一项，`kind` 用 `local_markdown`，`root` 指向本仓库一个目录。
+2. 该目录要有 `course.json` 和 `lessons/*.md`。课文开头可用 YAML：`id`、`title`、`unit`、`play_tools`、`checkpoints`。
+3. 重启 API。切换器按 `topics.json` 的顺序显示。
 
 不要把 mem-learn 门户加成第五门课。它只是旧的选题页。
 
@@ -113,7 +112,7 @@ Open `http://localhost:7860`.
 ## 项目结构
 
 ```
-├── content/                   # 主题注册 + LLM 课文
+├── content/                   # 主题注册 + 四门课文（omni / wm / cl / llm）
 ├── learn_platform/            # 主题目录和读课接口
 ├── app_gradio.py              # Gradio 应用入口
 ├── token_lab/                 # TokenLab 模块

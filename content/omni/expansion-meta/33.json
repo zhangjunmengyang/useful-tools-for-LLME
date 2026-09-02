@@ -1,0 +1,44 @@
+{
+  "id": "33",
+  "slug": "world-model-latent",
+  "shortTitle": "像素还是表征",
+  "unit": "world-model",
+  "essentialQuestion": "生成未来帧和在表征空间预测，训练信号差在哪？V-JEPA 2 用不到 62 小时机器人视频做动作条件后训练、零样本抓取，这个声明的条件和限制是什么？",
+  "hook": "像素 L2 把叶子和接触边算进同一笔损失。JEPA 把损失写在表征上，接触还可以被分开；把同一预测解码回像素，接触就会糊掉。",
+  "outcomes": [
+    "能对照写出像素 L2 与表征 L1/L2 回归，并指出不可预测纹理只进入前者。",
+    "能说明 JEPA 用 EMA + stop-gradient 防塌缩，VICReg 用方差铰链和协方差去相关，两条路不能抄成一句。",
+    "能在遮挡未来 patch 后用接触/分离探针比较两条路，而不是只看重建好看不好看。",
+    "能按 V-JEPA 2 原文条件转述“不到 62 小时 Droid 视频、零样本抓取”，并列出图像子目标、相机位、N=10 这些限制。"
+  ],
+  "misconception": {
+    "myth": "世界模型就是把下一帧像素画出来；画得越清楚，就越会控臂。",
+    "truth": "像素重建把不可预测纹理算进损失，接触边会被平均掉。表征预测丢掉纹理、保留位置与重叠；V-JEPA 2-AC 的抓取声明还附带数据、目标和评测条件。"
+  },
+  "prerequisites": [
+    "建议第 09 课：视频有时间轴，不是一叠无序图片。",
+    "建议第 28 课：连续动作可以在另一空间生成；本课的样本是视频表征，不是动作块。",
+    "不要重做第 20 课的图像 flow matching。"
+  ],
+  "labId": "lab-33-world-model-latent",
+  "labExportName": "Lesson33WorldModelLab",
+  "readingTime": 75,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "复现 I-JEPA / V-JEPA / V-JEPA 2 论文规模需要多卡与大规模视频，本课不提供",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对 8 步序列上的像素 L2、表征回归和接触探针。"
+  },
+  "learningMode": ["损失对照", "遮挡探针", "防塌缩夹具", "文献条件"],
+  "practice": {
+    "purpose": "在固定 8 步接触/分离序列上核对像素 L2 与表征回归，以及遮挡后接触探针是否还分得开。",
+    "proves": [
+      "遮挡未来后像素 L2 上升，表征回归保持同阶或下降。",
+      "像素接触差塌掉，表征 overlap 仍分开接触与分离。",
+      "常数编码器触发 VICReg 方差项；stop-gradient 挡住目标支路。"
+    ],
+    "doesNotProve": "不证明 V-JEPA 2-AC 的真机成功率，也不证明 Cosmos 式视频生成已经学会物理。",
+    "sourceFile": "lesson_33.py"
+  },
+  "firstH2": "预测像素和预测表征差在哪"
+}

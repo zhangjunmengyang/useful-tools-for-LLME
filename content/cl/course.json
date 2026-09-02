@@ -1,0 +1,39 @@
+{
+  "id": "cl",
+  "title": "持续学习",
+  "title_en": "Continual Learning",
+  "summary": "灾难性遗忘怎么量、四类补丁怎么补，以及大模型接龙和在岗学习。",
+  "summary_en": "How to measure catastrophic forgetting, four families of fixes, and what changes when the model is already large.",
+  "units": [
+    {
+      "id": "forget",
+      "title": "看见遗忘",
+      "question": "直接接着训，旧任务为什么会塌？这件事怎么量？RAG 算不算学会了？"
+    },
+    {
+      "id": "toolkit",
+      "title": "四类补丁",
+      "question": "正则、回放、扩结构、约束梯度各自把新知识写在哪？GDumb 为什么能打脸？"
+    },
+    {
+      "id": "llm",
+      "title": "大模型接龙",
+      "question": "续预训练、顺序指令、LoRA 正交、模型合并，哪一步才是在线学习？"
+    },
+    {
+      "id": "memory",
+      "title": "记忆、编辑、可塑性",
+      "question": "外挂记忆能叫来小王，为什么还不够？什么时候必须改权重？"
+    },
+    {
+      "id": "nested",
+      "title": "学习变成架构",
+      "question": "测试时更新、惊讶门控、嵌套时间尺度、自己给自己出题，距离学习如何学习还有多远？"
+    },
+    {
+      "id": "agent",
+      "title": "在岗学习",
+      "question": "Agent 怎样在连续工作日里变熟，并且周一学的周五还在？"
+    }
+  ]
+}

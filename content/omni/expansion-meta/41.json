@@ -1,0 +1,43 @@
+{
+  "id": "41",
+  "slug": "discrete-any-to-any",
+  "shortTitle": "离散统一图文",
+  "unit": "native-unified",
+  "essentialQuestion": "把图像也变成离散 token 之后，怎样和文本共用一套 next-token，同时让理解看见全图、生成看不见未来像素？",
+  "hook": "第 20 课用连续 latent 做 flow。Chameleon、Emu3、Show-o 把图查成码本编号，理解与生成差在 mask，不差在另做一套分类器。",
+  "outcomes": [
+    "能写出图像 token 与文本 token 共享的 softmax 交叉熵，并指出码本大小与空间格子数的乘积。",
+    "能画理解 mask 与生成 mask：理解路径看全图，生成路径不能看未来像素 token。",
+    "能对照 Chameleon 的全因果 early-fusion、Emu3 的纯 next-token、Show-o 的 NTP+MTP 与 omni-attention。",
+    "能把 tokenizer 重建上限、码本越界、未来泄漏三件失败分开定位，不把它们写成 flow matching 问题。"
+  ],
+  "misconception": {
+    "myth": "只要把图像离散化塞进 LLM 词表，理解和生成就自动是同一件事。",
+    "truth": "共享的是词表和 softmax；理解必须看见整张图，生成必须挡住未来像素。mask 写错，CE 再降也在泄漏或瞎猜。"
+  },
+  "prerequisites": [
+    "第 20 课：知道统一理解与生成有离散、离散扩散、连续 flow 三条路，本课只走离散。",
+    "会写因果语言模型的 next-token 损失；不要求 GPU。"
+  ],
+  "labId": "lab-41-discrete-unify",
+  "labExportName": "Lesson41DiscreteUnifyLab",
+  "readingTime": 75,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 可试 Show-o 1.3B 或 Emu3 tokenizer 的 encode-decode；复现论文规模需要多机多卡",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对两种 mask 与码本索引范围。"
+  },
+  "learningMode": ["VQ 词表", "理解/生成 mask", "共享 softmax", "文献对照"],
+  "practice": {
+    "purpose": "用手算核对理解 mask 看全图、生成 mask 挡住未来像素，以及码本索引与统一词表偏移。",
+    "proves": [
+      "理解路径的图像 query 能看见全部图像 key，包括光栅顺序上的未来格。",
+      "生成路径的图像 query 不能看见未来像素 token，提示 token 也不能看图像。",
+      "码本编号落在 [0, K-1]，统一 id 等于文本词表偏移加码本编号。"
+    ],
+    "doesNotProve": "不训练 Chameleon / Emu3 / Show-o，也不报告 FID、GenEval 或 VQA。",
+    "sourceFile": "lesson_41.py"
+  },
+  "firstH2": "图像离散 token 和文本怎样共用一套 next-token"
+}

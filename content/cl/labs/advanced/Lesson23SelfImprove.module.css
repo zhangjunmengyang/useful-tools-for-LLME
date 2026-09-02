@@ -1,0 +1,24 @@
+.blocks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.blocks li {
+  padding: 8px 6px;
+  border-radius: 10px;
+  background: var(--xlab-accent-soft, #e9f8ef);
+  color: var(--xlab-accent-ink, #125e3c);
+  font-size: 12px;
+  font-weight: 650;
+  text-align: center;
+}
+
+.blocks li[data-muted="true"] {
+  background: var(--xlab-warning-soft, #fff6df);
+  color: var(--xlab-warning, #875e16);
+  text-decoration: line-through;
+}

@@ -1,0 +1,47 @@
+{
+  "id": "49",
+  "slug": "video-generation",
+  "shortTitle": "视频生成拆账",
+  "unit": "gen-native",
+  "essentialQuestion": "生成未来帧的训练目标和理解 caption 的交叉熵能否共用有效位置？物体永久性、相机轨迹与 Video-MME 为什么不是同一张表？",
+  "hook": "同一段桌上有杯子的短视频。理解 CE 答“还在”，把下一帧涂成均值以后杯子占用掉到 0，帧差还可能比抄上一帧更低。",
+  "outcomes": [
+    "写出理解 CE 与生成帧差（或 v-prediction / flow）的有效位置，并证明两张 mask 不相交。",
+    "造出理解答对、生成帧物体消失的夹具，且不把 Video-MME 准确率写成生成质量。",
+    "对照 CogVideoX 的 3D VAE 与专家 Transformer、HunyuanVideo 的双流到单流与 14 类相机标注，不编造 Sora 层数或参数量。",
+    "把物体永久性、相机可控、VBench 动态度与 Video-MME 分列记账。"
+  ],
+  "misconception": {
+    "myth": "会看视频就会生成视频；Video-MME 高就等于下一帧杯子还在，帧差低就等于物体永久。",
+    "truth": "理解 CE 写在答案 token，生成损失写在未来格子。位置不相交。均值填充可以让 L2 下降同时把杯子抹掉。"
+  },
+  "prerequisites": [
+    "第 09 课：视频有时间轴，本课不重做 TMRoPE 或音视频交错。",
+    "第 10 课：理解侧 token 压缩，本课不重做 Pareto。",
+    "第 20 课：图像理解与生成分路径；本课把分账接到视频。",
+    "第 33 课：像素 L2 与表征预测的差别；本课不重做 JEPA。",
+    "第 47 课：Video-MME 属于 C2 理解账，不能横着写成生成能力。"
+  ],
+  "labId": "lab-49-video-generation",
+  "labExportName": "Lesson49VideoGenLab",
+  "readingTime": 80,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文、跑浏览器分账教具和 CPU 不相交 mask 夹具",
+    "recommended": "若要跑公开权重：CogVideoX-2B 约 18GB、5B-480p 约 26GB（论文 H800、50 步）；HunyuanVideo 1.5 在卸载后 720p 121 帧峰值约 13.6GB。本课不要求加载这些权重",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对 5 帧历史加 1 帧生成上的 CE mask、帧差位置和杯子占用，不能写成 VBench 或真机能力。"
+  },
+  "learningMode": ["损失分账", "先预测再揭晓", "CPU 不相交 mask", "文献对照"],
+  "practice": {
+    "purpose": "证明理解 CE 与生成帧差的有效位置不相交，并造出理解答对、生成帧杯子消失。",
+    "proves": [
+      "CE mask 与帧差 mask 交为空，非法 OR 会同时盖住答案 token 和未来格子。",
+      "历史 5 帧杯子占用为 1，理解 argmax 为“还在”。",
+      "遗忘生成占用为 0，且均值填充 L2 可以低于抄上一帧。",
+      "Video-MME 准确率不得记成生成分数；相机命中与 Video-MME 不同账。"
+    ],
+    "doesNotProve": "不训练 CogVideoX / HunyuanVideo，不报告 VBench 或 Video-MME 真实分数，也不证明 Sora 的内部结构。",
+    "sourceFile": "lesson_49.py"
+  },
+  "firstH2": "生成下一帧和看懂这一段差在哪"
+}

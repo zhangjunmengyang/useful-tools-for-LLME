@@ -1,0 +1,43 @@
+{
+  "id": "43",
+  "slug": "audio-language-understand",
+  "shortTitle": "转写与指令跟随",
+  "unit": "omni-ops",
+  "essentialQuestion": "同一句语音上，听写交叉熵和指令跟随交叉熵的有效 token 集合差在哪一段？转写对了为什么仍可能指令错？",
+  "hook": "Librispeech 可以到 1.6%，口述 MMLU 可以只有 33.2。差不在 codec，差在 mask 盖住了听写还是盖住了执行。",
+  "outcomes": [
+    "在同一条序列上画出 ASR mask 与指令 mask，并证明两个有效集合不相等。",
+    "用手算说明复读模型的 ASR 损失可以很低、指令损失仍然很高。",
+    "用 SALMONN 的任务过拟合解释：转写对了，讲故事跟随率仍可以是 0。",
+    "对照 Qwen2.5-Omni 表 4：口述指令成绩不能用 WER 代替。"
+  ],
+  "misconception": {
+    "myth": "WER 低就等于会听指令；助手角色里出现的字都可以算进同一张 loss。",
+    "truth": "WER 测的是听写参考。指令跟随的有效 token 是执行回复。两张集合不相等；转写对、指令错是合法失败态。"
+  },
+  "prerequisites": [
+    "第 01 课：知道 loss mask 只对助手目标算账。",
+    "不必先重做第 03–04 课的 RVQ 与 delay schedule。"
+  ],
+  "labId": "lab-43-audio-understand",
+  "labExportName": "Lesson43AudioUnderstandLab",
+  "readingTime": 65,
+  "difficulty": "进阶",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 试公开 Instruct 权重的三条双协议探针；复现论文规模需要多卡与大规模语音指令数据",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对两类 mask 的有效集合与玩具交叉熵。"
+  },
+  "learningMode": ["阅读", "交互实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "在固定 20 位置序列上核对 ASR 与指令跟随两类 mask 的有效 token 集合。",
+    "proves": [
+      "两类有效集合不相等、不相交。",
+      "音频帧和提示不进入任一张 mask。",
+      "复读模型的 ASR 交叉熵低于指令交叉熵，污染集合是真超集。"
+    ],
+    "doesNotProve": "不证明 AIR-Bench、VoiceBench 或口述 MMLU 的真实分数。",
+    "sourceFile": "lesson_43.py"
+  },
+  "firstH2": "听懂指令和转写声音差在哪一层"
+}

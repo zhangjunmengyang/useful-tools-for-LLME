@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from learn_platform.catalog import list_topics, topic_lesson, topic_outline
+from learn_platform.catalog import REPO_ROOT, list_topics, topic_lesson, topic_outline
 from workbench_api.app import app
 
 
@@ -26,14 +27,29 @@ class LearnPlatformTest(unittest.TestCase):
         self.assertEqual(ids, ["omni", "wm", "cl", "llm"])
 
     def test_existing_topics_have_readable_lessons(self):
-        for topic_id in ("omni", "wm", "cl"):
+        expected = {"omni": 60, "wm": 45, "cl": 24}
+        for topic_id, count in expected.items():
             outline = topic_outline(topic_id)
             self.assertTrue(outline["ready"], msg=f"{topic_id} not ready: {outline}")
-            self.assertGreaterEqual(len(outline["lessons"]), 8, msg=topic_id)
+            self.assertEqual(len(outline["lessons"]), count, msg=topic_id)
             self.assertNotIn("other", [unit["id"] for unit in outline["units"]], msg=topic_id)
+            source = Path(outline["source"])
+            self.assertTrue(source.is_relative_to(REPO_ROOT / "content"), msg=topic_id)
             lesson = topic_lesson(topic_id, outline["default_lesson_id"])
             self.assertGreater(len(lesson["read"]), 200, msg=topic_id)
             self.assertGreater(len(lesson["learn"]), 40, msg=topic_id)
+            self.assertTrue(Path(lesson["source_path"]).is_relative_to(REPO_ROOT / "content"), msg=topic_id)
+
+    def test_catalog_does_not_read_sibling_repos(self):
+        catalog = (REPO_ROOT / "learn_platform" / "catalog.py").read_text(encoding="utf-8")
+        topics = (REPO_ROOT / "content" / "topics.json").read_text(encoding="utf-8")
+        for needle in ("sibling_markdown", "project_roots", "learn-omni", "learn-wm", "learn-cl", "PROJECT_ROOT"):
+            self.assertNotIn(needle, catalog, msg=needle)
+            self.assertNotIn(needle, topics, msg=needle)
+        for topic in list_topics():
+            self.assertEqual(topic["kind"], "local_markdown", msg=topic["id"])
+            self.assertTrue(topic["ready"], msg=topic["id"])
+            self.assertTrue(Path(topic["source"]).is_relative_to(REPO_ROOT / "content"), msg=topic["id"])
 
     def test_llm_lessons_include_play_tools(self):
         outline = topic_outline("llm")

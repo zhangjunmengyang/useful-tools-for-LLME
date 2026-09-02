@@ -1,0 +1,45 @@
+{
+  "id": "47",
+  "slug": "eval-taxonomy",
+  "shortTitle": "六类评测分桶",
+  "unit": "omni-ops",
+  "essentialQuestion": "MMMU、Video-MME、OmniBench、OSWorld、LIBERO、SIMPLER 各测什么、不测什么，为什么六类数字不能横着比？",
+  "hook": "同一张幻灯片上并排 76.5%、75%、56%、12%、r=0.924。它们单位不同、协议不同、成功定义不同。LIBERO 平均进不了真机能力这一格。",
+  "outcomes": [
+    "给每条评测数字打上六类互斥标签，并拒绝把一类数字写成另一类能力",
+    "为一条数字写出协议卡：基准、划分、模态、成功定义、样本量、是否 fine-tune、单位",
+    "指出 MMMU 准确率测不了接地，Video-MME 测不了三模态硬约束，SIMPLER 的 r 不是成功率",
+    "在分桶实验里把 LIBERO 平均拖进真机能力时看见标红，并沿用第 31 课 Wilson 区间只做同类比较"
+  ],
+  "misconception": {
+    "myth": "评测分数都可以换成百分数再平均；LIBERO 高就等于真机强，Omni 高就等于六类都强。",
+    "truth": "六类是互斥账本。准确率、执行成功率、相关系数不是同一个量。LIBERO 是仿真套件，SIMPLER 测排序相关，都不能填进真机能力。"
+  },
+  "prerequisites": [
+    "第 01 课：golden case 分桶、禁止把官方评测写成自训复现",
+    "第 23 课：VQA 答对不等于看对位置，幻觉率只在负例上算",
+    "第 31 课：LIBERO / SIMPLER / CALVIN / 真机小样本不能横着比，并会算 Wilson 区间"
+  ],
+  "labId": "lab-47-eval-taxonomy",
+  "labExportName": "Lesson47EvalTaxonomyLab",
+  "readingTime": 70,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU：读完全文、跑浏览器分桶实验和 CPU 互斥标签夹具",
+    "recommended": "若要复现论文规模评测：单卡可跑开源 VLM 的 MMMU val / Video-MME 抽帧；OSWorld 需要虚拟机；LIBERO / SIMPLER 推理需要能加载 7B 级 VLA 的单卡；真机评测另需机械臂",
+    "notes": "本课不训新模型。CPU 实验与浏览器 Lab 是教学夹具，不能写成 MMMU、OSWorld 或真机成功率。"
+  },
+  "learningMode": ["协议分类", "分桶记账", "非法映射标红", "CPU 互斥夹具"],
+  "practice": {
+    "purpose": "给六条公开数字打互斥标签，拒绝跨类减法和把 LIBERO 平均标成真机能力。",
+    "proves": [
+      "六类标签两两不相交，每条记录恰好一类",
+      "LIBERO 宏平均不能标成真机能力",
+      "SIMPLER 的 Pearson r 不能当成功率",
+      "只有同类、同单位时才允许做差，Wilson 区间沿用第 31 课 N=25、k=20 的手算"
+    ],
+    "doesNotProve": "不证明任何真实模型在六类基准上的能力，也不能把夹具数字标成 SOTA。",
+    "sourceFile": "lesson_47.py"
+  },
+  "firstH2": "六类评测数字为什么不能横着比"
+}

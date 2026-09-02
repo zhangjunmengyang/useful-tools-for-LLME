@@ -1,0 +1,270 @@
+.preflight {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.85fr) minmax(0, 1.55fr);
+  overflow: hidden;
+  border: 1px solid var(--xlab-rule, #d9dedb);
+  border-radius: 0.8rem;
+  background: var(--xlab-surface, #fff);
+}
+
+.config {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  padding: 1.05rem;
+  border-right: 1px solid var(--xlab-rule, #dde2df);
+  background: var(--xlab-surface-2, #f5f7f5);
+}
+
+.config header h3,
+.memory header h3 {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.config header span {
+  color: var(--xlab-muted, #717b74);
+  font: 0.65rem/1.35 var(--font-geist-mono, monospace);
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.fieldGrid label,
+.range {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--xlab-muted, #68726b);
+  font-size: 0.68rem;
+}
+
+.fieldGrid select {
+  min-width: 0;
+  min-height: 2.15rem;
+  border: 1px solid var(--xlab-rule-2, #d3dad5);
+  border-radius: 0.34rem;
+  background: var(--xlab-surface-3, white);
+  color: var(--xlab-ink, #344139);
+  font-size: 0.7rem;
+}
+
+.range > span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.range output {
+  color: var(--xlab-accent-ink, #2d6b4a);
+  font-family: var(--font-geist-mono, monospace);
+}
+
+.range input {
+  width: 100%;
+  accent-color: var(--xlab-accent, #357a55);
+}
+
+.switches {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--xlab-rule, #dce2dd);
+}
+
+.switches label {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  color: var(--xlab-ink-2, #566159);
+  font-size: 0.7rem;
+}
+
+.switches input {
+  accent-color: var(--xlab-accent, #32754f);
+}
+
+.memory {
+  min-width: 0;
+  padding: 1.05rem;
+}
+
+.memory > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.memory header p {
+  margin: 0.15rem 0 0;
+  color: var(--xlab-muted, #727c75);
+  font: 0.68rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.memory header > strong {
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.28rem;
+  font: 700 0.62rem/1 var(--font-geist-mono, monospace);
+}
+
+.pending {
+  background: var(--xlab-surface-3, #ecefed);
+  color: var(--xlab-muted, #727a75);
+}
+
+.pass {
+  background: var(--xlab-success-soft, #ddf2e4);
+  color: var(--xlab-success, #216d43);
+}
+
+.fail {
+  background: var(--xlab-danger-soft, #f7e2de);
+  color: var(--xlab-danger, #9a3e30);
+}
+
+.memoryBar {
+  display: flex;
+  height: 2.1rem;
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--xlab-rule, #dce1dd);
+  border-radius: 0.42rem;
+  background: var(--xlab-surface-3, #eef2f6);
+}
+
+.memoryBar i {
+  display: block;
+  min-width: 0;
+  height: 100%;
+  transition: width 300ms ease;
+}
+
+.breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  margin: 1rem 0 0;
+  border-top: 1px solid var(--xlab-rule, #e1e5e2);
+  border-left: 1px solid var(--xlab-rule, #e1e5e2);
+}
+
+.breakdown div {
+  min-width: 0;
+  padding: 0.75rem;
+  border-right: 1px solid var(--xlab-rule, #e1e5e2);
+  border-bottom: 1px solid var(--xlab-rule, #e1e5e2);
+}
+
+.breakdown dt {
+  color: var(--xlab-muted, #6c766f);
+  font-size: 0.65rem;
+}
+
+.breakdown dd {
+  margin: 0.15rem 0;
+  font: 650 0.8rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.breakdown small {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--xlab-faint, #89908b);
+  font: 0.56rem/1.35 var(--font-geist-mono, monospace);
+}
+
+.disclaimer {
+  margin: 0.7rem 0 0;
+  color: var(--xlab-faint, #7b847e);
+  font-size: 0.63rem;
+}
+
+.challenge {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--xlab-rule, #d9dedb);
+  border-radius: 0.65rem;
+}
+
+.challenge fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.challenge legend {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  font-weight: 620;
+}
+
+.challenge label {
+  display: flex;
+  gap: 0.32rem;
+  align-items: center;
+  color: var(--xlab-muted, #5f6962);
+  font-size: 0.73rem;
+}
+
+.challenge input {
+  accent-color: var(--xlab-accent, #2f724d);
+}
+
+.challenge > div {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.4rem;
+}
+
+.challenge button {
+  min-height: 2.3rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--xlab-rule-2, #d1d7d3);
+  border-radius: 0.38rem;
+  background: var(--xlab-surface-2, white);
+  color: var(--xlab-ink-2, #4b564f);
+  font: 650 0.73rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.challenge .run {
+  border-color: var(--xlab-accent, #2b6d48);
+  background: var(--xlab-accent, #347651);
+  color: var(--xlab-on-ink, white);
+}
+
+.challenge .run:disabled {
+  border-color: var(--xlab-disabled, #c8cdca);
+  background: var(--xlab-disabled, #c8cdca);
+  cursor: not-allowed;
+}
+
+.challenge button:focus-visible,
+.fieldGrid select:focus-visible {
+  outline: 3px solid var(--xlab-focus-ring, #b1d1bc);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .preflight {
+    grid-template-columns: 1fr;
+  }
+
+  .config {
+    border-right: 0;
+    border-bottom: 1px solid var(--xlab-rule, #dde2df);
+  }
+
+  .challenge {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

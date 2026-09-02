@@ -1,0 +1,43 @@
+.heatmap {
+  display: grid;
+  gap: 6px;
+}
+
+.head,
+.row {
+  display: grid;
+  grid-template-columns: 2.2rem repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+
+.head span,
+.row > span {
+  color: var(--xlab-muted, #68736d);
+  font-size: 11px;
+  text-align: center;
+}
+
+.row button {
+  min-height: 36px;
+  border: 1px solid var(--xlab-rule-2, #cad4ce);
+  border-radius: 8px;
+  color: var(--xlab-ink, #17221d);
+  background: color-mix(
+    in oklab,
+    var(--xlab-accent, #1b7a53) var(--heat, 0%),
+    var(--xlab-surface-3, white)
+  );
+  font: 650 11px/1 var(--font-body);
+  cursor: pointer;
+}
+
+.picked {
+  box-shadow: 0 0 0 2px var(--xlab-accent, #1b7a53);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row button {
+    transition: none;
+  }
+}

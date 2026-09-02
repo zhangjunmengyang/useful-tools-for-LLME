@@ -1,0 +1,43 @@
+{
+  "id": "44",
+  "slug": "document-layout",
+  "shortTitle": "文档版面拆分",
+  "unit": "omni-ops",
+  "essentialQuestion": "第 23 课探针单图文字。文档还要版面、表格单元格、跨页引用。读对数字但框在表头，算不算看懂了发票？",
+  "hook": "合计是 32.00，模型也输出 32.00，框却盖在表头「金额」上。内容命中和框命中可以脱钩，只有两列都过才记版面命中。",
+  "outcomes": [
+    "写出单元格命中公式：内容匹配且框 IoU 过阈值，并构造内容对、框在表头的反例",
+    "用阅读顺序把双栏栅格扫描和版面顺序拆开，说明栅格会把右栏金额插入左栏条款",
+    "把跨页 key-value 写成「键所在页 ∪ 值所在页」的可见性约束，缺页则字段失败",
+    "对照 Donut 的 OCR-free JSON 生成和 Pix2Struct 的截图解析预训练，并与字段 F1 / TED 分列"
+  ],
+  "misconception": {
+    "myth": "发票问答字符串对了，就等于模型读懂了表格和版面。",
+    "truth": "字符串可以从表头、邻行、页眉发票号或语言先验来。没有单元格框和阅读顺序，不能声称版面对。"
+  },
+  "prerequisites": [
+    "第 23 课：能把 OCR 拆成区域列和字符串列",
+    "第 08 课：知道分辨率不够时小字会先糊掉，不要和版面失败混报"
+  ],
+  "labId": "lab-44-document-layout",
+  "labExportName": "Lesson44DocumentLayoutLab",
+  "readingTime": 65,
+  "difficulty": "进阶",
+  "hardware": {
+    "minimum": "无 GPU：读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 可对开源文档 VLM 做发票字段探针；复现 Donut 预训练为 64×A100、200k step，Pix2Struct-Base 为 64 TPU、270k step",
+    "notes": "CPU 实验证明内容命中与框命中可脱钩，不代表 CORD / DocVQA 真实成功率。浏览器实验是教学模拟。"
+  },
+  "learningMode": ["版面命中公式", "发票单元格探针", "CPU 复核"],
+  "practice": {
+    "purpose": "在固定发票夹具上计算内容命中、框 IoU 和合取后的版面命中，并核对阅读顺序与跨页查找。",
+    "proves": [
+      "内容对且框在表头时版面命中为假",
+      "字段级 F1 在单字符缺失时下降，TED 在结构被拍平时下降",
+      "栅格顺序与版面阅读顺序不相等；只看见第 1 页时跨页键值查找失败"
+    ],
+    "doesNotProve": "不证明任何真实文档模型在 CORD、FUNSD 或 DocVQA 上的成功率。",
+    "sourceFile": "lesson_44.py"
+  },
+  "firstH2": "版面和表格为什么不是单图 OCR"
+}

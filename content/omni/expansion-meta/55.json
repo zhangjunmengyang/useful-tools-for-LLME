@@ -1,0 +1,44 @@
+{
+  "id": "55",
+  "slug": "ondevice-quant",
+  "shortTitle": "端侧量化损伤",
+  "unit": "data-deploy",
+  "essentialQuestion": "INT8 / INT4 之后，同一条多模态序列上文本、视觉和动作哪一类 token 先跳类？",
+  "hook": "把三个头量化到 4 bit 时，动作 pitch 已经换箱，文本 top-1 还在原词上。平均 CE 看不出这件事。",
+  "outcomes": [
+    "写出对称 absmax 量化与动作均匀分箱，并说明箱边界上的值为什么比大间隔的文本 logit 先换类。",
+    "在同一隐藏向量上分列文本 top-1、视觉 L2 和动作 bin，拒绝合成一个“量化分数”。",
+    "对照第 13 课的训练并行和第 46 课的 stage graph，说明本课量的是推理权重损伤。",
+    "按原文引用 GPTQ / AWQ / SmoothQuant / LLM.int8 / QVLA / BitVLA 的表内数字，不编端侧延迟。"
+  ],
+  "misconception": {
+    "myth": "困惑度或文本 CE 没崩，就说明 4 bit 对视觉和动作也安全。",
+    "truth": "文本 top-1 有间隔保护；动作 bin 是硬边界。同一套 4 bit 可以让 CE 略降、pitch 已经换箱。"
+  },
+  "prerequisites": [
+    "第 24 / 25 课：均匀分箱与箱宽。",
+    "对照第 13 课：训练并行不是本课对象。",
+    "对照第 46 课：推理 stage graph 不是本课对象。"
+  ],
+  "labId": "lab-55-ondevice-quant",
+  "labExportName": "Lesson55QuantLab",
+  "readingTime": 70,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "复现 GPTQ / AWQ / QVLA 论文表需要对应论文里的 GPU；本课不提供",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对分模态误差与 bin 跳转，不报告真机延迟。"
+  },
+  "learningMode": ["8/4 bit 对照", "先预测再揭晓", "分模态误差", "文献对照"],
+  "practice": {
+    "purpose": "用手算同一隐藏向量上三个头的 8/4 bit 量化，确认动作维越过 bin 边界时文本 top-1 仍不变。",
+    "proves": [
+      "8 bit 七维动作箱与全精度相同。",
+      "4 bit 时 pitch 从箱 2 跳到箱 1。",
+      "4 bit 文本 top-1 仍是标签 0，视觉 L2 上升但粗类未要求跳。"
+    ],
+    "doesNotProve": "不测量手机或 Jetson 上的延迟，也不复现 QVLA 的 1.49× 或 GPTQ 的 3.25×。",
+    "sourceFile": "lesson_55.py"
+  },
+  "firstH2": "量化以后哪一类 token 先坏"
+}

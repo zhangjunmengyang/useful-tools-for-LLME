@@ -1,0 +1,41 @@
+{
+  "id": "39",
+  "slug": "long-horizon-memory",
+  "shortTitle": "子目标栈记忆",
+  "unit": "vla-post",
+  "essentialQuestion": "长程第二步失败后，该把历史塞进第 14 课那种 token 窗口，还是 pop 子目标栈只重试失败步？",
+  "hook": "CALVIN 上同一套 MCIL，短程 53.9%，五步 0.08%。掉点在交接处。把历史拼进 128K 窗口，会把已经打开的抽屉再拉一次。",
+  "outcomes": [
+    "写出栈深 k 与窗口长度 T 的单位差异，拒绝用加长上下文代替已提交表。",
+    "对照 CALVIN LH-MTLC：当前句成功才切下一句；状态差谓词下重做已提交步会得到假失败。",
+    "在四步任务第二步失败时，先预测再揭晓：窗口回放重做第一步，pop 只重试失败步。",
+    "把 SayCan / Inner Monologue / RT-H 写成对栈顶的改写，而不是对 KV cache 的续写。"
+  ],
+  "misconception": {
+    "myth": "长程失败是因为上下文不够长，把历史和五句指令塞进 128K 窗口就能恢复。",
+    "truth": "机器人记忆是世界状态加可 pop 的子目标栈。窗口回放会重做已提交步；栈协议只重试失败步。k 与 T 不是同一个量。"
+  },
+  "prerequisites": ["14", "29", "31"],
+  "labId": "lab-39-subgoal-memory",
+  "labExportName": "Lesson39SubgoalMemoryLab",
+  "readingTime": 70,
+  "difficulty": "高级",
+  "hardware": {
+    "minimum": "无 GPU：阅读全文、跑浏览器四步失败实验和 CPU 栈回放",
+    "recommended": "若要复现 CALVIN / HULC 论文规模：单卡加载对应政策并跑官方仿真评测",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对栈操作、提交不变式和窗口重放，不能写成 CALVIN 成功率。"
+  },
+  "learningMode": ["栈与窗口对照", "先预测再揭晓", "失败恢复卡"],
+  "practice": {
+    "purpose": "用手算和 CPU 回放核对：第二步失败后，栈不重做已提交步，窗口回放会。",
+    "proves": [
+      "同一栈操作序列可回放",
+      "失败不把已提交子目标重新执行",
+      "窗口回放会第二次执行第一步",
+      "k 与 T 取值不同，加大 T 不取消重放"
+    ],
+    "doesNotProve": "不证明 CALVIN、HULC 或真机长程成功率，也不能把夹具数字标成 0.08% 或 38.3%。",
+    "sourceFile": "lesson_39.py"
+  },
+  "firstH2": "长程失败后该回放记忆还是重写子目标"
+}

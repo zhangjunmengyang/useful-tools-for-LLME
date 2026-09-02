@@ -1,0 +1,43 @@
+{
+  "id": "32",
+  "slug": "gui-agent-grounding",
+  "shortTitle": "统一GUI接地",
+  "unit": "embodied-agent",
+  "essentialQuestion": "点按钮和抓杯子是否都是在视觉观察里接地一个空间动作，Set-of-Mark 与连续坐标能否共用一套训练信号？",
+  "hook": "屏幕上的点击和桌面上的末端位移，差在动作空间，不差在“先看见位置再出手”这一步。",
+  "outcomes": [
+    "把 GUI 点击和机械臂末端 xy 写成同一套 [0,1]^2 归一化坐标，并核对分箱与编号范围。",
+    "比较 SoM 分类损失和连续坐标回归损失对视觉分辨率的敏感度。",
+    "说清 click / type / scroll 与 6D 末端加夹爪在何处可以共享、何处必须分叉。",
+    "按 Magma 原文区分 SoM（动作接地）和 ToM（轨迹规划），并对照 CogAgent、SeeClick、OS-Atlas、UI-TARS。"
+  ],
+  "misconception": {
+    "myth": "会点屏幕就等于会控臂，或者给 VLM 外挂一个鼠标 API 就算统一了身体。",
+    "truth": "统一的是视觉观察上的空间接地；动作语义、接触力和不可逆后果仍要单独建模，低分辨率下连续坐标比编号分类更脆。"
+  },
+  "prerequisites": [
+    "第 23 课：能区分答对和看对位置。",
+    "第 24 课：知道动作如何进入 token 或连续头。"
+  ],
+  "labId": "lab-32-som-grounding",
+  "labExportName": "Lesson32SomGroundingLab",
+  "readingTime": 75,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 试小规模接地微调；复现论文规模需要多卡与大规模截图/机器人轨迹",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对归一化、编号范围和 toy loss。"
+  },
+  "learningMode": ["接地损失对照", "分辨率夹具", "跨身体共享头"],
+  "practice": {
+    "purpose": "用手算核对 SoM 分类与连续坐标回归的归一化、256 档分箱和编号范围。",
+    "proves": [
+      "点击和末端 xy 可以写进同一张 [0,1]^2 表。",
+      "低分辨率格子中心位置误差大于正确编号的位置误差。",
+      "共享比例头能同时降低 UI 与桌面样本的 MSE。"
+    ],
+    "doesNotProve": "不证明真机抓取成功率，也不证明 OSWorld / LIBERO 上的代理能力。",
+    "sourceFile": "lesson_32.py"
+  },
+  "firstH2": "屏幕点击和机械臂动作有什么共同结构"
+}

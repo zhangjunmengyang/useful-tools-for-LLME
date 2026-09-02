@@ -1,0 +1,40 @@
+{
+  "id": "37",
+  "slug": "dexterous-humanoid",
+  "shortTitle": "高维动作预算",
+  "unit": "spatial-body",
+  "essentialQuestion": "平行夹爪约 7 维、灵巧手 20+ 维、人形更高，同等 token 预算下丢掉的是开环窗口还是每维量化宽度？",
+  "hook": "维数加到 24 并不会白送精度。预算写死之后，不是分块变短，就是手指那一维的箱子变粗。",
+  "outcomes": [
+    "写出固定预算 C=Hd 与 C_bit=H d b，说明 d 升高时 H 下降或每维箱宽变粗。",
+    "在 d=7 与 d=24 上对照每维量化宽度，并核对半箱宽上界只对量化锚点成立。",
+    "把高频手指和低频躯干分开记账，说明平均重建 L2 会掩盖手指失败。",
+    "按原文引用 GR-3 的 19/22 自由度，按官方博文引用 Helix 的 35-DoF、200 Hz，不编 Helix / Gemini Robotics 未公开的架构。"
+  ],
+  "misconception": {
+    "myth": "动作维数越高越灵巧，把 7 维配方直接扩到 24 维或全身即可。",
+    "truth": "预算 C=Hd 固定时，维数升高会缩短开环窗口或加粗每维量化；高频手指先坏，平均 L2 看不出来。"
+  },
+  "prerequisites": ["25", "29"],
+  "labId": "lab-37-action-dim",
+  "labExportName": "Lesson37ActionDimLab",
+  "readingTime": 70,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "1×24GB 用于阅读公开权重的动作头形状；不要求复现 GR-3 或人形真机",
+    "notes": "浏览器实验是教学模拟，不是模型输出。CPU 实验只核对预算守恒、箱宽和高频误差，不能写成真机成功率。"
+  },
+  "learningMode": ["阅读", "互动实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "在固定预算下对照 d=7 与 d=24 的分块长度、每维量化宽度，以及手指高频重建误差。",
+    "proves": [
+      "token 预算守恒：7×24=24×7=168",
+      "比特预算下 d=24 的箱宽大于 d=7",
+      "手指高频重建误差随维数升高而上升，且升幅大于躯干"
+    ],
+    "doesNotProve": "不证明灵巧手或人形真机成功率，也不复现 GR-3、Helix 或 Gemini Robotics 的训练。",
+    "sourceFile": "lesson_37.py"
+  },
+  "firstH2": "动作维数升高后同等预算丢掉什么"
+}

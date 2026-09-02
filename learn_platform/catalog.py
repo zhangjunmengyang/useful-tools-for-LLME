@@ -1,4 +1,4 @@
-"""Topic registry: four first-class courses, sibling markdown or local LLM."""
+"""Topic registry: four first-class courses, all from local content/<topic>."""
 
 from __future__ import annotations
 
@@ -18,17 +18,7 @@ from learn_platform.markdown_split import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PROJECT_ROOT = REPO_ROOT.parent
 TOPICS_PATH = REPO_ROOT / "content" / "topics.json"
-
-UNIT_RE = re.compile(
-    r'id:\s*"(?P<id>[\w-]+)"\s*,\s*order:\s*(?P<order>\d+)\s*,\s*title:\s*"(?P<title>[^"]+)"\s*,\s*question:\s*"(?P<question>[^"]*)"',
-)
-LESSON_HEAD_RE = re.compile(
-    r'\{\s*id:\s*"(?P<id>\d+)"\s*,\s*slug:\s*"(?P<slug>[^"]+)"\s*,\s*shortTitle:\s*"(?P<title>[^"]+)"\s*,\s*unit:\s*unitById(?:\.(?P<unit_dot>[\w-]+)|\[\s*"(?P<unit_br>[\w-]+)"\s*\])',
-    re.S,
-)
-QUESTION_RE = re.compile(r'essentialQuestion:\s*"((?:\\.|[^"\\])*)"')
 
 
 def _load_topics_file() -> list[dict[str, Any]]:
@@ -36,21 +26,12 @@ def _load_topics_file() -> list[dict[str, Any]]:
     return list(payload["topics"])
 
 
-def _resolve_sibling_root(spec: dict[str, Any]) -> Path | None:
-    for relative in spec.get("project_roots", []):
-        candidate = (PROJECT_ROOT / relative).resolve()
-        lessons = candidate / spec["lessons_dir"]
-        if lessons.is_dir():
-            return candidate
-    return None
-
-
 def _local_root(spec: dict[str, Any]) -> Path:
     return (REPO_ROOT / spec["root"]).resolve()
 
 
 def list_topics() -> list[dict[str, Any]]:
-    """Return switcher entries. Missing sibling content stays listed, with a reason."""
+    """Return switcher entries. Missing local content stays listed, with a reason."""
     topics: list[dict[str, Any]] = []
     for spec in _load_topics_file():
         ready, source, note = _topic_status(spec)
@@ -74,17 +55,13 @@ def list_topics() -> list[dict[str, Any]]:
 
 
 def _topic_status(spec: dict[str, Any]) -> tuple[bool, str, str]:
-    if spec["kind"] == "local_markdown":
-        root = _local_root(spec)
-        lessons = root / "lessons"
-        if lessons.is_dir() and any(lessons.glob("*.md")):
-            return True, str(root), ""
-        return False, str(root), "本仓库还没有 LLM 课文件。"
-    root = _resolve_sibling_root(spec)
-    if root is None:
-        tried = ", ".join(spec.get("project_roots", []))
-        return False, "", f"找不到课程正文。试过：{tried}"
-    return True, str(root), ""
+    if spec.get("kind") != "local_markdown":
+        return False, "", f"不支持的主题类型：{spec.get('kind')}"
+    root = _local_root(spec)
+    lessons = root / "lessons"
+    if lessons.is_dir() and any(lessons.glob("*.md")):
+        return True, str(root), ""
+    return False, str(root), "本仓库还没有课文件。"
 
 
 def get_spec(topic_id: str) -> dict[str, Any]:
@@ -96,16 +73,31 @@ def get_spec(topic_id: str) -> dict[str, Any]:
 
 def topic_outline(topic_id: str) -> dict[str, Any]:
     spec = get_spec(topic_id)
-    if spec["kind"] == "local_markdown":
-        return _local_outline(spec)
-    return _sibling_outline(spec)
+    if spec.get("kind") != "local_markdown":
+        ready, source, note = _topic_status(spec)
+        return {
+            "id": spec["id"],
+            "title": spec["title"],
+            "title_en": spec.get("title_en") or spec["title"],
+            "blurb": spec["blurb"],
+            "blurb_en": spec.get("blurb_en") or spec["blurb"],
+            "summary": spec["blurb"],
+            "ready": ready,
+            "source": source,
+            "note": note,
+            "original_url": None,
+            "units": [],
+            "lessons": [],
+            "default_lesson_id": None,
+        }
+    return _local_outline(spec)
 
 
 def topic_lesson(topic_id: str, lesson_id: str) -> dict[str, Any]:
     spec = get_spec(topic_id)
-    if spec["kind"] == "local_markdown":
-        return _local_lesson(spec, lesson_id)
-    return _sibling_lesson(spec, lesson_id)
+    if spec.get("kind") != "local_markdown":
+        raise KeyError(lesson_id)
+    return _local_lesson(spec, lesson_id)
 
 
 def _local_outline(spec: dict[str, Any]) -> dict[str, Any]:
@@ -175,6 +167,11 @@ def _local_lesson(spec: dict[str, Any], lesson_id: str) -> dict[str, Any]:
         checklist = "\n".join(f"- {item}" for item in checkpoints)
         learn_md = (learn_md + "\n\n## 学完能说清什么\n\n" + checklist).strip()
     play_md = render_sections(play_sections(sections))
+    if not play_md:
+        play_md = (
+            "这一课的动手部分在课文命令、以及本仓库 "
+            f"`content/{spec['id']}/experiments` 和 `content/{spec['id']}/labs` 里。"
+        )
     english = _english_lesson_payload(root, match, lesson_id)
     return {
         "id": lesson_id,
@@ -239,161 +236,6 @@ def _english_lesson_payload(root: Path, zh_path: Path, lesson_id: str) -> dict[s
         "read": body.strip(),
         "learn": learn_md,
         "play": render_sections(play_sections(sections)),
-    }
-
-
-def _read_course_data(root: Path, spec: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
-    meta_path = root / spec["meta_file"]
-    if not meta_path.is_file():
-        return [], {}
-    text = meta_path.read_text(encoding="utf-8")
-    units_chunk = text
-    if "export const courseUnits" in text:
-        units_chunk = text.split("export const courseUnits", 1)[1].split("] as const", 1)[0]
-    units = [
-        {
-            "id": match.group("id"),
-            "order": int(match.group("order")),
-            "title": match.group("title"),
-            "question": match.group("question"),
-            "lessons": [],
-        }
-        for match in UNIT_RE.finditer(units_chunk)
-    ]
-    lessons_by_num: dict[str, dict[str, Any]] = {}
-    for match in LESSON_HEAD_RE.finditer(text):
-        block_start = match.start()
-        block_end = text.find("\n  },", block_start)
-        block = text[block_start : block_end if block_end != -1 else block_start + 1200]
-        question_match = QUESTION_RE.search(block)
-        lessons_by_num[match.group("id")] = {
-            "number": match.group("id"),
-            "slug": match.group("slug"),
-            "title": match.group("title"),
-            "unit_id": match.group("unit_dot") or match.group("unit_br"),
-            "question": question_match.group(1).replace('\\"', '"') if question_match else "",
-        }
-    return units, lessons_by_num
-
-
-def _lesson_file_number(path: Path) -> str:
-    match = re.match(r"^(\d+)", path.stem)
-    return match.group(1) if match else path.stem
-
-
-def _sibling_outline(spec: dict[str, Any]) -> dict[str, Any]:
-    root = _resolve_sibling_root(spec)
-    if root is None:
-        ready, source, note = _topic_status(spec)
-        return {
-            "id": spec["id"],
-            "title": spec["title"],
-            "title_en": spec.get("title_en") or spec["title"],
-            "blurb": spec["blurb"],
-            "blurb_en": spec.get("blurb_en") or spec["blurb"],
-            "summary": spec["blurb"],
-            "ready": ready,
-            "source": source,
-            "note": note,
-            "original_url": spec.get("original_base"),
-            "units": [],
-            "lessons": [],
-            "default_lesson_id": None,
-        }
-    units, by_number = _read_course_data(root, spec)
-    unit_map = {unit["id"]: unit for unit in units}
-    lessons_dir = root / spec["lessons_dir"]
-    lessons: list[dict[str, Any]] = []
-    for path in sorted(lessons_dir.glob("*.md")):
-        number = _lesson_file_number(path)
-        meta = by_number.get(number, {})
-        body = path.read_text(encoding="utf-8")
-        title = meta.get("title") or first_title(body)
-        unit_id = meta.get("unit_id") or "other"
-        item = {
-            "id": path.stem,
-            "title": title,
-            "summary": meta.get("question") or "",
-            "unit_id": unit_id,
-            "number": number,
-            "slug": meta.get("slug") or path.stem,
-            "play_tools": [],
-        }
-        lessons.append(item)
-        if unit_id not in unit_map:
-            unit_map[unit_id] = {
-                "id": unit_id,
-                "order": 99,
-                "title": "其他",
-                "question": "",
-                "lessons": [],
-            }
-            units.append(unit_map[unit_id])
-        unit_map[unit_id]["lessons"].append(item)
-    units = [unit for unit in units if unit["lessons"]]
-    return {
-        "id": spec["id"],
-        "title": spec["title"],
-        "title_en": spec.get("title_en") or spec["title"],
-        "blurb": spec["blurb"],
-        "blurb_en": spec.get("blurb_en") or spec["blurb"],
-        "summary": spec["blurb"],
-        "ready": True,
-        "source": str(root),
-        "original_url": spec.get("original_base"),
-        "units": units,
-        "lessons": lessons,
-        "default_lesson_id": lessons[0]["id"] if lessons else None,
-    }
-
-
-def _sibling_lesson(spec: dict[str, Any], lesson_id: str) -> dict[str, Any]:
-    root = _resolve_sibling_root(spec)
-    if root is None:
-        raise KeyError(lesson_id)
-    path = root / spec["lessons_dir"] / f"{lesson_id}.md"
-    if not path.is_file():
-        matches = list((root / spec["lessons_dir"]).glob(f"{lesson_id}*.md"))
-        if not matches:
-            raise KeyError(lesson_id)
-        path = matches[0]
-    body = path.read_text(encoding="utf-8")
-    _, by_number = _read_course_data(root, spec)
-    number = _lesson_file_number(path)
-    meta = by_number.get(number, {})
-    sections = split_sections(body)
-    learn_md = render_sections(learn_sections(sections))
-    question = meta.get("question") or ""
-    if question and question not in learn_md:
-        learn_md = f"## 这一课要回答的问题\n\n{question}\n\n{learn_md}".strip()
-    play_md = render_sections(play_sections(sections))
-    slug = meta.get("slug") or ""
-    original = None
-    if spec.get("original_base") and slug:
-        original = f"{spec['original_base'].rstrip('/')}{spec.get('original_course_prefix', '/course')}/{slug}"
-    if not play_md:
-        play_md = (
-            "这门课的动手部分在原站实验页和课内命令里。"
-            + (f" 原课地址：{original}" if original else "")
-        )
-    return {
-        "id": path.stem,
-        "topic_id": spec["id"],
-        "title": meta.get("title") or first_title(body),
-        "summary": question,
-        "unit_id": meta.get("unit_id") or "",
-        "format": "markdown",
-        "read": body.strip(),
-        "learn": learn_md,
-        "play": play_md,
-        "read_en": None,
-        "learn_en": None,
-        "play_en": None,
-        "play_tools": [],
-        "checkpoints": [],
-        "body_locale": "zh",
-        "original_url": original,
-        "source_path": str(path),
     }
 
 

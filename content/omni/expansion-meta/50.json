@@ -1,0 +1,43 @@
+{
+  "id": "50",
+  "slug": "threed-generation",
+  "shortTitle": "三维资产分解码",
+  "unit": "gen-native",
+  "essentialQuestion": "网格、高斯和辐射场为何不能共用一个解码器？同一份结构化 latent 怎样分出三种资产，且改高斯半径不得改 mesh 拓扑？",
+  "hook": "第 35 课的三维点是抓取闭合点。本课同一份 SLAT 要导出 mesh、3D Gaussian 和辐射场。三种输出层的 shape 不同；把高斯半径写回共享 latent，另两路必须失败。",
+  "outcomes": [
+    "写出 SLAT 为 {(z_i, p_i)}，并说明稀疏占用与局部向量各保住什么。",
+    "分别写出 mesh / 3D Gaussian / 辐射场解码器的输出 shape 契约，指出它们不能共用最后一层。",
+    "构造“加大高斯半径、mesh 拓扑不变”的夹具，以及“解码器写回 latent、另两路失败”的对照。",
+    "对照 TRELLIS 的两段 rectified flow、冻结编码器再训另两路解码器，以及和第 35 课闭合点的边界。"
+  ],
+  "misconception": {
+    "myth": "三维统一 latent 意味着一个解码器能同时吐出网格、高斯和辐射场；改高斯球大小只是外观，网格会自动跟着对。",
+    "truth": "统一的是 SLAT，不是输出层。高斯半径是 D_GS 的局部属性。写回 z_i 才会改 SDF 符号，那时辐射场因子也会坏。"
+  },
+  "prerequisites": [
+    "第 20 课：连续 latent 与 flow matching 的速度场，本课把样本从图像 latent 换成结构化 3D latent。",
+    "第 35 课：深度服务抓取闭合点。本课产出可导出资产，不报接触带。"
+  ],
+  "labId": "lab-50-trellis-slat",
+  "labExportName": "Lesson50TrellisLab",
+  "readingTime": 75,
+  "difficulty": "研究级",
+  "hardware": {
+    "minimum": "无 GPU 可读完全文并跑 CPU 机制实验",
+    "recommended": "官方仓库声明推理至少 16GB NVIDIA GPU；复现 XL 为 64×A100 40G、40 万步",
+    "notes": "浏览器实验是教学模拟，不是 TRELLIS 前向。CPU 实验只核对三种解码 shape 与写坏共享 latent 的失败传播。"
+  },
+  "learningMode": ["SLAT 只读", "三路解码器", "先预测再揭晓", "shape 契约"],
+  "practice": {
+    "purpose": "用手算核对 mesh / 高斯 / 辐射场的输出 shape，以及高斯半径不得改 mesh 拓扑、写回 latent 时另两路失败。",
+    "proves": [
+      "三种解码输出的 shape 互不相同，且都由同一份只读 SLAT 算出。",
+      "加大高斯半径后 mesh 拓扑哈希不变、辐射场因子不变、高斯尺度变大。",
+      "高斯解码器把半径写进 z_i 后，mesh 拓扑与辐射场同时与基线不一致。"
+    ],
+    "doesNotProve": "不训练 TRELLIS，也不报告 Toys4k FID、用户偏好或真机资产可用性。",
+    "sourceFile": "lesson_50.py"
+  },
+  "firstH2": "网格高斯和辐射场为何不能共用一个解码器"
+}

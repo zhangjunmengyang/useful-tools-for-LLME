@@ -1,0 +1,339 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.78fr) minmax(0, 2fr);
+  overflow: hidden;
+  border: 1px solid var(--xlab-rule, #d7dfd8);
+  border-radius: 0.8rem;
+  background: var(--xlab-surface, #fff);
+}
+
+.controls {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  padding: 1.15rem;
+  border-right: 1px solid var(--xlab-rule, #dfe5df);
+  background: var(--xlab-surface-2, #f5f7f4);
+}
+
+.controls h3 {
+  margin: 0 0 0.15rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.controls label,
+.modeField {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.controls label > span,
+.modeField legend {
+  display: flex;
+  justify-content: space-between;
+  color: var(--xlab-muted, #5e685f);
+  font-size: 0.76rem;
+}
+
+.controls output {
+  color: var(--xlab-accent-ink, #1a4f35);
+  font: 650 0.75rem/1 var(--font-geist-mono, monospace);
+}
+
+.controls input[type="range"] {
+  width: 100%;
+  accent-color: var(--xlab-accent, #176f48);
+}
+
+.modeField {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.modeField legend {
+  margin-bottom: 0.25rem;
+  font-weight: 620;
+}
+
+.modeField div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.modeField label {
+  cursor: pointer;
+}
+
+.modeField input {
+  position: absolute;
+  opacity: 0;
+}
+
+.modeField span {
+  display: block;
+  padding: 0.38rem 0.5rem;
+  border: 1px solid var(--xlab-rule-2, #d6dcd7);
+  border-radius: 0.35rem;
+  color: var(--xlab-ink-2, #526057);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.modeField input:checked + span {
+  border-color: var(--xlab-accent, #1a714b);
+  background: var(--xlab-accent-soft, #edf7f0);
+  color: var(--xlab-accent-ink, #15583b);
+}
+
+.stage {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1.15rem;
+}
+
+.formula {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--xlab-rule, #e1e5e2);
+  color: var(--xlab-muted, #667068);
+  font: 0.72rem/1.45 var(--font-geist-mono, monospace);
+}
+
+.formula strong {
+  color: var(--xlab-ink, #213a2c);
+}
+
+.plot {
+  min-width: 0;
+  padding: 0.55rem 0.55rem 0.2rem;
+  border: 1px solid var(--xlab-rule, #d9e1da);
+  border-radius: 0.5rem;
+  background: var(--xlab-surface-2, #fbfcfb);
+}
+
+.plot header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  color: var(--xlab-muted, #5e685f);
+  font-size: 0.72rem;
+}
+
+.plot svg {
+  display: block;
+  width: 100%;
+  height: 9.2rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.2rem 0 0.4rem;
+  color: var(--xlab-muted, #667068);
+  font-size: 0.68rem;
+}
+
+.legend i {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.18rem;
+  margin-right: 0.28rem;
+  vertical-align: middle;
+  background: currentColor;
+}
+
+.orig {
+  color: var(--xlab-ink-2, #3f5045);
+}
+
+.recon {
+  color: var(--xlab-accent, #176f48);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0;
+  border-top: 1px solid var(--xlab-rule, #e0e5e0);
+}
+
+.metrics div {
+  padding: 0.6rem 0.45rem 0;
+}
+
+.metrics div + div {
+  border-left: 1px solid var(--xlab-rule, #e0e5e0);
+}
+
+.metrics dt {
+  color: var(--xlab-muted, #6b756e);
+  font-size: 0.68rem;
+}
+
+.metrics dd {
+  margin: 0.15rem 0 0;
+  font: 650 0.98rem/1.2 var(--font-geist-mono, monospace);
+}
+
+.predict {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: end;
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--xlab-rule, #dce1dd);
+  border-radius: 0.65rem;
+}
+
+.predictQuestions {
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.predict fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.predict legend {
+  width: 100%;
+  margin-bottom: 0.35rem;
+  font-weight: 620;
+  font-size: 0.8rem;
+}
+
+.predict fieldset label {
+  cursor: pointer;
+}
+
+.predict fieldset input {
+  position: absolute;
+  opacity: 0;
+}
+
+.predict fieldset span {
+  display: block;
+  padding: 0.38rem 0.65rem;
+  border: 1px solid var(--xlab-rule-2, #d6dcd7);
+  border-radius: 0.35rem;
+  color: var(--xlab-ink-2, #526057);
+  font-size: 0.74rem;
+}
+
+.modeField input:focus-visible + span,
+.predict input:focus-visible + span,
+.actions button:focus-visible {
+  outline: 3px solid var(--xlab-focus-ring, #a3ceb3);
+  outline-offset: 2px;
+}
+
+.predict input:checked + span {
+  border-color: var(--xlab-accent, #1a714b);
+  background: var(--xlab-accent-soft, #edf7f0);
+  color: var(--xlab-accent-ink, #15583b);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.45rem;
+}
+
+.actions button {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 0.4rem;
+  font: 650 0.75rem/1 var(--font-geist-sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.reset {
+  border: 1px solid var(--xlab-rule-2, #d5dcd6);
+  background: var(--xlab-surface-2, white);
+  color: var(--xlab-ink-2, #47534b);
+}
+
+.run {
+  border: 1px solid var(--xlab-accent, #17653f);
+  background: var(--xlab-accent, #176d45);
+  color: var(--xlab-on-ink, white);
+}
+
+.run:disabled {
+  border-color: var(--xlab-disabled, #c9ceca);
+  background: var(--xlab-disabled, #c9ceca);
+  cursor: not-allowed;
+}
+
+.feedback {
+  margin: 0.6rem 0 0;
+  color: var(--xlab-warning, #8a4e18);
+  font-size: 0.8rem;
+}
+
+.note {
+  margin: 0;
+  color: var(--xlab-muted, #667068);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 860px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-right: 0;
+    border-bottom: 1px solid var(--xlab-rule, #dfe5df);
+  }
+
+  .controls h3,
+  .modeField {
+    grid-column: 1 / -1;
+  }
+
+  .predict {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .metrics div:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .metrics div:nth-child(n + 3) {
+    border-top: 1px solid var(--xlab-rule, #e0e5e0);
+  }
+}

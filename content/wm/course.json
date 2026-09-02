@@ -1,0 +1,54 @@
+{
+  "id": "wm",
+  "title": "世界模型",
+  "title_en": "World Models",
+  "summary": "从 2018 年 World Models 复现，走到潜空间、生成式、JEPA 和具身桌宠。",
+  "summary_en": "From the 2018 World Models reproduction through latent spaces, generative models, JEPA, and an embodied desktop pet.",
+  "units": [
+    {
+      "id": "vmc",
+      "title": "第一个世界模型",
+      "question": "在 CarRacing 上复现 2018 年的 World Models，理解 V-M-C 三个组件。"
+    },
+    {
+      "id": "engine",
+      "title": "潜空间方法",
+      "question": "比较 RSSM、Dreamer、MuZero 和 TD-MPC2 的状态表示、训练与规划方法。"
+    },
+    {
+      "id": "generative",
+      "title": "生成式世界模型",
+      "question": "比较 token、扩散和 latent action 三种生成未来的方法。"
+    },
+    {
+      "id": "jepa",
+      "title": "JEPA 路线",
+      "question": "从教学实现、官方代码和公开权重理解表征预测路线。"
+    },
+    {
+      "id": "craft",
+      "title": "评测与改造",
+      "question": "学习统一评测、缩放实验、消融和结构改造。"
+    },
+    {
+      "id": "spatial",
+      "title": "空间与物体",
+      "question": "给状态装上持久 3D/4D 和物体槽：离开视野的杯子还在，桌上的东西是分开的。"
+    },
+    {
+      "id": "embodied",
+      "title": "接到身体上",
+      "question": "把世界模型接到连续动作、接触和安全约束上，分清模仿策略、VLA 和动力学。"
+    },
+    {
+      "id": "deskpet",
+      "title": "桌宠毕业设计",
+      "question": "在一张桌子上做出会看、会想、会克制的小机器人。没有真机就用摄像头档完成。"
+    },
+    {
+      "id": "frontier",
+      "title": "刷榜、声音与配方",
+      "question": "读 2025-2026 的榜、全模态、声音、训练配方和架构。毕业标准仍在第 32 课和第 33 课。"
+    }
+  ]
+}

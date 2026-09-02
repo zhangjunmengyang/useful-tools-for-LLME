@@ -1,0 +1,41 @@
+{
+  "id": "57",
+  "slug": "data-provenance",
+  "shortTitle": "训练图像出处",
+  "unit": "data-deploy",
+  "essentialQuestion": "一张图进训练集前要留下哪些可核查证据：许可、来源 URL、内容哈希、是否合成、是否可撤回，缺哪一项就必须拒收？",
+  "hook": "路径写进了文件列表，不等于这张图能进训练集。许可空着、哈希空着，或哈希对不上字节，这一行必须拒收。水印检测率不能代替这两项。",
+  "outcomes": [
+    "写出六项必填 sidecar 字段，并把缺许可或缺哈希判为非法",
+    "用 SHA-256 硬绑定核对图像字节，区分 C2PA 硬绑定与软绑定（水印或指纹）",
+    "把合成标记、来源 URL 和可撤回标记写成可过滤字段，而不把它们当成质量分数",
+    "对照 Data Provenance Initiative 的许可审计和 C2PA 公开规格，列出可执行的缩小版准入实验"
+  ],
+  "misconception": {
+    "myth": "图下载下来、水印检测器亮了，或 C2PA 小徽章在，就可以进训练集。",
+    "truth": "训练集准入是字段谓词。缺许可或缺哈希为非法。C2PA 验证的是签名与绑定，不代替许可合同；软绑定检测是概率事件，本课不把检测率写进 Gate。"
+  },
+  "prerequisites": ["01", "建议 26", "对照 54 规格"],
+  "labId": "lab-57-provenance",
+  "labExportName": "Lesson57ProvenanceLab",
+  "readingTime": 60,
+  "difficulty": "进阶",
+  "hardware": {
+    "minimum": "无 GPU：读完全文，跑浏览器三条样本教具和 CPU 机制实验",
+    "recommended": "1×24GB 仅用于打开公开图像索引或 C2PA 校验工具看字段，不要求复现任何生成模型",
+    "notes": "C2PA / 水印只按公开规格写，不编检测率。CPU 数字不能写成真机或真实爬虫合规率。"
+  },
+  "learningMode": ["阅读", "互动实验", "CPU 机制实验"],
+  "practice": {
+    "purpose": "在三条 sidecar 夹具上核对必填字段：缺许可或缺哈希为非法，只有完整行进入训练集。",
+    "proves": [
+      "六项必填字段缺一不可",
+      "空许可、unspecified 与未知许可非法",
+      "空哈希与哈希不匹配非法",
+      "合成标记不能绕过许可"
+    ],
+    "doesNotProve": "不证明任何水印检测率、C2PA 生态覆盖率、真实爬虫合规，也不复现 LAION 或任何生成模型。",
+    "sourceFile": "lesson_57.py"
+  },
+  "firstH2": "一张图进训练集前要留下什么证据"
+}
